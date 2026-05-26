@@ -1,0 +1,225 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background: linear-gradient(135deg, #f7f9fb 0%, #cde5ff 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+        }
+        .recessed-glass {
+            background: rgba(0, 93, 144, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#50dad1",
+                        "secondary-fixed-dim": "#4cd6fb",
+                        "tertiary-container": "#007f78",
+                        "on-secondary-container": "#005c70",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary": "#00677d",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#00645f",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001d32",
+                        "primary-container": "#0077b6",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-fixed": "#72f7ed",
+                        "surface-container": "#eceef0",
+                        "on-background": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#004b74",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-dim": "#d8dadc",
+                        "surface-tint": "#006399",
+                        "on-surface-variant": "#404850",
+                        "secondary-container": "#50d9fe",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "primary": "#005d90",
+                        "secondary-fixed": "#b3ebff",
+                        "on-surface": "#191c1e",
+                        "on-tertiary-fixed-variant": "#00504b",
+                        "inverse-primary": "#94ccff",
+                        "on-secondary-fixed-variant": "#004e5f",
+                        "on-tertiary-container": "#d7fffa",
+                        "on-primary-container": "#f3f7ff",
+                        "on-tertiary-fixed": "#00201e",
+                        "primary-fixed-dim": "#94ccff",
+                        "primary-fixed": "#cde5ff",
+                        "on-secondary-fixed": "#001f27",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface": "#f7f9fb",
+                        "outline": "#707881",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#bfc7d1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack_md": "24px",
+                        "stack_lg": "40px",
+                        "gutter": "16px",
+                        "container_padding": "24px",
+                        "stack_sm": "12px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h3": ["Poppins"],
+                        "h1": ["Poppins"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Poppins"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- Top App Bar -->
+<header class="bg-white/70 backdrop-blur-[24px] border-b border-white/40 docked full-width top-0 sticky z-50 shadow-[0_8px_32px_0_rgba(0,93,144,0.08)] flex justify-between items-center w-full px-container_padding py-base">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="Verified healthcare professional profile picture" class="w-full h-full object-cover" data-alt="A professional female doctor in her 40s wearing a white lab coat and a stethoscope, smiling warmly into the camera. The background is a clean, bright medical office with soft natural lighting and glass partitions, maintaining a high-trust, light-mode healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGeoLd9otmKjEHxIeHjMZySQ_X_Cbu22gc3fX4SyiixP8l93buQr04d3_9VTA4UsHqefv_PD73yFR4M15dKm2MjuTMxX-pFXzfnFsaJ_ysJCCfGLT3I1uERMOiKdlx3PK7ivE7EC2TNv6n1JPjNUCkLk2L9_7HYoqEQSLRjNlKcj2jScZ6vMhHJKVJKmCbxMPq-6unb9GB5fJsoNUj79eL-j4UO6Db9iJcLDVyWehh8DjlwjWGlMpeFhlYR7_dhtSNIfLgX6MzRx6n">
+</div>
+<h1 class="font-h2 text-h2 text-primary tracking-tight">AI Care Bridge</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/20 transition-all duration-300 active:scale-95">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</header>
+<main class="px-container_padding pb-32">
+<!-- Conversational Area -->
+<section class="mt-stack_md flex flex-col gap-gutter">
+<!-- AI Message -->
+<div class="flex gap-base max-w-[85%]">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-on-primary-container text-[18px]" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="glass-card rounded-tr-xl rounded-b-xl px-stack_md py-stack_sm">
+<p class="font-body-md text-body-md text-on-surface">Chào bạn! Tôi là trợ lý sức khỏe AI của bạn. Hôm nay bạn cảm thấy thế nào? Bạn có thể chọn triệu chứng bên dưới hoặc mô mô tả bằng lời của mình.</p>
+</div>
+</div>
+<!-- Symptom Grid -->
+<div class="mt-stack_sm grid grid-cols-2 gap-4">
+<!-- Symptom Card 1 -->
+<button class="glass-card flex flex-col items-center justify-center p-stack_md rounded-[24px] hover:bg-white/40 transition-all duration-300 active:scale-95 group">
+<div class="w-12 h-12 mb-base rounded-full bg-secondary-container/30 flex items-center justify-center group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary text-[28px]">headset_off</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Đau đầu</span>
+</button>
+<!-- Symptom Card 2 -->
+<button class="glass-card flex flex-col items-center justify-center p-stack_md rounded-[24px] hover:bg-white/40 transition-all duration-300 active:scale-95 group border-2 border-secondary-container">
+<div class="w-12 h-12 mb-base rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container text-[28px]">ecg_heart</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant font-bold">Đau ngực</span>
+</button>
+<!-- Symptom Card 3 -->
+<button class="glass-card flex flex-col items-center justify-center p-stack_md rounded-[24px] hover:bg-white/40 transition-all duration-300 active:scale-95 group">
+<div class="w-12 h-12 mb-base rounded-full bg-secondary-container/30 flex items-center justify-center group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary text-[28px]">thermometer</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Sốt</span>
+</button>
+<!-- Symptom Card 4 -->
+<button class="glass-card flex flex-col items-center justify-center p-stack_md rounded-[24px] hover:bg-white/40 transition-all duration-300 active:scale-95 group">
+<div class="w-12 h-12 mb-base rounded-full bg-secondary-container/30 flex items-center justify-center group-hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-secondary text-[28px]">air</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Ho</span>
+</button>
+</div>
+<!-- User Response Placeholder (Hidden until action) -->
+<div class="flex justify-end mt-stack_sm">
+<div class="bg-primary-container text-on-primary-container rounded-tl-xl rounded-b-xl px-stack_md py-stack_sm max-w-[85%] shadow-[0_4px_12px_rgba(0,119,182,0.2)]">
+<p class="font-body-md text-body-md">Tôi cảm thấy đau nhói ở ngực khoảng 20 phút nay.</p>
+</div>
+</div>
+</section>
+<!-- Input Section -->
+<section class="fixed bottom-[112px] left-container_padding right-container_padding z-40">
+<div class="glass-card rounded-[32px] p-base flex items-center gap-2 shadow-[0_20px_40px_rgba(0,103,125,0.12)]">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container shadow-inner active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+<div class="flex-1 px-4 py-2 recessed-glass rounded-[24px]">
+<input class="bg-transparent border-none focus:ring-0 w-full text-on-surface placeholder-outline font-body-md" placeholder="Nhập triệu chứng của bạn..." type="text">
+</div>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors active:scale-90">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-6 left-0 w-full z-50 flex justify-around items-center px-gutter">
+<div class="bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-[30px] border border-white/40 fixed bottom-4 left-gutter right-gutter rounded-[32px] mx-auto max-w-md shadow-[0_20px_40px_rgba(0,103,125,0.12)] flex justify-between items-center px-4 py-3">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 transition-transform duration-200 hover:bg-white/30 rounded-[20px]" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps mt-1">Trang chủ</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-[20px] px-6 py-2 shadow-[0_0_15px_rgba(80,217,254,0.4)] scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-label-caps text-label-caps mt-1">Đánh giá AI</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 transition-transform duration-200 hover:bg-white/30 rounded-[20px]" href="#">
+<span class="material-symbols-outlined">monitor_heart</span>
+<span class="font-label-caps text-label-caps mt-1">Chỉ số</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 transition-transform duration-200 hover:bg-white/30 rounded-[20px]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps mt-1">Cài đặt</span>
+</a>
+</div>
+</nav>
+<!-- Background Decorative Elements -->
+<div class="fixed top-[-10%] right-[-10%] w-[300px] h-[300px] bg-secondary-container/20 rounded-full blur-[100px] -z-10"></div>
+<div class="fixed bottom-[10%] left-[-10%] w-[400px] h-[400px] bg-primary-container/10 rounded-full blur-[120px] -z-10"></div>
+
+
+</body></html>

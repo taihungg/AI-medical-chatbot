@@ -1,0 +1,244 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#72f7ed",
+                        "on-primary-container": "#f3f7ff",
+                        "surface-tint": "#006399",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#004b74",
+                        "outline": "#707881",
+                        "on-primary-fixed": "#001d32",
+                        "primary": "#005d90",
+                        "on-surface": "#191c1e",
+                        "on-background": "#191c1e",
+                        "tertiary-fixed-dim": "#50dad1",
+                        "surface": "#f7f9fb",
+                        "secondary": "#00677d",
+                        "secondary-fixed-dim": "#4cd6fb",
+                        "secondary-container": "#50d9fe",
+                        "on-secondary-container": "#005c70",
+                        "surface-container": "#eceef0",
+                        "tertiary-container": "#007f78",
+                        "surface-container-highest": "#e0e3e5",
+                        "inverse-surface": "#2d3133",
+                        "on-tertiary-container": "#d7fffa",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9fb",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#bfc7d1",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary-fixed": "#001f27",
+                        "surface-bright": "#f7f9fb",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#00504b",
+                        "primary-container": "#0077b6",
+                        "inverse-primary": "#94ccff",
+                        "surface-container-low": "#f2f4f6",
+                        "primary-fixed-dim": "#94ccff",
+                        "primary-fixed": "#cde5ff",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#eff1f3",
+                        "secondary-fixed": "#b3ebff",
+                        "tertiary": "#00645f",
+                        "surface-variant": "#e0e3e5",
+                        "on-tertiary-fixed": "#00201e",
+                        "on-surface-variant": "#404850",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#004e5f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack_sm": "12px",
+                        "gutter": "16px",
+                        "stack_md": "24px",
+                        "stack_lg": "40px",
+                        "container_padding": "24px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Poppins"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Poppins"],
+                        "h1": ["Poppins"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+        }
+        .dark .glass-card {
+            background: rgba(236, 238, 240, 0.1);
+            backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+        }
+        .recessed-glass {
+            background: rgba(0, 93, 144, 0.03);
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background: linear-gradient(135deg, #f7f9fb 0%, #e3f2fd 100%);
+            min-height: 100vh;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface">
+<!-- Top App Bar -->
+<header class="bg-white/70 dark:bg-surface-container/70 backdrop-blur-[24px] border-b border-white/40 dark:border-outline-variant/20 shadow-[0_8px_32px_0_rgba(0,93,144,0.08)] sticky top-0 z-50 flex justify-between items-center w-full px-container_padding py-base">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20">
+<img alt="Verified doctor profile" data-alt="A professional headshot of a verified healthcare professional in clinical attire, set against a soft blue and white blurred medical background. The lighting is bright and high-key, conveying trust and authority. The overall aesthetic is clean, modern, and high-trust, matching a sophisticated digital health platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAo5KE3or9UetlWbRuAH-c89lWohpW5eMSJ4e9KRYalFB5NzVNlFnaGSZI9YmQMmBUeC5WLiUZQiGmmyyMoaM2bCSnaOY7wywZVfCfgVZqPmVydt7iWBsrIuYizOgapDo_C8jLOhnw9pD3yWh1GnAue45t7jV8DcFKCc6OEXlNM6pC8KaTigBB-EGRio_FLrCwO0RtIPEfawz6Ze3YQ_XVy7v4O4NjxrCDH_PIppUGehfNaOL10vjOI2mP_9DI0LUA8gIFvBc5Uoxw">
+</div>
+<h1 class="font-h2 text-h2 text-primary dark:text-primary-fixed tracking-tight">AI Care Bridge</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-white/20 transition-all duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="px-container_padding py-stack_md max-w-2xl mx-auto pb-40">
+<!-- Section Header -->
+<div class="mb-stack_md">
+<div class="flex items-center gap-2 mb-2">
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-full font-label-caps text-[10px] uppercase tracking-widest">MÃ CA: #8829-AI</span>
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary rounded-full font-label-caps text-[10px] uppercase tracking-widest">ƯU TIÊN: CAO</span>
+</div>
+<h2 class="font-h1 text-h1 text-primary">Phân tích Sơ bộ</h2>
+<p class="font-body-md text-on-surface-variant">Xem xét dữ liệu bệnh nhân do AI tổng hợp trước khi chấp nhận ca.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- AI Symptom Summary (Full Width) -->
+<div class="md:col-span-2 glass-card rounded-[24px] p-container_padding shadow-[0_8px_32px_rgba(0,93,144,0.05)]">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<h3 class="font-h3 text-h3 text-primary">Tổng hợp Triệu chứng AI</h3>
+</div>
+<div class="recessed-glass rounded-xl p-4 border border-white/40">
+<p class="font-body-md leading-relaxed text-on-surface-variant">Bệnh nhân báo cáo tình trạng <span class="font-bold text-primary">khó thở</span> kéo dài (Giai đoạn 2) và <span class="font-bold text-primary">tức ngực</span> trong 48 giờ qua. Các triệu chứng tăng nặng khi gắng sức. Phân tích AI phát hiện mối tương quan cao với tình trạng sung huyết phổi giai đoạn đầu hoặc suy hô hấp cấp do lo âu.</p>
+</div>
+</div>
+<!-- Vital Sign: Heart Rate -->
+<div class="glass-card rounded-[24px] p-container_padding flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+<span class="text-error font-label-caps text-label-caps flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error animate-pulse"></span> Tăng cao</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">NHỊP TIM</span>
+<div class="flex items-baseline gap-1">
+<span class="font-h1 text-h1 text-on-surface">94</span>
+<span class="font-body-md text-on-surface-variant">BPM</span>
+</div>
+</div>
+<div class="mt-4 h-12 w-full bg-secondary/5 rounded-lg overflow-hidden relative">
+<!-- Simple Mock Chart -->
+<div class="absolute inset-0 flex items-end gap-1 px-2 py-1">
+<div class="w-full bg-secondary/20 h-1/2 rounded-t-sm"></div>
+<div class="w-full bg-secondary/30 h-3/4 rounded-t-sm"></div>
+<div class="w-full bg-secondary/40 h-2/3 rounded-t-sm"></div>
+<div class="w-full bg-secondary/60 h-5/6 rounded-t-sm"></div>
+<div class="w-full bg-secondary/20 h-1/2 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Vital Sign: Blood Pressure -->
+<div class="glass-card rounded-[24px] p-container_padding flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">monitor_heart</span>
+</div>
+<span class="text-tertiary font-label-caps text-label-caps">Mức Bình thường</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">HUYẾT ÁP</span>
+<div class="flex items-baseline gap-1">
+<span class="font-h1 text-h1 text-on-surface">132/84</span>
+<span class="font-body-md text-on-surface-variant">mmHg</span>
+</div>
+</div>
+<div class="mt-4 recessed-glass px-3 py-2 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm">check_circle</span>
+<span class="text-xs font-medium text-tertiary">Ổn định trong 24h</span>
+</div>
+</div>
+<!-- Medical History -->
+<div class="md:col-span-2 glass-card rounded-[24px] p-container_padding">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">history_edu</span>
+</div>
+<h3 class="font-h3 text-h3 text-tertiary">Tiền sử Liên quan</h3>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">medical_services</span>
+<span class="font-body-md">Cao huyết áp (Chẩn đoán năm 2021)</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">arrow_forward_ios</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl bg-white/40 border border-white/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">pill</span>
+<span class="font-body-md">Lisinopril 10mg mỗi ngày</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Dock -->
+<div class="fixed bottom-0 left-0 w-full p-container_padding z-50">
+<div class="max-w-2xl mx-auto glass-card rounded-[32px] p-4 flex gap-3 shadow-[0_20px_40px_rgba(0,103,125,0.12)]">
+<button class="flex-1 min-h-[56px] rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-h3 font-bold shadow-[0_0_15px_rgba(80,217,254,0.4)] flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all duration-200"><span class="material-symbols-outlined">check_circle</span> Chấp nhận Ca</button>
+<button class="flex-1 min-h-[56px] rounded-2xl border-2 border-secondary text-secondary font-h3 font-medium bg-transparent flex items-center justify-center gap-2 hover:bg-secondary/5 active:scale-95 transition-all duration-200"><span class="material-symbols-outlined">move_up</span> Từ chối/Chuyển</button>
+</div>
+</div>
+
+
+</body></html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Danh mục Thuốc - AI Care Bridge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Poppins:wght@500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#e6e8ea",
+                      "on-tertiary-fixed": "#00201e",
+                      "tertiary-fixed": "#72f7ed",
+                      "surface-bright": "#f7f9fb",
+                      "on-surface": "#191c1e",
+                      "surface-tint": "#006399",
+                      "secondary-container": "#50d9fe",
+                      "primary-container": "#0077b6",
+                      "error": "#ba1a1a",
+                      "on-primary-fixed": "#001d32",
+                      "surface-container": "#eceef0",
+                      "on-secondary-container": "#005c70",
+                      "error-container": "#ffdad6",
+                      "surface-container-lowest": "#ffffff",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed-dim": "#50dad1",
+                      "surface": "#f7f9fb",
+                      "on-tertiary-container": "#d7fffa",
+                      "primary-fixed": "#cde5ff",
+                      "surface-container-low": "#f2f4f6",
+                      "on-tertiary": "#ffffff",
+                      "surface-variant": "#e0e3e5",
+                      "outline": "#707881",
+                      "secondary": "#00677d",
+                      "on-tertiary-fixed-variant": "#00504b",
+                      "on-secondary-fixed": "#001f27",
+                      "inverse-primary": "#94ccff",
+                      "background": "#f7f9fb",
+                      "on-background": "#191c1e",
+                      "tertiary-container": "#007f78",
+                      "on-primary-container": "#f3f7ff",
+                      "inverse-surface": "#2d3133",
+                      "primary": "#005d90",
+                      "secondary-fixed": "#b3ebff",
+                      "on-error-container": "#93000a",
+                      "surface-dim": "#d8dadc",
+                      "on-primary-fixed-variant": "#004b74",
+                      "tertiary": "#00645f",
+                      "surface-container-highest": "#e0e3e5",
+                      "secondary-fixed-dim": "#4cd6fb",
+                      "on-surface-variant": "#404850",
+                      "outline-variant": "#bfc7d1",
+                      "primary-fixed-dim": "#94ccff",
+                      "inverse-on-surface": "#eff1f3",
+                      "on-secondary-fixed-variant": "#004e5f",
+                      "on-secondary": "#ffffff",
+                      "on-primary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack_md": "24px",
+                      "base": "8px",
+                      "gutter": "16px",
+                      "container_padding": "24px",
+                      "stack_lg": "40px",
+                      "stack_sm": "12px"
+              },
+              "fontFamily": {
+                      "h3": [
+                              "Poppins"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "h1": [
+                              "Poppins"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "h2": [
+                              "Poppins"
+                      ]
+              },
+              "fontSize": {
+                      "h3": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "h2": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        /* Base Gradient Background */
+        body {
+            background: radial-gradient(circle at top left, #cde5ff 0%, #f7f9fb 40%),
+                        radial-gradient(circle at bottom right, #50d9fe 0%, #f7f9fb 50%);
+            background-attachment: fixed;
+        }
+        
+        /* Glass Utilities */
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .glass-overlay {
+            background-color: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 40px 60px -15px rgba(0, 93, 144, 0.08);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md pb-[100px]">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 sticky z-50 bg-white/70 dark:bg-surface-container/70 backdrop-blur-[24px] border-b border-white/40 dark:border-outline-variant/20 shadow-[0_8px_32px_0_rgba(0,93,144,0.08)] flex justify-between items-center w-full px-container_padding py-base">
+<div class="flex items-center gap-3">
+<img alt="Verified healthcare professional profile picture" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A close-up portrait of a female healthcare professional wearing clean teal scrubs and a stethoscope. She has a warm, reassuring smile and is set against a soft, bright clinical background. The lighting is high-key and flattering, emphasizing a modern, professional, and trustworthy medical environment. The overall aesthetic perfectly matches the light, airy glassmorphism style of the interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0JrGpeVASIZBJuChWyYzRZbj1Bc-9znXJXV2eEh375EPdcBAXs1L_jjZDW9g743aCbt4yFtqmrPDOy2fqje7Jrm9zWTNlHQb4Z_gHkCaJb12ck0zzm8NFdezE2QHpxbas_NBuleqk6-eFq5jKlvd84VtQZ9sCNPxXMtzzp34k_1WN8CjAIHegDgfYtBLEvxCXT7d-7GOjNM3YqWDV3w--f7mCxddoCr7j-GqZFPy-wst9D7Wnwr1MskxASyRJxvFcQULQttohq4U">
+<h1 class="font-h2 text-h2 text-primary dark:text-primary-fixed tracking-tight">AI Care Bridge</h1>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-primary dark:text-primary-fixed-dim hover:bg-white/20 transition-all duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="px-container_padding py-stack_md flex flex-col gap-stack_md">
+<!-- Search and Filter Header -->
+<div class="flex flex-col gap-4">
+<!-- Recessed Search Input -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-14 pl-12 pr-4 rounded-[24px] bg-surface-container-high/50 border border-white/30 text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary-container focus:bg-white/80 transition-all shadow-inner font-body-md text-body-md" placeholder="Tìm thuốc, triệu chứng..." type="text">
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-primary">
+<span class="material-symbols-outlined">mic</span>
+</button>
+</div>
+<!-- Horizontal Category Pills -->
+<div class="flex overflow-x-auto hide-scrollbar gap-3 pb-2 -mx-container_padding px-container_padding">
+<button class="whitespace-nowrap px-6 py-2 rounded-full bg-primary text-white font-label-caps text-label-caps shadow-sm">Tất cả</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full glass-panel text-on-surface-variant font-label-caps text-label-caps hover:bg-white/50 transition-colors">Kháng sinh</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full glass-panel text-on-surface-variant font-label-caps text-label-caps hover:bg-white/50 transition-colors">Giảm đau</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full glass-panel text-on-surface-variant font-label-caps text-label-caps hover:bg-white/50 transition-colors">Tim mạch</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full glass-panel text-on-surface-variant font-label-caps text-label-caps hover:bg-white/50 transition-colors">Tiểu đường</button>
+</div>
+</div>
+<!-- Frequently Prescribed (Bento Grid Style) -->
+<section>
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-h3 text-h3 text-on-surface">Kê đơn Phổ biến</h2>
+<button class="text-primary font-label-caps text-label-caps flex items-center">Xem Tất cả <span class="material-symbols-outlined text-sm ml-1">chevron_right</span></button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Drug Card 1 -->
+<div class="glass-panel rounded-[24px] p-4 flex flex-col justify-between min-h-[180px]">
+<div class="flex justify-between items-start mb-2">
+<div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden p-1">
+<img alt="Amoxicillin Packaging" class="w-full h-full object-contain" data-alt="A clean, minimalist close-up shot of a white and blue medication box or blister pack on a pure white background. The lighting is soft and studio-quality, emphasizing the pristine nature of the pharmaceutical product. The subtle shadows create a sense of depth, fitting perfectly into a modern healthcare application interface with a frosted glass aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcV1lbM6IrosnOL6NUEJ6om4g5WezlYNf4eMMZL1oBJTRxk-btnV--v4_G4BOyBuVrBfoAAc1HWhqBcBVL73RNFKz_vuNcnN3QOP02t1XijPElDSmQ0aoPANWaCqic3iaX05HuZh1M9GIqcm0jf8GX6BGE92Q-jrv_EKh-Sq-cSc0cNJnbx6HoShMbc5ERWsP2UY2rEUoaWJvRA5krjW5eanrDi44JB_L4avFNVKlB94I6dBjUqI19UFNCWwfqnxnSN0N9tXtlACA">
+</div>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+</button>
+</div>
+<div>
+<h3 class="font-h3 text-h3 text-on-surface text-base leading-tight">Amoxicillin</h3>
+<p class="font-label-caps text-label-caps text-outline mt-1">Kháng sinh • 500mg</p>
+</div>
+<div class="flex justify-between items-center mt-3">
+<span class="font-h3 text-h3 text-primary text-sm">Còn hàng</span>
+<button class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary-container text-white flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Drug Card 2 -->
+<div class="glass-panel rounded-[24px] p-4 flex flex-col justify-between min-h-[180px]">
+<div class="flex justify-between items-start mb-2">
+<div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden p-1">
+<img alt="Ibuprofen Packaging" class="w-full h-full object-contain" data-alt="A detailed macro photograph of an orange and white prescription pill bottle next to a few scattered white tablets. The scene is brightly lit with cool, clinical tones, casting soft reflections on the white surface below. The image conveys safety and reliability, essential for a premium medical catalog application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm5ElzT1T0wnyk-uwjxNpIWoL7D_omTxE4WWKKILIe1elM-K26yJ6h6fOH1WckrPnv4T_GZCJ1N-jy07mgmkDwjd9Hbh0Q68uDyIMZyXP-dvPmslOvE2D4n9cw2x1ZuUxz9Yt426od7A9Q37rwo5opfdAnee5RZVgMaVxY1XdrJ1qUJaZUFvHAMRT1twPxGhllLKrBrebThaivHcqtahww-Ibtb7fnj90eR7ZDDl1tTNwMUN1Y7gPy_hzNuSPr5HLa6juRCU7v5AM">
+</div>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+</button>
+</div>
+<div>
+<h3 class="font-h3 text-h3 text-on-surface text-base leading-tight">Ibuprofen</h3>
+<p class="font-label-caps text-label-caps text-outline mt-1">Giảm đau • 400mg</p>
+</div>
+<div class="flex justify-between items-center mt-3">
+<span class="font-h3 text-h3 text-primary text-sm">Còn hàng</span>
+<button class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary-container text-white flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Catalog List (Glass Rows) -->
+<section>
+<h2 class="font-h3 text-h3 text-on-surface mb-4">Tất cả các loại thuốc</h2>
+<div class="flex flex-col gap-3">
+<!-- List Item 1 -->
+<div class="glass-panel rounded-[24px] p-3 flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-white flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-1">
+<img alt="Lisinopril Packaging" class="w-full h-full object-cover" data-alt="A sleek, top-down view of generic white blister packs containing small round pills resting on a light cyan surface. The lighting is diffused and modern, creating a soft, shadowless environment that feels clean and highly organized. The color palette aligns with a calm, trust-inspiring healthcare brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAorUFV3ANZcsNX0G3VHLHzdht4wo2gnTqM8DC9wbX3N5m7YpXDN-TdkZ-1jdKaFPYkbhE7M2gZFDNguP9tCSj5L_2yBd-cneoB5RqDWcbG3Mxepb0NJABwcuNPY9Va7xSuafNVjxwPz4X7W9fTvWLGu53i7DzhlW3pCCZzBeo3yT5zatSfiersATlD9lEqvpGfwNWX3Onu1NA6P1dh1a5f_iy8jC1eAss12wxyQ7ac28ytgT5iFtALvbOBEHIlJlmlU5Zkim66onU">
+</div>
+<div class="flex-grow">
+<h3 class="font-h3 text-h3 text-on-surface text-base">Lisinopril</h3>
+<p class="font-label-caps text-label-caps text-outline mt-0.5">Tim mạch • 10mg</p>
+</div>
+<button class="w-10 h-10 rounded-full border-2 border-secondary text-secondary flex items-center justify-center hover:bg-secondary/10 transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<!-- List Item 2 -->
+<div class="glass-panel rounded-[24px] p-3 flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-white flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-1">
+<img alt="Metformin Packaging" class="w-full h-full object-cover" data-alt="A crisp, high-resolution image of a generic white medicine box with subtle blue accents, placed on a slightly reflective white table. The background is a soft blur, keeping the focus entirely on the packaging. The lighting is bright and even, evoking a sterile yet approachable pharmacy setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXrdM-h4H6ik_8Czrzgn7wNUg4FDN2WL7tgy1Ph4i1kHhcWlJu4lwrNEyFnymfWGLwe2ka_Mme6Usvpp7hc91X78k8h7OAxGNRmlI2lY3gtJ0agZxa3X4P5FYEiPFBHNjKanweczTDb9va4JBwZWBIlSQpMLU8crN_dPCyXOtOTbIxsqaYCsBxiVEKDf7oax3qtZvx3eb6caM85Rj-EcIp1Ngv_T3ZPTQh2yvL0cQJamzWBdwiMbE1QmEJyGZAIqT3Y3gbMixoOe4">
+</div>
+<div class="flex-grow">
+<h3 class="font-h3 text-h3 text-on-surface text-base">Metformin</h3>
+<p class="font-label-caps text-label-caps text-outline mt-0.5">Tiểu đường • 500mg</p>
+</div>
+<button class="w-10 h-10 rounded-full border-2 border-secondary text-secondary flex items-center justify-center hover:bg-secondary/10 transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<!-- List Item 3 -->
+<div class="glass-panel rounded-[24px] p-3 flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-surface-variant flex-shrink-0 flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-outline text-2xl">medication</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-h3 text-h3 text-on-surface text-base">Atorvastatin</h3>
+<p class="font-label-caps text-label-caps text-outline mt-0.5">Tim mạch • 20mg</p>
+</div>
+<button class="w-10 h-10 rounded-full border-2 border-secondary text-secondary flex items-center justify-center hover:bg-secondary/10 transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 w-full z-50 flex justify-around items-center px-gutter md:hidden">
+<div class="bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-[30px] border border-white/40 dark:border-outline-variant/30 shadow-[0_20px_40px_rgba(0,103,125,0.12)] fixed bottom-4 left-gutter right-gutter rounded-[32px] mx-auto max-w-md flex justify-around items-center h-[72px]">
+<!-- Inactive -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-6 py-2 hover:bg-white/30 dark:hover:bg-surface-variant/20 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-caps text-label-caps text-[10px]">Home</span>
+</a>
+<!-- Inactive (Semantic mismatch, keeping inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-6 py-2 hover:bg-white/30 dark:hover:bg-surface-variant/20 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined mb-1">chat_bubble</span>
+<span class="font-label-caps text-label-caps text-[10px]">AI Assess</span>
+</a>
+<!-- Active (Catalog/Search maps loosely to main content or Vitals/Health tracking. Let's assume this isn't a top-level nav match, but we need an active state. 'Home' is usually the fallback for a dashboard, but if it's a specific catalog tool, maybe none are perfectly active. Given the options, 'Home' or none. Let's make none active if it's a subpage, but the prompt implies a top-level search. Let's keep Home active for the main dashboard flow.) -->
+<!-- Wait, the rule says "Automatic Suppression: You MUST exclude the navigation shell if the page intent is... Task-Focused: Any sub-page featuring a "Close" or "Back" action that implies a temporary departure from the main navigation flow." -->
+<!-- A searchable catalog is often a sub-page (e.g., adding a medication). However, the prompt asks to include the predicted components as guidance. I will assume this is a top level "Home" or "AI Assess" screen feature. I will highlight Home. -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-[20px] px-6 py-2 shadow-[0_0_15px_rgba(80,217,254,0.4)] scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-caps text-label-caps text-[10px] font-bold">Home</span>
+</a>
+<!-- Inactive -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-6 py-2 hover:bg-white/30 dark:hover:bg-surface-variant/20 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-label-caps text-label-caps text-[10px]">Settings</span>
+</a>
+</div>
+</nav>
+
+
+</body></html>

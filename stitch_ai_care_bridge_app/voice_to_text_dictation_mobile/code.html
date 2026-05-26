@@ -1,0 +1,182 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Voice Dictation - AI Care Bridge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Poppins:wght@500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-fixed": "#00201e",
+                        "tertiary-fixed": "#72f7ed",
+                        "surface-bright": "#f7f9fb",
+                        "on-surface": "#191c1e",
+                        "surface-tint": "#006399",
+                        "secondary-container": "#50d9fe",
+                        "primary-container": "#0077b6",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001d32",
+                        "surface-container": "#eceef0",
+                        "on-secondary-container": "#005c70",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#50dad1",
+                        "surface": "#f7f9fb",
+                        "on-tertiary-container": "#d7fffa",
+                        "primary-fixed": "#cde5ff",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "outline": "#707881",
+                        "secondary": "#00677d",
+                        "on-tertiary-fixed-variant": "#00504b",
+                        "on-secondary-fixed": "#001f27",
+                        "inverse-primary": "#94ccff",
+                        "background": "#f7f9fb",
+                        "on-background": "#191c1e",
+                        "tertiary-container": "#007f78",
+                        "on-primary-container": "#f3f7ff",
+                        "inverse-surface": "#2d3133",
+                        "primary": "#005d90",
+                        "secondary-fixed": "#b3ebff",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#d8dadc",
+                        "on-primary-fixed-variant": "#004b74",
+                        "tertiary": "#00645f",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary-fixed-dim": "#4cd6fb",
+                        "on-surface-variant": "#404850",
+                        "outline-variant": "#bfc7d1",
+                        "primary-fixed-dim": "#94ccff",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary-fixed-variant": "#004e5f",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack_md": "24px",
+                        "base": "8px",
+                        "gutter": "16px",
+                        "container_padding": "24px",
+                        "stack_lg": "40px",
+                        "stack_sm": "12px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Poppins"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Poppins"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Poppins"]
+                    },
+                    "fontSize": {
+                        "h3": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            font-feature-settings: 'liga';
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen w-full overflow-hidden flex justify-center font-body-md">
+<!-- Mobile Viewport Wrapper (Fluid layout focused on mobile as requested) -->
+<div class="w-full h-screen max-w-md relative flex flex-col mx-auto bg-gradient-to-br from-surface to-primary-fixed/30 overflow-hidden">
+<!-- Background Ambient Glow (Glassmorphism structural base) -->
+<div class="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-gradient-to-b from-primary-fixed-dim/20 via-surface to-surface-container-highest/30 pointer-events-none"></div>
+<!-- Task-Specific Header (Suppressed standard nav as per task-focused rule) -->
+<header class="relative z-10 flex justify-between items-center px-container_padding py-stack_md">
+<button class="w-10 h-10 rounded-full bg-white/60 backdrop-blur-md border border-white/40 flex items-center justify-center text-on-surface-variant hover:bg-white/80 transition-colors shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+<h1 class="font-h3 text-h3 text-primary tracking-tight">Đọc ghi chú</h1>
+<div class="w-10 h-10"></div>
+</header>
+<!-- Main Task Canvas -->
+<main class="relative z-10 flex-1 px-container_padding flex flex-col pb-stack_lg">
+<!-- Transcription Area (Glass Card) -->
+<div class="mt-base bg-white/70 backdrop-blur-[24px] rounded-[24px] border-[1.5px] border-white/40 shadow-[0_8px_32px_0_rgba(0,93,144,0.08)] p-6 min-h-[220px] flex flex-col relative overflow-hidden">
+<!-- Active Indicator -->
+<div class="flex items-center gap-2 mb-4">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed-dim shadow-[0_0_8px_rgba(76,214,251,0.8)]"></span>
+<span class="font-label-caps text-label-caps text-secondary">AI ĐANG NGHE</span>
+</div>
+<!-- Live Text -->
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">Bệnh nhân có dấu hiệu áp lực xoang cấp tính<span class="text-secondary/60">...</span></p>
+<!-- Subtle internal gradient for depth -->
+<div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white/50 to-transparent pointer-events-none"></div>
+</div>
+<!-- Voice Interface Centerpiece -->
+<div class="flex-1 flex flex-col items-center justify-center relative my-stack_md">
+<!-- Central Glow (Ocean Blue to Cyan logic) -->
+<div class="absolute w-72 h-72 bg-gradient-to-tr from-primary-container/30 to-secondary-container/30 rounded-full blur-[40px] pointer-events-none"></div>
+<!-- Active Sound Wave Visualizations (Teal/Cyan) -->
+<div class="flex items-center gap-1.5 z-10 h-16 mb-stack_md">
+<div class="w-2 rounded-full bg-tertiary-fixed h-4 shadow-[0_0_10px_rgba(114,247,237,0.5)]"></div>
+<div class="w-2 rounded-full bg-secondary-fixed-dim h-8 shadow-[0_0_10px_rgba(76,214,251,0.5)]"></div>
+<div class="w-2 rounded-full bg-secondary-container h-14 shadow-[0_0_10px_rgba(80,217,254,0.5)]"></div>
+<div class="w-2 rounded-full bg-primary-fixed-dim h-6 shadow-[0_0_10px_rgba(148,204,255,0.5)]"></div>
+<div class="w-2 rounded-full bg-secondary h-16 shadow-[0_0_10px_rgba(0,103,125,0.5)]"></div>
+<div class="w-2 rounded-full bg-tertiary-fixed-dim h-10 shadow-[0_0_10px_rgba(80,218,209,0.5)]"></div>
+<div class="w-2 rounded-full bg-secondary-fixed-dim h-5 shadow-[0_0_10px_rgba(76,214,251,0.5)]"></div>
+</div>
+<!-- Glowing Microphone Button -->
+<button class="z-10 w-[100px] h-[100px] rounded-[32px] bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-[0_12px_40px_rgba(0,93,144,0.4),_inset_0_2px_4px_rgba(255,255,255,0.3)] border-2 border-white/20 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined text-[40px] text-white drop-shadow-md" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+</div>
+<!-- Bottom Actions Area -->
+<div class="flex flex-col gap-stack_sm mt-auto">
+<!-- Primary CTA: Stop and Save -->
+<button class="w-full min-h-[56px] rounded-[20px] bg-gradient-to-r from-primary to-secondary flex items-center justify-center shadow-[0_8px_20px_rgba(0,93,144,0.2)] hover:opacity-90 transition-opacity">
+<span class="font-body-md text-body-md font-bold text-white tracking-wide">Dừng và Lưu</span>
+</button>
+<!-- Secondary Action: Cancel -->
+<button class="w-full min-h-[56px] rounded-[20px] bg-white/40 backdrop-blur-md border border-white/50 flex items-center justify-center hover:bg-white/60 transition-colors shadow-sm">
+<span class="font-body-md text-body-md font-bold text-on-surface-variant">Hủy bỏ</span>
+</button>
+</div>
+</main>
+</div>
+
+
+</body></html>

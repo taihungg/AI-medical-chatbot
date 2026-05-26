@@ -1,0 +1,248 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Symptom Survey - AI Care Bridge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#50dad1",
+                        "secondary-fixed-dim": "#4cd6fb",
+                        "tertiary-container": "#007f78",
+                        "on-secondary-container": "#005c70",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary": "#00677d",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#00645f",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001d32",
+                        "primary-container": "#0077b6",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-fixed": "#72f7ed",
+                        "surface-container": "#eceef0",
+                        "on-background": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#004b74",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-dim": "#d8dadc",
+                        "surface-tint": "#006399",
+                        "on-surface-variant": "#404850",
+                        "secondary-container": "#50d9fe",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "primary": "#005d90",
+                        "secondary-fixed": "#b3ebff",
+                        "on-surface": "#191c1e",
+                        "on-tertiary-fixed-variant": "#00504b",
+                        "inverse-primary": "#94ccff",
+                        "on-secondary-fixed-variant": "#004e5f",
+                        "on-tertiary-container": "#d7fffa",
+                        "on-primary-container": "#f3f7ff",
+                        "on-tertiary-fixed": "#00201e",
+                        "primary-fixed-dim": "#94ccff",
+                        "primary-fixed": "#cde5ff",
+                        "on-secondary-fixed": "#001f27",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface": "#f7f9fb",
+                        "outline": "#707881",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#bfc7d1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack_md": "24px",
+                        "stack_lg": "40px",
+                        "gutter": "16px",
+                        "container_padding": "24px",
+                        "stack_sm": "12px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h3": ["Poppins"],
+                        "h1": ["Poppins"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Poppins"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+        }
+        .recessed-glass {
+            background: rgba(0, 93, 144, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .mesh-gradient {
+            background: radial-gradient(at 0% 0%, #cde5ff 0%, transparent 50%),
+                        radial-gradient(at 100% 0%, #b3ebff 0%, transparent 50%),
+                        radial-gradient(at 100% 100%, #72f7ed 0%, transparent 50%),
+                        radial-gradient(at 0% 100%, #94ccff 0%, transparent 50%);
+            background-color: #f7f9fb;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #005d90 0%, #00677d 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(80, 217, 254, 0.5);
+            border: 2px solid white;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="mesh-gradient min-h-screen text-on-background font-body-md overflow-x-hidden">
+<header class="bg-white/70 dark:bg-surface-container/70 backdrop-blur-[24px] border-b border-white/40 dark:border-outline-variant/20 shadow-[0_8px_32px_0_rgba(0,93,144,0.08)] flex justify-between items-center w-full px-container_padding py-base docked full-width top-0 sticky z-50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20">
+<img alt="Verified healthcare professional profile picture" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a female doctor in a crisp white medical coat, looking warm and trustworthy. She is set against a soft, blurred clinical background with gentle blue and white tones. The lighting is bright and airy, emphasizing a modern healthcare aesthetic with high-key clarity and an empathetic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmzA6cEwPsGiZ8_y2OfVajU-OXG8ku30ugNQN9MAfdVS1uMhhKXoH7M8cWMAYn4P4w2k2o1LqOO0vOVzGCA9Vkm_Tm4iIgmm-iZ4AX2cwM1Fg86xHW9OAHB_l37V_rnetMtf1lxEbZ61tmy1zkUGxVnDxNCDsnKdQkS2_MhmaNjcAkFHt9ICim0dfrWhfNrN22NzSWn-mTqmdDuAQ3hThHA7q9MKc9ypCg-aXcmZHkyzN8vqH86bD9KaCnH_60CA9x6Yx04zRQY192">
+</div>
+<h1 class="font-h2 text-h2 text-primary dark:text-primary-fixed tracking-tight">AI Care Bridge</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-white/20 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="px-container_padding py-stack_md pb-40">
+<div class="mb-stack_md">
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-primary uppercase">KHẢO SÁT TRIỆU CHỨNG</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Bước 2 trên 4</span>
+</div>
+<div class="w-full h-2 bg-white/40 rounded-full overflow-hidden">
+<div class="h-full w-1/2 bg-gradient-to-r from-primary to-secondary-container rounded-full"></div>
+</div>
+</div>
+<section class="space-y-stack_md">
+<div class="flex gap-3 max-w-[85%]">
+<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="glass-card p-4 rounded-2xl rounded-tl-none">
+<p class="font-body-md text-on-surface">Tôi đã ghi nhận tình trạng đau tức ngực. Để giúp tôi hiểu rõ hơn, bạn đánh giá mức độ đau hiện tại theo thang điểm từ 1 đến 10 là bao nhiêu?</p>
+</div>
+</div>
+<div class="glass-card p-container_padding rounded-[24px]">
+<div class="flex justify-between mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Nhẹ</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Nặng</span>
+</div>
+<div class="px-2">
+<input class="w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary" max="10" min="1" step="1" type="range" value="4">
+</div>
+<div class="flex justify-between mt-4 px-1">
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">1</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">2</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">3</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container font-bold border-2 border-primary/20">4</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">5</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">6</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">7</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">8</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">9</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant font-bold">10</span>
+</div>
+</div>
+<div class="flex gap-3 max-w-[85%]">
+<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="glass-card p-4 rounded-2xl rounded-tl-none">
+<p class="font-body-md text-on-surface">Tình trạng này đã kéo dài bao lâu rồi?</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-stack_sm">
+<button class="glass-card p-4 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-secondary-container/20 hover:border-secondary transition-all active:scale-95 duration-200">
+<span class="font-body-md">Vài phút</span>
+</button>
+<button class="glass-card p-4 rounded-xl flex items-center justify-center bg-secondary-container/30 border-secondary text-secondary font-bold active:scale-95 duration-200">
+<span class="font-body-md">Khoảng 1 giờ</span>
+</button>
+<button class="glass-card p-4 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-secondary-container/20 hover:border-secondary transition-all active:scale-95 duration-200">
+<span class="font-body-md">Vài giờ</span>
+</button>
+<button class="glass-card p-4 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-secondary-container/20 hover:border-secondary transition-all active:scale-95 duration-200">
+<span class="font-body-md">Từ hôm qua</span>
+</button>
+</div>
+<div class="flex gap-3 max-w-[85%]">
+<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="glass-card p-4 rounded-2xl rounded-tl-none">
+<p class="font-body-md text-on-surface">Cảm giác khó chịu có lan ra các khu vực khác như cánh tay trái, hàm hoặc lưng không?</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-stack_sm">
+<button class="px-6 py-3 rounded-full border-2 border-secondary text-secondary font-bold bg-white/20 hover:bg-secondary-container/10 transition-colors">Không, chỉ ở ngực</button>
+<button class="px-6 py-3 rounded-full border-2 border-outline-variant/30 text-on-surface-variant bg-white/20 hover:bg-secondary-container/10 transition-colors">Cánh tay trái</button>
+<button class="px-6 py-3 rounded-full border-2 border-outline-variant/30 text-on-surface-variant bg-white/20 hover:bg-secondary-container/10 transition-colors">Hàm / Cổ</button>
+<button class="px-6 py-3 rounded-full border-2 border-outline-variant/30 text-on-surface-variant bg-white/20 hover:bg-secondary-container/10 transition-colors">Lưng</button>
+</div>
+</section>
+<div class="mt-stack_lg flex justify-center">
+<button class="w-full h-14 rounded-full bg-gradient-to-r from-primary to-secondary-container text-white font-bold text-body-lg shadow-[0_4px_20px_rgba(0,93,144,0.3)] hover:scale-[1.02] active:scale-95 transition-transform">Tiếp tục phân tích</button>
+</div>
+</main>
+<nav class="fixed bottom-6 left-0 w-full z-50 flex justify-around items-center px-gutter">
+<div class="bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-[30px] border border-white/40 dark:border-outline-variant/30 shadow-[0_20px_40px_rgba(0,103,125,0.12)] fixed bottom-4 left-gutter right-gutter rounded-[32px] mx-auto max-w-md flex justify-around items-center py-2 px-2 h-20">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-6 py-2 hover:bg-white/30 dark:hover:bg-surface-variant/20 transition-all duration-300">
+<span class="material-symbols-outlined text-[24px]" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">Trang chủ</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-[20px] px-6 py-2 shadow-[0_0_15px_rgba(80,217,254,0.4)] scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-[24px]" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-label-caps text-label-caps mt-1">Đánh giá AI</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-6 py-2 hover:bg-white/30 dark:hover:bg-surface-variant/20 transition-all duration-300">
+<span class="material-symbols-outlined text-[24px]" data-icon="monitor_heart">monitor_heart</span>
+<span class="font-label-caps text-label-caps mt-1">Chỉ số</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-6 py-2 hover:bg-white/30 dark:hover:bg-surface-variant/20 transition-all duration-300">
+<span class="material-symbols-outlined text-[24px]" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps mt-1">Cài đặt</span>
+</button>
+</div>
+</nav>
+
+
+</body></html>
