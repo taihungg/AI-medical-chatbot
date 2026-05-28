@@ -5,6 +5,7 @@ import 'symptom_flow.dart';
 import 'appointment_booking.dart';
 import 'medication_catalog.dart';
 import 'doctor_consultation.dart';
+import '../splash_screen.dart';
 
 class PatientHomeDashboard extends StatelessWidget {
   const PatientHomeDashboard({super.key});
@@ -49,18 +50,32 @@ class PatientHomeDashboard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      // Verified Patient avatar or badge
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                          gradient: GlassTheme.accentGradient,
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.person_pin, color: Colors.white, size: 28),
-                        ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
+                            tooltip: "Đổi vai trò",
+                            onPressed: () {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const SplashScreen()),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          // Verified Patient avatar or badge
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                              gradient: GlassTheme.accentGradient,
+                            ),
+                            child: const Center(
+                              child: Icon(Icons.person_pin, color: Colors.white, size: 28),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

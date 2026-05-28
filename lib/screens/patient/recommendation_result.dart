@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../splash_screen.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import 'appointment_booking.dart';
 import 'doctor_consultation.dart';
-import 'medication_catalog.dart';
 
 class RecommendationResultScreen extends StatelessWidget {
   final String symptoms;
@@ -197,8 +197,8 @@ class RecommendationResultScreen extends StatelessWidget {
                   text: "Tìm Kiếm Dược Phẩm Phù Hợp",
                   icon: Icons.local_pharmacy,
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const MedicationCatalogScreen()),
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 2)),
                     );
                   },
                 ),
@@ -221,7 +221,9 @@ class RecommendationResultScreen extends StatelessWidget {
               // Back to Home
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 0)),
+                  );
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -551,7 +553,7 @@ class SelfCareScreen extends StatelessWidget {
               icon: Icons.local_pharmacy,
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const MedicationCatalogScreen()),
+                  MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 2)),
                 );
               },
             ),

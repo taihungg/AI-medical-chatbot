@@ -220,7 +220,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
 // Global Main Framework Screen that handles Switching Roles on the fly
 class MainFramework extends StatefulWidget {
-  const MainFramework({super.key});
+  final int initialPatientTab;
+  const MainFramework({super.key, this.initialPatientTab = 0});
 
   @override
   State<MainFramework> createState() => _MainFrameworkState();
@@ -228,7 +229,13 @@ class MainFramework extends StatefulWidget {
 
 class _MainFrameworkState extends State<MainFramework> {
   // Navigation for Patient/Seeker is separate from Specialist/Manager
-  int _patientNavIndex = 0;
+  late int _patientNavIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _patientNavIndex = widget.initialPatientTab;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +245,9 @@ class _MainFrameworkState extends State<MainFramework> {
       listenable: appState,
       builder: (context, child) {
         // Dynamically select layout based on the active role selected in the floating switcher
-        return Scaffold(
+        return PopScope(
+          canPop: false,
+          child: Scaffold(
           body: Stack(
             children: [
               // Dynamic view based on Active Role
@@ -264,7 +273,7 @@ class _MainFrameworkState extends State<MainFramework> {
               ),
             ],
           ),
-        );
+        ),);
       },
     );
   }

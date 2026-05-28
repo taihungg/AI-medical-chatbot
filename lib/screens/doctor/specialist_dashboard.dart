@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../patient/doctor_consultation.dart';
+import '../splash_screen.dart';
 
 class DoctorSpecialistDashboard extends StatefulWidget {
   const DoctorSpecialistDashboard({super.key});
@@ -23,6 +24,9 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
     return ListenableBuilder(
       listenable: appState,
       builder: (context, child) {
+        final double screenWidth = MediaQuery.of(context).size.width;
+        final bool isMobile = screenWidth < 700;
+
         // Filter appointments
         final filteredAppointments = appState.appointments.where((appt) {
           if (_selectedFilter == 'Tất cả') return true;
@@ -34,10 +38,19 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
         final totalDone = appState.appointments.where((a) => a.status == 'Hoàn thành').length;
 
         return Scaffold(
-          appBar: const GlassAppBar(
+          appBar: GlassAppBar(
             title: "Cổng Thông Tin Bác Sĩ",
             actions: [
-              Padding(
+              IconButton(
+                icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
+                tooltip: "Đổi vai trò",
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const SplashScreen()),
+                  );
+                },
+              ),
+              const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
@@ -61,9 +74,10 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // LEFT COLUMN: Queue & Filters (occupies 1/3 if wide screen, full width if mobile)
-                Expanded(
-                  flex: 12,
-                  child: ListView(
+                if (!isMobile || _selectedAppointment == null)
+                  Expanded(
+                    flex: isMobile ? 1 : 12,
+                    child: ListView(
                     padding: const EdgeInsets.all(16.0),
                     children: [
                       // 1. Stats Bento cards
@@ -274,12 +288,15 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                 // RIGHT SIDEBAR / CLINICAL WORKSPACE (Shows patient details and acts as workspace)
                 if (_selectedAppointment != null)
                   Expanded(
-                    flex: 18,
+                    flex: isMobile ? 1 : 18,
                     child: Container(
                       height: double.infinity,
                       decoration: BoxDecoration(
                         border: Border(
-                          left: BorderSide(color: Colors.white.withOpacity(0.4), width: 1),
+                          left: BorderSide(
+                            color: isMobile ? Colors.transparent : Colors.white.withOpacity(0.4),
+                            width: isMobile ? 0 : 1,
+                          ),
                         ),
                       ),
                       child: ClinicalWorkspace(
@@ -292,7 +309,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       ),
                     ),
                   )
-                else
+                else if (!isMobile)
                   const Expanded(
                     flex: 18,
                     child: Center(

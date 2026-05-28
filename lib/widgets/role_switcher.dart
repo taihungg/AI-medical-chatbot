@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../state/app_state.dart';
 import 'glass_widgets.dart';
+import '../screens/splash_screen.dart';
 
 class RoleSwitcher extends StatefulWidget {
   const RoleSwitcher({super.key});
@@ -180,6 +181,47 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
                             ),
                           );
                         }),
+                        const Divider(height: 16, color: Colors.white38),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          child: InkWell(
+                            onTap: () {
+                              _toggleExpanded();
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const SplashScreen()),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.logout,
+                                    size: 16,
+                                    color: GlassTheme.error,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      "Quay lại màn hình chính",
+                                      style: TextStyle(
+                                        color: GlassTheme.error,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios, size: 10, color: GlassTheme.error),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
