@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
+import '../doctor/recording_visualizer.dart';
 
 class DoctorConsultationScreen extends StatefulWidget {
   final AppAppointment appointment;
@@ -18,16 +18,9 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
   Timer? _timer;
   bool _isMicMuted = false;
   bool _isCameraOff = false;
-  final TextEditingController _msgController = TextEditingController();
-  final List<String> _inCallMessages = [
-    "Xin chào! Tôi là BS. An. Tôi đang xem hồ sơ khảo sát triệu chứng của bạn.",
-    "Bạn thấy tức ngực nhiều khi gắng sức hay cả khi nghỉ ngơi?"
-  ];
+  bool _isRecordingAI = false;
 
-  // Animated wave points for ECG heart monitor simulation
-  final List<double> _wavePoints = [];
-  Timer? _waveTimer;
-  double _wavePhase = 0.0;
+
 
   @override
   void initState() {
@@ -44,38 +37,56 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
     // Start fluctuating AppState vitals simulation
     AppState.instance.startVitalsSimulation();
 
-    // Initialize ECG wave points
-    for (int i = 0; i < 40; i++) {
-      _wavePoints.add(0.0);
-    }
-    
-    // Wave animation timer
-    _waveTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!mounted) return;
-      setState(() {
-        _wavePhase += 0.4;
-        _wavePoints.removeAt(0);
-        // Generate ECG styled beats
-        double val = sin(_wavePhase);
-        // Add random heart beats spikes
-        if (Random().nextDouble() > 0.88) {
-          val = 2.5 * (Random().nextDouble() > 0.5 ? 1 : -1);
-        } else if (Random().nextDouble() > 0.95) {
-          val = 0.0;
-        } else {
-          val = val * 0.25; // damp normal waves
-        }
-        _wavePoints.add(val);
-      });
-    });
+
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _waveTimer?.cancel();
-    _msgController.dispose();
     super.dispose();
+  }
+  
+  void _toggleAIDictation() {
+    setState(() {
+      _isRecordingAI = !_isRecordingAI;
+    });
+    
+    // Khi tắt AI → sinh mock transcript và lưu vào AppState
+    if (!_isRecordingAI) {
+      final appt = widget.appointment;
+      final sym = appt.symptomSummary.toLowerCase();
+      String s, o, a, p;
+      
+      if (sym.contains("ho") || sym.contains("phổi") || sym.contains("sốt")) {
+        s = "Ho khan từng cơn kéo dài, sốt nhẹ 37.5 về chiều.";
+        o = "Ran phế quản nhẹ phổi trái, SpO2: 97%.";
+        a = "Viêm phế quản cấp, cần X-quang phổi.";
+        p = "Amoxicillin 500mg, siro ho. Tái khám 5 ngày.";
+      } else if (sym.contains("đầu") || sym.contains("chóng mặt")) {
+        s = "Đau nửa đầu dữ dội kèm buồn nôn, sợ ánh sáng.";
+        o = "Tri giác tỉnh, pupil đều, HA 130/85.";
+        a = "Migraine không aura, tần suất cao.";
+        p = "Nghỉ ngơi, Sumatriptan 50mg khi đau.";
+      } else {
+        s = "Đau tức ngực trái khi gắng sức, lan ra vai trái.";
+        o = "HA 140/92, nhịp tim 88 bpm, SpO2 95%.";
+        a = "Nghi ngờ bệnh mạch vành, cần ECG.";
+        p = "ECG khẩn, phác đồ kiểm soát mạch.";
+      }
+      
+      final notes = "S: $s\nO: $o\nA: $a\nP: $p";
+      AppState.instance.saveConsultationNotes(appt.id, notes, []);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ Ghi chú AI đã được lưu vào hồ sơ lâm sàng."),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   String _getCallDurationString() {
@@ -84,18 +95,15 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
     return "$min:$sec";
   }
 
-  void _sendInCallMessage() {
-    if (_msgController.text.trim().isEmpty) return;
-    setState(() {
-      _inCallMessages.add(_msgController.text);
-      _msgController.clear();
-    });
-  }
+
 
   void _endConsultation() {
     final appState = AppState.instance;
     
-    // Update appointment status to complete if doctor signed, otherwise let it sit
+    // Revert status nếu chưa ban hành (Đang khám → Chưa khám)
+    if (widget.appointment.status == 'Đang khám') {
+      appState.stopExamination(widget.appointment.id);
+    }
     appState.addAuditLog("Phiên khám video của bệnh nhân ${widget.appointment.patientName} kết thúc.");
     
     // Conclude screen and pop
@@ -139,8 +147,6 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = AppState.instance;
-
     return Scaffold(
       body: Stack(
         children: [
@@ -281,137 +287,22 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
             ),
           ),
 
-          // 4. FLOATING DYNAMIC VITALS TELEMETRY DECK
+          // 4. AI DICTATION OVERLAY
           Positioned(
-            bottom: 240,
+            bottom: 120,
             left: 20,
             right: 20,
-            child: ListenableBuilder(
-              listenable: appState,
-              builder: (context, child) {
-                // Fetch vitals from appointment (simulated to fluctuate in background)
-                final pulse = appState.appointments.firstWhere((a) => a.id == widget.appointment.id, orElse: () => widget.appointment).vitals['pulse']?.toInt() ?? 78;
-                final o2 = appState.appointments.firstWhere((a) => a.id == widget.appointment.id, orElse: () => widget.appointment).vitals['spO2']?.toInt() ?? 98;
-                
-                return GlassCard(
-                  opacity: 0.15,
-                  borderColor: GlassTheme.cyan,
-                  borderWidth: 1.2,
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      // Pulse vital
-                      Expanded(
-                        child: Row(
-                          children: [
-                            const Icon(Icons.favorite, color: Colors.pink, size: 24),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("NHỊP TIM", style: GlassTheme.labelCaps(color: Colors.white70).copyWith(fontSize: 8)),
-                                Text("$pulse bpm", style: GlassTheme.h3(color: Colors.pink).copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                      
-                      // SpO2 Vital
-                      Expanded(
-                        child: Row(
-                          children: [
-                            const Icon(Icons.water, color: GlassTheme.cyan, size: 24),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("OXY MÁU (SPO2)", style: GlassTheme.labelCaps(color: Colors.white70).copyWith(fontSize: 8)),
-                                Text("$o2%", style: GlassTheme.h3(color: GlassTheme.cyan).copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-
-                      // Animated Oscilloscope custom painter
-                      Container(
-                        width: 80,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Colors.black26,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white12),
-                        ),
-                        child: CustomPaint(
-                          painter: _ECGWavePainter(points: _wavePoints),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+            child: Center(
+              child: _isRecordingAI
+                  ? const SizedBox(
+                      width: 320,
+                      child: RecordingVisualizer(),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
 
-          // 5. FLOATING IN-CALL CHAT OVERLAY
-          Positioned(
-            bottom: 96,
-            left: 20,
-            right: 20,
-            child: Container(
-              height: 130,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 12)],
-              ),
-              child: GlassCard(
-                opacity: 0.25,
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemCount: _inCallMessages.length,
-                        itemBuilder: (ctx, idx) => Padding(
-                          padding: const EdgeInsets.only(bottom: 6.0),
-                          child: Text(
-                            _inCallMessages[idx],
-                            style: GlassTheme.bodyMd(color: Colors.white).copyWith(fontSize: 11),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const Divider(color: Colors.white12, height: 12),
-                    // Action entry
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _msgController,
-                            style: GlassTheme.bodyMd(color: Colors.white).copyWith(fontSize: 12),
-                            decoration: const InputDecoration(
-                              hintText: "Gửi tin nhắn trong cuộc gọi...",
-                              hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
-                              border: InputBorder.none,
-                            ),
-                            onSubmitted: (_) => _sendInCallMessage(),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.send, color: GlassTheme.cyan, size: 18),
-                          onPressed: _sendInCallMessage,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 6. CALL CONTROL DOCK
+          // 5. CALL CONTROL DOCK
           Positioned(
             bottom: 24,
             left: 20,
@@ -422,12 +313,19 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
                 // Mic trigger
                 _buildCircleActionButton(
                   _isMicMuted ? Icons.mic_off : Icons.mic,
-                  _isMicMuted ? Colors.red.withOpacity(0.8) : Colors.white24,
+                  _isMicMuted ? Colors.red.withValues(alpha: 0.8) : Colors.white24,
                   () {
                     setState(() {
                       _isMicMuted = !_isMicMuted;
                     });
                   }
+                ),
+                
+                // AI Dictation trigger
+                _buildCircleActionButton(
+                  Icons.auto_awesome,
+                  _isRecordingAI ? Colors.pinkAccent : Colors.white24,
+                  _toggleAIDictation,
                 ),
                 
                 // End Call button
@@ -479,36 +377,4 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
       ),
     );
   }
-}
-
-// ECG Styled waveform custom painter
-class _ECGWavePainter extends CustomPainter {
-  final List<double> points;
-
-  _ECGWavePainter({required this.points});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = GlassTheme.cyan
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    if (points.isEmpty) return;
-
-    final double stepX = size.width / (points.length - 1);
-    final double midY = size.height / 2;
-
-    path.moveTo(0, midY - points[0] * (size.height / 6));
-
-    for (int i = 1; i < points.length; i++) {
-      path.lineTo(i * stepX, midY - points[i] * (size.height / 6));
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ECGWavePainter oldDelegate) => true;
 }

@@ -447,12 +447,14 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actions;
+  final bool automaticallyImplyLeading;
 
   const GlassAppBar({
     super.key,
     required this.title,
     this.leading,
     this.actions,
+    this.automaticallyImplyLeading = true,
   });
 
   @override
@@ -478,6 +480,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: GlassTheme.h2(color: GlassTheme.oceanBlue),
             ),
             centerTitle: false,
+            automaticallyImplyLeading: automaticallyImplyLeading,
             leading: leading,
             actions: actions,
             bottom: PreferredSize(

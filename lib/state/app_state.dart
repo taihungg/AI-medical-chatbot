@@ -105,8 +105,42 @@ class AppState extends ChangeNotifier {
   
   void toggleDoctorBusy() {
     _isDoctorBusy = !_isDoctorBusy;
+    if (!_isDoctorBusy) {
+      if (_activeConsultation != null) {
+        final currentId = _activeConsultation!.id;
+        updateAppointmentStatus(currentId, 'Chưa khám');
+        _activeConsultation = null;
+        addAuditLog("Bác sĩ tự động chuyển ca $currentId sang CHƯA KHÁM do tắt trạng thái BẬN");
+      }
+    }
     addAuditLog(_isDoctorBusy ? "Bác sĩ chuyển trạng thái sang ĐANG BẬN" : "Bác sĩ chuyển trạng thái sang ĐANG RẢNH");
     notifyListeners();
+  }
+
+  String? get currentlyExaminingId => _activeConsultation?.id;
+
+  bool startExamination(String id) {
+    if (_activeConsultation != null && _activeConsultation!.id != id) {
+      return false;
+    }
+    final idx = _appointments.indexWhere((appt) => appt.id == id);
+    if (idx != -1) {
+      _appointments[idx] = _appointments[idx].copyWith(status: 'Đang khám');
+      _activeConsultation = _appointments[idx];
+      _isDoctorBusy = true; // Kích hoạt Đang bận
+      addAuditLog("Bác sĩ bắt đầu khám ca $id");
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  void stopExamination(String id) {
+    if (_activeConsultation?.id == id) {
+      updateAppointmentStatus(id, 'Chưa khám');
+      _activeConsultation = null;
+      notifyListeners();
+    }
   }
 
   // Active User Role
@@ -181,73 +215,50 @@ class AppState extends ChangeNotifier {
       time: DateTime.now().subtract(const Duration(minutes: 5)),
     ));
 
-    // Prepopulate 3 default appointments for Doctor/Specialist and Manager view
-    _appointments.add(AppAppointment(
-      id: "APT-8801",
-      patientName: "Trần Thế Bảo",
-      branchName: "Phòng khám A - Quận 1, TP. HCM",
-      doctorName: "BS. Nguyễn Văn An",
-      specialty: "Khoa Tim mạch",
-      dateTime: DateTime.now(),
-      timeSlot: "08:30 - 09:00",
-      symptomSummary: "Đau tức ngực trái lan ra vai, kèm khó thở khi leo cầu thang",
-      riskLevel: "Cao",
-      aiSummary: "BN nam 45 tuổi, đau tức ngực trái lan ra bả vai trái khi gắng sức (leo cầu thang, xách đồ nặng). Kèm khó thở nhẹ. Triệu chứng xuất hiện 3 ngày gần đây, tần suất tăng dần. Không tiền sử bệnh tim mạch. AI đề xuất: Kiểm tra điện tâm đồ (ECG), đánh giá nguy cơ bệnh mạch vành.",
-      status: "Chưa khám",
-      vitals: {
-        'pulse': 88,
-        'spO2': 95,
-        'temp': 37.0,
-        'systolic': 142,
-        'diastolic': 92,
-      },
+    // Prepopulate default appointments for Doctor/Specialist and Manager view
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Ngày -2
+    _appointments.add(AppAppointment(id: "APT-8801", patientName: "Trần Thế Bảo", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today.subtract(const Duration(days: 2)), timeSlot: "08:00 - 08:30", symptomSummary: "Đau tức ngực trái", status: "Đã khám", isOnline: false, riskLevel: "Cao",
+      clinicalNotes: "S: Đau ngực trái lan ra vai khi vận động.\nO: Nhịp tim 88 l/p, HA 140/90, không có tiếng thổi tim.\nA: Cơn đau thắt ngực ổn định.\nP: Đo điện tâm đồ, kiểm tra men tim. Cấp thuốc giãn mạch.",
+      prescriptionSigned: true, prescriptionList: ["Nitroglycerin 0.4mg (1 hộp) - Ngậm dưới lưỡi khi đau", "Aspirin 81mg (30 viên) - Uống sau ăn sáng"],
+    ));
+    _appointments.add(AppAppointment(id: "APT-8802", patientName: "Lê Thị Thu Thảo", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tổng quát", dateTime: today.subtract(const Duration(days: 2)), timeSlot: "09:00 - 09:30", symptomSummary: "Ho khan kéo dài", status: "Đã khám", isOnline: true, riskLevel: "Trung bình",
+      clinicalNotes: "S: Ho khan 3 tuần, sốt nhẹ về chiều.\nO: Họng hơi đỏ, phổi không rales.\nA: Viêm họng mạn tính.\nP: Chụp X-quang phổi, uống nhiều nước ấm.",
+      prescriptionSigned: true, prescriptionList: ["Amoxicillin 500mg (20 viên) - Uống ngày 2 lần", "Siro ho Prospan (1 chai)"],
+    ));
+    _appointments.add(AppAppointment(id: "APT-8803", patientName: "Vũ Hoàng Minh", branchName: "Phòng khám B", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Thần kinh", dateTime: today.subtract(const Duration(days: 2)), timeSlot: "10:00 - 10:30", symptomSummary: "Đau nửa đầu", status: "Đã khám", isOnline: false, riskLevel: "Cao",
+      clinicalNotes: "S: Đau nửa đầu dữ dội, buồn nôn, sợ ánh sáng.\nO: Khám thần kinh khu trú âm tính.\nA: Hội chứng Migraine.\nP: Tránh ánh sáng chói, nằm nghỉ ngơi.",
+      prescriptionSigned: true, prescriptionList: ["Sumatriptan 50mg (6 viên) - Uống 1 viên khi có cơn đau", "Paracetamol 500mg (20 viên) - Dự phòng giảm đau"],
     ));
 
-    _appointments.add(AppAppointment(
-      id: "APT-8802",
-      patientName: "Lê Thị Thu Thảo",
-      branchName: "Phòng khám B - Hoàn Kiếm, Hà Nội",
-      doctorName: "BS. Lê Thị Bình",
-      specialty: "Khoa Nội tổng quát",
-      dateTime: DateTime.now(),
-      timeSlot: "10:15 - 10:45",
-      symptomSummary: "Ho khan kéo dài 3 tuần, sốt nhẹ về chiều và sút cân không rõ nguyên nhân",
-      riskLevel: "Trung bình",
-      aiSummary: "BN nữ 32 tuổi, ho khan từng cơn kéo dài hơn 3 tuần. Sốt nhẹ 37.3-37.5°C về chiều tối. Sút 2kg trong 2 tuần không rõ nguyên nhân. Tiền sử: phế quản nhạy cảm. AI đề xuất: X-quang phổi thẳng, xét nghiệm công thức máu.",
-      status: "Đã khám",
-      clinicalNotes: "Bệnh nhân có tiền sử phế quản nhạy cảm. Đã kê đơn kháng sinh nhẹ và siro ho thảo dược.",
-      prescriptionSigned: true,
-      prescriptionList: ["Amoxicillin 500mg (20 viên) - Uống ngày 2 lần", "Siro Ho Prospan (1 chai) - Uống ngày 3 lần"],
-      vitals: {
-        'pulse': 76,
-        'spO2': 98,
-        'temp': 37.3,
-        'systolic': 115,
-        'diastolic': 75,
-      },
+    // Ngày -1
+    _appointments.add(AppAppointment(id: "APT-8804", patientName: "Phạm Văn Đức", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today.subtract(const Duration(days: 1)), timeSlot: "08:00 - 08:30", symptomSummary: "Nhói ngực", status: "Đã khám", isOnline: true, riskLevel: "Trung bình",
+      clinicalNotes: "S: Thi thoảng nhói ngực trái, kéo dài vài giây.\nO: Điện tâm đồ bình thường.\nA: Đau ngực cơ năng.\nP: Theo dõi thêm, giảm căng thẳng.",
+      prescriptionSigned: true, prescriptionList: ["Magnesium B6 (30 viên) - Uống ngày 2 lần"],
+    ));
+    _appointments.add(AppAppointment(id: "APT-8805", patientName: "Trần Thị Mai", branchName: "Phòng khám C", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tổng quát", dateTime: today.subtract(const Duration(days: 1)), timeSlot: "09:00 - 09:30", symptomSummary: "Đau dạ dày", status: "Đã khám", isOnline: false, riskLevel: "Trung bình",
+      clinicalNotes: "S: Đau vùng thượng vị sau ăn.\nO: Ấn đau thượng vị, không đề kháng.\nA: Viêm loét dạ dày tá tràng.\nP: Nội soi dạ dày sau điều trị.",
+      prescriptionSigned: true, prescriptionList: ["Omeprazole 20mg (28 viên) - Uống trước ăn sáng", "Gaviscon (20 gói)"],
+    ));
+    _appointments.add(AppAppointment(id: "APT-8806", patientName: "Lý Kiều Loan", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today.subtract(const Duration(days: 1)), timeSlot: "14:00 - 14:30", symptomSummary: "Tức ngực khó thở", status: "Đã khám", isOnline: false, riskLevel: "Khẩn cấp",
+      clinicalNotes: "S: Khó thở nhẹ về đêm.\nO: Nhịp tim 90 l/p, phổi rales ẩm 2 đáy.\nA: Suy tim độ II.\nP: Cấp thuốc lợi tiểu, hạn chế muối.",
+      prescriptionSigned: true, prescriptionList: ["Furosemide 40mg (14 viên) - Uống buổi sáng", "Bisoprolol 5mg (30 viên)"],
     ));
 
-    _appointments.add(AppAppointment(
-      id: "APT-8803",
-      patientName: "Vũ Hoàng Minh",
-      branchName: "Phòng khám C - Hải Châu, Đà Nẵng",
-      doctorName: "BS. Trần Quốc Đạt",
-      specialty: "Khoa Thần kinh",
-      dateTime: DateTime.now().add(const Duration(days: 1)),
-      timeSlot: "14:00 - 14:30",
-      symptomSummary: "Đau nửa đầu dữ dội kèm buồn nôn, sợ ánh sáng mạnh",
-      riskLevel: "Cao",
-      aiSummary: "BN nam 28 tuổi, cơn đau nửa đầu dữ dội kèm buồn nôn và sợ ánh sáng mạnh. Xuất hiện 5 lần trong tháng qua, mỗi lần kéo dài 4-6 tiếng. Tiền sử gia đình có người bị Migraine. AI đề xuất: Khám thần kinh chuyên sâu, cân nhắc MRI não nếu cần.",
-      status: "Chưa khám",
-      isOnline: true,
-      vitals: {
-        'pulse': 92,
-        'spO2': 99,
-        'temp': 36.6,
-        'systolic': 130,
-        'diastolic': 85,
-      },
+    // Hôm nay
+    _appointments.add(AppAppointment(id: "APT-8807", patientName: "Phan Nhật Nam", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Thần kinh", dateTime: today, timeSlot: "08:00 - 08:30", symptomSummary: "Chóng mặt", status: "Đã khám", isOnline: true, riskLevel: "Thấp",
+      clinicalNotes: "S: Chóng mặt khi thay đổi tư thế.\nO: Không ghi nhận run hay yếu chi.\nA: Chóng mặt tư thế kịch phát.\nP: Hướng dẫn bài tập Epley, kê thuốc giảm chóng mặt.",
+      prescriptionSigned: true, prescriptionList: ["Betahistine 24mg (20 viên) - Uống ngày 2 lần"],
     ));
+    _appointments.add(AppAppointment(id: "APT-8808", patientName: "Bùi Văn Nam", branchName: "Phòng khám B", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today, timeSlot: "09:00 - 09:30", symptomSummary: "Khám định kỳ", status: "Chưa khám", isOnline: false, riskLevel: "Thấp"));
+    _appointments.add(AppAppointment(id: "APT-8809", patientName: "Hoàng Thị Cúc", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tiết", dateTime: today, timeSlot: "10:00 - 10:30", symptomSummary: "Tiểu đường", status: "Chưa khám", isOnline: true, riskLevel: "Trung bình"));
+
+    // Tương lai
+    _appointments.add(AppAppointment(id: "APT-8810", patientName: "Lê Minh Tuấn", branchName: "Phòng khám C", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Hô hấp", dateTime: today.add(const Duration(days: 1)), timeSlot: "08:00 - 08:30", symptomSummary: "Khó thở", status: "Chưa khám", isOnline: true, riskLevel: "Cao"));
+    _appointments.add(AppAppointment(id: "APT-8811", patientName: "Đinh Quang Hiếu", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tổng quát", dateTime: today.add(const Duration(days: 1)), timeSlot: "09:00 - 09:30", symptomSummary: "Tư vấn tổng quát", status: "Chưa khám", isOnline: false, riskLevel: "Thấp"));
+    _appointments.add(AppAppointment(id: "APT-8812", patientName: "Nguyễn Thị Hoa", branchName: "Phòng khám B", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Xương khớp", dateTime: today.add(const Duration(days: 1)), timeSlot: "10:00 - 10:30", symptomSummary: "Đau lưng", status: "Chưa khám", isOnline: false, riskLevel: "Trung bình"));
 
     _auditLogs.add("[Hệ thống] Hệ thống AI Care Bridge đã sẵn sàng phục vụ.");
     _auditLogs.add("[Hệ thống] Nạp dữ liệu thành công cho 4 chi nhánh phòng khám.");
