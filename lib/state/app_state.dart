@@ -135,6 +135,29 @@ class AppState extends ChangeNotifier {
   AppAppointment? _activeConsultation;
   AppAppointment? get activeConsultation => _activeConsultation;
 
+  // Booking Tab Trigger from AI Chatbot
+  // When AI recommends booking and patient agrees, this flag is set
+  // to auto-switch to the "Đặt lịch khám" tab with pre-filled data.
+  bool _pendingBookingFromAI = false;
+  bool get pendingBookingFromAI => _pendingBookingFromAI;
+
+  /// Called from RecommendationResultScreen when patient clicks "Đặt lịch".
+  /// Sets the trigger flag so MainFramework auto-switches to the booking tab.
+  /// [symptoms] and [risk] are already stored in selectedSymptomsText / currentRiskLevel
+  /// before this call, so the booking tab can read them directly.
+  void triggerBookingFromAI() {
+    _pendingBookingFromAI = true;
+    addAuditLog("Bệnh nhân đồng ý đặt lịch từ khuyến cáo AI. Chuyển sang tab Đặt lịch khám.");
+    notifyListeners();
+  }
+
+  /// Called by MainFramework after it has switched to the booking tab.
+  /// Resets the flag so it doesn't trigger again on subsequent rebuilds.
+  void consumeBookingTrigger() {
+    _pendingBookingFromAI = false;
+    notifyListeners();
+  }
+
   void setActiveConsultation(AppAppointment? appt) {
     _activeConsultation = appt;
     notifyListeners();
@@ -158,7 +181,7 @@ class AppState extends ChangeNotifier {
   void _initDefaults() {
     // Add default chat messages
     _chatMessages.add(ChatMessage(
-      text: "Xin chào! Tôi là Trợ lý AI Care Bridge. Tôi có thể giúp bạn đánh giá các triệu chứng sức khỏe ban đầu của mình. Mọi thông tin trò chuyện đều được bảo mật theo tiêu chuẩn HIPAA. Hãy chia sẻ triệu chứng bạn đang gặp phải nhé!",
+      text: "Xin chào! Tôi là Trợ lý AI Care Bridge. Tôi có thể giúp bạn đánh giá các triệu chứng sức khỏe ban đầu. Nếu bạn có các số đo cơ thể (như Huyết áp, Nhịp tim, Nhiệt độ), hãy gửi trực tiếp tại đây để tôi tổng hợp vào báo cáo y khoa của bạn nhé!",
       isUser: false,
       time: DateTime.now().subtract(const Duration(minutes: 5)),
     ));
@@ -291,7 +314,7 @@ class AppState extends ChangeNotifier {
     _currentRiskLevel = 'Thấp';
     _selectedSymptomsText = '';
     _chatMessages.add(ChatMessage(
-      text: "Xin chào! Tôi là Trợ lý AI Care Bridge. Hãy chia sẻ bất kỳ triệu chứng sức khỏe nào bạn đang lo lắng nhé!",
+      text: "Xin chào! Tôi là Trợ lý AI Care Bridge. Hãy chia sẻ các triệu chứng sức khỏe hoặc cung cấp các số đo sinh hiệu (Huyết áp, Nhịp tim, Nhiệt độ) để bắt đầu đánh giá y tế nhé!",
       isUser: false,
       time: DateTime.now(),
     ));

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../splash_screen.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import 'recommendation_result.dart';
@@ -169,8 +170,17 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Đánh Giá Sức Khỏe AI",
+        title: "Tư Vấn Y Tế AI",
         actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
+            tooltip: "Đổi vai trò",
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const SplashScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue),
             onPressed: () {
@@ -179,7 +189,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 _flowPhase = 0;
               });
             },
-          )
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -252,7 +263,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 ] else if (_flowPhase == 1) ...[
                   // Prompt to complete analysis
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
                     child: GlassButton(
                       text: "Tiến hành phân tích y khoa AI",
                       icon: Icons.auto_awesome,
@@ -261,7 +272,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                   ),
                 ],
                 
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
               ],
             ),
           ),
@@ -407,14 +418,22 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 
   Widget _buildChatBar() {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 96),
+      margin: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        isKeyboardOpen ? 12 : (82.0 - bottomPadding).clamp(12.0, 82.0),
+      ),
       child: GlassCard(
         padding: const EdgeInsets.all(8),
         borderRadius: 32,
         opacity: 0.8,
         borderColor: GlassTheme.oceanBlue,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               width: 44,
@@ -433,10 +452,16 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 child: TextField(
                   controller: _inputController,
                   style: GlassTheme.bodyMd(),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.send,
                   decoration: InputDecoration(
                     hintText: "Mô tả triệu chứng của bạn...",
                     hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
                     border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   onSubmitted: _handleSend,
                 ),

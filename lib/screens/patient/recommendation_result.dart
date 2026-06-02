@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../splash_screen.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
-import 'appointment_booking.dart';
 import 'doctor_consultation.dart';
 
 class RecommendationResultScreen extends StatelessWidget {
@@ -150,13 +149,14 @@ class RecommendationResultScreen extends StatelessWidget {
                 // SOS Pulsing alert
                 _buildSOSTriggerCard(context),
               ] else if (risk == "Cao") ...[
-                // Main: Book Clinic Appointment
+                // Main: Book Clinic Appointment → switches to Đặt lịch tab
                 GlassButton(
                   text: "Đặt Lịch Khám Cơ Sở",
                   icon: Icons.edit_calendar,
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AppointmentBookingScreen()),
+                    appState.triggerBookingFromAI();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 1)),
                     );
                   },
                 ),
@@ -180,25 +180,26 @@ class RecommendationResultScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                // Sub: Book appointment
+                // Sub: Book appointment → switches to Đặt lịch tab
                 GlassButton(
                   text: "Đặt Lịch Trực Tiếp",
                   isPrimary: false,
                   icon: Icons.edit_calendar,
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AppointmentBookingScreen()),
+                    appState.triggerBookingFromAI();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 1)),
                     );
                   },
                 ),
               ] else ...[
                 // Low risk: Self-care guide & Pharmacy
                 GlassButton(
-                  text: "Tìm Kiếm Dược Phẩm Phù Hợp",
-                  icon: Icons.local_pharmacy,
+                  text: "Về Trang Tư Vấn AI",
+                  icon: Icons.chat_bubble_outline,
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 2)),
+                      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 0)),
                     );
                   },
                 ),
@@ -549,11 +550,11 @@ class SelfCareScreen extends StatelessWidget {
             const SizedBox(height: 40),
             
             GlassButton(
-              text: "Xem danh mục thuốc gia đình",
-              icon: Icons.local_pharmacy,
+              text: "Trở về Trang Tư Vấn AI",
+              icon: Icons.chat_bubble_outline,
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 2)),
+                  MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 0)),
                 );
               },
             ),

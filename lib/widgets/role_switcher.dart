@@ -85,16 +85,6 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
         return Stack(
           alignment: Alignment.bottomRight,
           children: [
-            // Expanded Menu Overlay (above the FAB)
-            if (_isExpanded)
-              GestureDetector(
-                onTap: _toggleExpanded,
-                child: Container(
-                  color: Colors.black.withOpacity(0.1),
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              ),
 
             Positioned(
               bottom: 84, // Sits comfortably above bottom bar
