@@ -253,18 +253,18 @@ class _MainFrameworkState extends State<MainFramework> {
                 // Dynamic view based on Active Role
                 _buildRoleScreen(appState.currentRole),
 
-                // Always visible floating debugger Role Console
+                // Always visible floating debugger Role Console.
+                // Positioned.fill gives the RoleSwitcher's internal Stack a
+                // bounded size (it positions its own children via bottom/right).
                 Positioned.fill(
                   child: IgnorePointer(
                     ignoring: true,
                     child: Stack(
-                      children: [
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
+                      children: const [
+                        Positioned.fill(
                           child: IgnorePointer(
                             ignoring: false,
-                            child: const RoleSwitcher(),
+                            child: RoleSwitcher(),
                           ),
                         ),
                       ],
