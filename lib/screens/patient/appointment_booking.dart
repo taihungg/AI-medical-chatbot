@@ -151,7 +151,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
             // Horizontal Step Indicators
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(4, (idx) {
@@ -344,7 +344,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                       height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSel ? GlassTheme.oceanBlue.withOpacity(0.12) : Colors.white38,
+                        color: isSel ? GlassTheme.oceanBlue.withValues(alpha: 0.12) : Colors.white38,
                       ),
                       child: Center(
                         child: Icon(Icons.person, color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline, size: 26),

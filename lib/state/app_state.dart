@@ -28,7 +28,9 @@ class AppAppointment {
   final String timeSlot;
   final String symptomSummary;
   final String riskLevel; // 'Thấp' | 'Trung bình' | 'Cao' | 'Khẩn cấp'
-  String status; // 'Chờ khám' | 'Đang khám' | 'Hoàn thành'
+  final String aiSummary; // Tóm tắt AI từ chat bot, BS đọc trước khi khám
+  final bool isOnline; // Xác định ca khám này là online (trực tuyến) hay offline (trực tiếp)
+  String status; // 'Chưa khám' | 'Đã khám'
   String clinicalNotes;
   bool prescriptionSigned;
   List<String> prescriptionList;
@@ -44,7 +46,9 @@ class AppAppointment {
     required this.timeSlot,
     required this.symptomSummary,
     required this.riskLevel,
-    this.status = 'Chờ khám',
+    this.aiSummary = '',
+    this.isOnline = false,
+    this.status = 'Chưa khám',
     this.clinicalNotes = '',
     this.prescriptionSigned = false,
     this.prescriptionList = const [],
@@ -59,6 +63,8 @@ class AppAppointment {
 
   AppAppointment copyWith({
     String? status,
+    String? aiSummary,
+    bool? isOnline,
     String? clinicalNotes,
     bool? prescriptionSigned,
     List<String>? prescriptionList,
@@ -74,6 +80,8 @@ class AppAppointment {
       timeSlot: timeSlot,
       symptomSummary: symptomSummary,
       riskLevel: riskLevel,
+      aiSummary: aiSummary ?? this.aiSummary,
+      isOnline: isOnline ?? this.isOnline,
       status: status ?? this.status,
       clinicalNotes: clinicalNotes ?? this.clinicalNotes,
       prescriptionSigned: prescriptionSigned ?? this.prescriptionSigned,
@@ -89,6 +97,16 @@ class AppState extends ChangeNotifier {
   static AppState get instance => _instance;
   AppState._internal() {
     _initDefaults();
+  }
+
+  // Doctor status toggle (Rảnh / Bận)
+  bool _isDoctorBusy = false;
+  bool get isDoctorBusy => _isDoctorBusy;
+  
+  void toggleDoctorBusy() {
+    _isDoctorBusy = !_isDoctorBusy;
+    addAuditLog(_isDoctorBusy ? "Bác sĩ chuyển trạng thái sang ĐANG BẬN" : "Bác sĩ chuyển trạng thái sang ĐANG RẢNH");
+    notifyListeners();
   }
 
   // Active User Role
@@ -174,7 +192,8 @@ class AppState extends ChangeNotifier {
       timeSlot: "08:30 - 09:00",
       symptomSummary: "Đau tức ngực trái lan ra vai, kèm khó thở khi leo cầu thang",
       riskLevel: "Cao",
-      status: "Chờ khám",
+      aiSummary: "BN nam 45 tuổi, đau tức ngực trái lan ra bả vai trái khi gắng sức (leo cầu thang, xách đồ nặng). Kèm khó thở nhẹ. Triệu chứng xuất hiện 3 ngày gần đây, tần suất tăng dần. Không tiền sử bệnh tim mạch. AI đề xuất: Kiểm tra điện tâm đồ (ECG), đánh giá nguy cơ bệnh mạch vành.",
+      status: "Chưa khám",
       vitals: {
         'pulse': 88,
         'spO2': 95,
@@ -194,7 +213,8 @@ class AppState extends ChangeNotifier {
       timeSlot: "10:15 - 10:45",
       symptomSummary: "Ho khan kéo dài 3 tuần, sốt nhẹ về chiều và sút cân không rõ nguyên nhân",
       riskLevel: "Trung bình",
-      status: "Hoàn thành",
+      aiSummary: "BN nữ 32 tuổi, ho khan từng cơn kéo dài hơn 3 tuần. Sốt nhẹ 37.3-37.5°C về chiều tối. Sút 2kg trong 2 tuần không rõ nguyên nhân. Tiền sử: phế quản nhạy cảm. AI đề xuất: X-quang phổi thẳng, xét nghiệm công thức máu.",
+      status: "Đã khám",
       clinicalNotes: "Bệnh nhân có tiền sử phế quản nhạy cảm. Đã kê đơn kháng sinh nhẹ và siro ho thảo dược.",
       prescriptionSigned: true,
       prescriptionList: ["Amoxicillin 500mg (20 viên) - Uống ngày 2 lần", "Siro Ho Prospan (1 chai) - Uống ngày 3 lần"],
@@ -217,7 +237,9 @@ class AppState extends ChangeNotifier {
       timeSlot: "14:00 - 14:30",
       symptomSummary: "Đau nửa đầu dữ dội kèm buồn nôn, sợ ánh sáng mạnh",
       riskLevel: "Cao",
-      status: "Chờ khám",
+      aiSummary: "BN nam 28 tuổi, cơn đau nửa đầu dữ dội kèm buồn nôn và sợ ánh sáng mạnh. Xuất hiện 5 lần trong tháng qua, mỗi lần kéo dài 4-6 tiếng. Tiền sử gia đình có người bị Migraine. AI đề xuất: Khám thần kinh chuyên sâu, cân nhắc MRI não nếu cần.",
+      status: "Chưa khám",
+      isOnline: true,
       vitals: {
         'pulse': 92,
         'spO2': 99,
@@ -329,7 +351,7 @@ class AppState extends ChangeNotifier {
       timeSlot: slot,
       symptomSummary: symptoms.isEmpty ? "Đăng ký tư vấn y tế tổng quát" : symptoms,
       riskLevel: risk,
-      status: "Chờ khám",
+      status: "Chưa khám",
       vitals: {
         'pulse': (70 + Random().nextInt(25)).toDouble(),
         'spO2': (94 + Random().nextInt(6)).toDouble(),
@@ -356,6 +378,18 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  void updateAppointmentStatus(String apptId, String status) {
+    final idx = _appointments.indexWhere((appt) => appt.id == apptId);
+    if (idx != -1 && _appointments[idx].status != status) {
+      _appointments[idx] = _appointments[idx].copyWith(status: status);
+      if (_activeConsultation?.id == apptId) {
+        _activeConsultation = _appointments[idx];
+      }
+      addAuditLog("Ca khám ${_appointments[idx].id} chuyển sang trạng thái: $status");
+      notifyListeners();
+    }
+  }
+
   void saveConsultationNotes(String apptId, String notes, List<String> medications) {
     final idx = _appointments.indexWhere((appt) => appt.id == apptId);
     if (idx != -1) {
@@ -376,10 +410,10 @@ class AppState extends ChangeNotifier {
     if (idx != -1) {
       _appointments[idx] = _appointments[idx].copyWith(
         prescriptionSigned: true,
-        status: 'Hoàn thành',
+        status: 'Đã khám',
       );
       if (_activeConsultation?.id == apptId) {
-        _activeConsultation = _appointments[idx];
+        _activeConsultation = null;
       }
       addAuditLog("BS đã ký và ban hành đơn thuốc số $apptId của bệnh nhân ${appointments[idx].patientName}");
       notifyListeners();
@@ -393,7 +427,7 @@ class AppState extends ChangeNotifier {
     _vitalsTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       bool updated = false;
       for (int i = 0; i < _appointments.length; i++) {
-        if (_appointments[i].status == 'Đang khám' || _appointments[i].id == _activeConsultation?.id) {
+        if (_appointments[i].id == _activeConsultation?.id) {
           final curVitals = Map<String, double>.from(_appointments[i].vitals);
           // Subtly fluctuate pulse (-2 to +2)
           final pulseDiff = -2 + Random().nextInt(5);

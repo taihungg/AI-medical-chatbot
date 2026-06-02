@@ -191,7 +191,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 // Top Progress indicator bar
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   child: Row(
                     children: [
                       const Icon(Icons.psychology, color: GlassTheme.oceanBlue, size: 18),
@@ -205,7 +205,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: _flowPhase == 0 ? 0.35 : (_flowPhase == 1 ? 0.75 : 1.0),
-                            backgroundColor: Colors.white.withOpacity(0.4),
+                            backgroundColor: Colors.white.withValues(alpha: 0.4),
                             color: GlassTheme.oceanBlue,
                             minHeight: 6,
                           ),
@@ -393,8 +393,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: ActionChip(
-              backgroundColor: Colors.white.withOpacity(0.5),
-              side: BorderSide(color: GlassTheme.oceanBlue.withOpacity(0.3)),
+              backgroundColor: Colors.white.withValues(alpha: 0.5),
+              side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.3)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               avatar: Icon(sym["icon"] as IconData, size: 16, color: GlassTheme.oceanBlue),
               label: Text(sym["name"] as String, style: GlassTheme.bodyMd().copyWith(fontSize: 12)),
@@ -487,9 +487,9 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: isSelected ? GlassTheme.oceanBlue.withOpacity(0.12) : Colors.transparent,
+                        backgroundColor: isSelected ? GlassTheme.oceanBlue.withValues(alpha: 0.12) : Colors.transparent,
                         side: BorderSide(
-                          color: isSelected ? GlassTheme.oceanBlue : GlassTheme.outline.withOpacity(0.4),
+                          color: isSelected ? GlassTheme.oceanBlue : GlassTheme.outline.withValues(alpha: 0.4),
                           width: isSelected ? 2 : 1,
                         ),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -563,7 +563,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   // High-fidelity AI calculation progress screen
   Widget _buildAIProcessingOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.4),
+      color: Colors.black.withValues(alpha: 0.4),
       width: double.infinity,
       height: double.infinity,
       child: Center(
@@ -583,7 +583,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: GlassTheme.cyan.withOpacity(0.3),
+                          color: GlassTheme.cyan.withValues(alpha: 0.3),
                           blurRadius: 50,
                         ),
                       ],

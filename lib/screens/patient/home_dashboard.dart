@@ -91,7 +91,7 @@ class PatientHomeDashboard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: GlassTheme.oceanBlue.withOpacity(0.12),
+                                color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(Icons.shield, color: GlassTheme.oceanBlue, size: 20),
@@ -193,7 +193,7 @@ class PatientHomeDashboard extends StatelessWidget {
                       child: Center(
                         child: Column(
                           children: [
-                            Icon(Icons.calendar_today_outlined, size: 40, color: GlassTheme.outline.withOpacity(0.6)),
+                            Icon(Icons.calendar_today_outlined, size: 40, color: GlassTheme.outline.withValues(alpha: 0.6)),
                             const SizedBox(height: 12),
                             Text(
                               "Bạn chưa có lịch hẹn nào sắp tới.",
@@ -227,7 +227,7 @@ class PatientHomeDashboard extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: GlassTheme.oceanBlue.withOpacity(0.1),
+                                    color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -239,8 +239,8 @@ class PatientHomeDashboard extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: appt.status == 'Đang khám'
-                                        ? Colors.green.withOpacity(0.15)
-                                        : Colors.amber.withOpacity(0.15),
+                                        ? Colors.green.withValues(alpha: 0.15)
+                                        : Colors.amber.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -387,7 +387,7 @@ class GridVisualSelector extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: GlassTheme.cyan.withOpacity(0.2),
+                            color: GlassTheme.cyan.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.chat_bubble_rounded, color: GlassTheme.oceanBlue, size: 24),
@@ -428,7 +428,7 @@ class GridVisualSelector extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.12),
+                            color: Colors.amber.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.edit_calendar, color: Colors.amber, size: 24),
@@ -473,7 +473,7 @@ class GridVisualSelector extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.12),
+                            color: Colors.green.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.video_camera_front, color: Colors.green, size: 24),
@@ -514,7 +514,7 @@ class GridVisualSelector extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.purple.withOpacity(0.12),
+                            color: Colors.purple.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.local_pharmacy, color: Colors.purple, size: 24),

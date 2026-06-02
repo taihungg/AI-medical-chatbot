@@ -16,6 +16,8 @@ class DoctorConsultationScreen extends StatefulWidget {
 class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
   int _callDurationSeconds = 0;
   Timer? _timer;
+  bool _isMicMuted = false;
+  bool _isCameraOff = false;
   final TextEditingController _msgController = TextEditingController();
   final List<String> _inCallMessages = [
     "Xin chào! Tôi là BS. An. Tôi đang xem hồ sơ khảo sát triệu chứng của bạn.",
@@ -166,7 +168,7 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: GlassTheme.oceanBlue.withOpacity(0.35),
+                          color: GlassTheme.oceanBlue.withValues(alpha: 0.35),
                           blurRadius: 90,
                           spreadRadius: 30,
                         ),
@@ -186,7 +188,7 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
                         border: Border.all(color: GlassTheme.cyan, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: GlassTheme.cyan.withOpacity(0.3),
+                            color: GlassTheme.cyan.withValues(alpha: 0.3),
                             blurRadius: 30,
                           ),
                         ],
@@ -229,8 +231,12 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
                   children: [
                     Container(
                       color: Colors.black45,
-                      child: const Center(
-                        child: Icon(Icons.videocam_off, color: Colors.white30, size: 28),
+                      child: Center(
+                        child: Icon(
+                          _isCameraOff ? Icons.videocam_off : Icons.person,
+                          color: Colors.white30, 
+                          size: 28
+                        ),
                       ),
                     ),
                     Positioned(
@@ -414,7 +420,15 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 // Mic trigger
-                _buildCircleActionButton(Icons.mic, Colors.white24, () {}),
+                _buildCircleActionButton(
+                  _isMicMuted ? Icons.mic_off : Icons.mic,
+                  _isMicMuted ? Colors.red.withOpacity(0.8) : Colors.white24,
+                  () {
+                    setState(() {
+                      _isMicMuted = !_isMicMuted;
+                    });
+                  }
+                ),
                 
                 // End Call button
                 GestureDetector(
@@ -432,7 +446,15 @@ class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
                 ),
                 
                 // Video toggle trigger
-                _buildCircleActionButton(Icons.videocam, Colors.white24, () {}),
+                _buildCircleActionButton(
+                  _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                  _isCameraOff ? Colors.red.withOpacity(0.8) : Colors.white24,
+                  () {
+                    setState(() {
+                      _isCameraOff = !_isCameraOff;
+                    });
+                  }
+                ),
               ],
             ),
           ),

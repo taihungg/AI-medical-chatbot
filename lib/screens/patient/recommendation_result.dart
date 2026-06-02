@@ -68,7 +68,7 @@ class RecommendationResultScreen extends StatelessWidget {
                   height: 90,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _getRiskColor().withOpacity(0.12),
+                    color: _getRiskColor().withValues(alpha: 0.12),
                     border: Border.all(color: _getRiskColor(), width: 2),
                   ),
                   child: Center(
@@ -266,9 +266,9 @@ class RecommendationResultScreen extends StatelessWidget {
   Widget _buildSOSTriggerCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: GlassTheme.error.withOpacity(0.08),
+        color: GlassTheme.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: GlassTheme.error.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: GlassTheme.error.withValues(alpha: 0.3), width: 1.5),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -290,7 +290,7 @@ class RecommendationResultScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               elevation: 8,
-              shadowColor: GlassTheme.error.withOpacity(0.5),
+              shadowColor: GlassTheme.error.withValues(alpha: 0.5),
             ),
             onPressed: () {
               Navigator.of(context).push(
@@ -389,7 +389,7 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.red.withOpacity(0.15),
+                  color: Colors.red.withValues(alpha: 0.15),
                   border: Border.all(color: Colors.redAccent, width: 3),
                 ),
                 child: const Icon(
@@ -573,7 +573,7 @@ class SelfCareScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.12),
+              color: Colors.green.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: Colors.green[700]!, size: 24),

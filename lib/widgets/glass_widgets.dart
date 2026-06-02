@@ -108,7 +108,7 @@ class GlassBackground extends StatelessWidget {
               width: 300,
               height: 300,
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.18),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
               ),
               child: BackdropFilter(
@@ -124,7 +124,7 @@ class GlassBackground extends StatelessWidget {
               width: 350,
               height: 350,
               decoration: BoxDecoration(
-                color: GlassTheme.cyan.withOpacity(0.15),
+                color: GlassTheme.cyan.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: BackdropFilter(
@@ -140,7 +140,7 @@ class GlassBackground extends StatelessWidget {
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                color: const Color(0xFF72F7ED).withOpacity(0.12),
+                color: const Color(0xFF72F7ED).withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: BackdropFilter(
@@ -197,7 +197,7 @@ class GlassCard extends StatelessWidget {
         borderRadius: resolvedRadius,
         boxShadow: [
           BoxShadow(
-            color: GlassTheme.oceanBlue.withOpacity(0.04),
+            color: GlassTheme.oceanBlue.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -210,10 +210,10 @@ class GlassCard extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(opacity),
+              color: Colors.white.withValues(alpha: opacity),
               borderRadius: resolvedRadius,
               border: Border.all(
-                color: borderColor.withOpacity(0.4),
+                color: borderColor.withValues(alpha: 0.4),
                 width: borderWidth,
               ),
             ),
@@ -255,7 +255,7 @@ class GlassButton extends StatelessWidget {
           gradient: GlassTheme.primaryGradient,
           boxShadow: [
             BoxShadow(
-              color: GlassTheme.oceanBlue.withOpacity(0.3),
+              color: GlassTheme.oceanBlue.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -266,19 +266,27 @@ class GlassButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: onPressed,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                Icon(icon, color: Colors.white, size: 18),
+                const SizedBox(width: 4),
               ],
-              Text(
-                text,
-                style: GlassTheme.bodyLg(color: Colors.white).copyWith(
-                  fontWeight: FontWeight.bold,
+              Flexible(
+                child: Text(
+                  text,
+                  style: GlassTheme.bodyLg(color: Colors.white).copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             ],
@@ -306,13 +314,18 @@ class GlassButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, color: GlassTheme.oceanBlue, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(icon, color: GlassTheme.oceanBlue, size: 18),
+                    const SizedBox(width: 4),
                   ],
-                  Text(
-                    text,
-                    style: GlassTheme.bodyLg(color: GlassTheme.oceanBlue).copyWith(
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: GlassTheme.bodyLg(color: GlassTheme.oceanBlue).copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -379,7 +392,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
             boxShadow: _isFocused
                 ? [
                     BoxShadow(
-                      color: GlassTheme.oceanBlue.withOpacity(0.12),
+                      color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
                       blurRadius: 10,
                       spreadRadius: 1,
                     )
@@ -448,7 +461,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: GlassTheme.oceanBlue.withOpacity(0.04),
+            color: GlassTheme.oceanBlue.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -458,7 +471,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: AppBar(
-            backgroundColor: Colors.white.withOpacity(0.7),
+            backgroundColor: Colors.white.withValues(alpha: 0.7),
             elevation: 0,
             title: Text(
               title,
@@ -470,7 +483,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
               child: Container(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
                 height: 1,
               ),
             ),
@@ -523,7 +536,7 @@ class GlassNavigationBar extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: active
                         ? BoxDecoration(
-                            color: GlassTheme.oceanBlue.withOpacity(0.1),
+                            color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           )
                         : null,

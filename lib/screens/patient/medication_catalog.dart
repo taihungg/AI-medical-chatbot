@@ -129,7 +129,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.12),
+                                      color: Colors.green.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Row(
@@ -158,7 +158,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.4),
+                                  color: Colors.white.withValues(alpha: 0.4),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
@@ -239,8 +239,8 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: ChoiceChip(
-                        backgroundColor: Colors.white.withOpacity(0.4),
-                        selectedColor: GlassTheme.oceanBlue.withOpacity(0.15),
+                        backgroundColor: Colors.white.withValues(alpha: 0.4),
+                        selectedColor: GlassTheme.oceanBlue.withValues(alpha: 0.15),
                         side: BorderSide(
                           color: active ? GlassTheme.oceanBlue : Colors.white30,
                           width: active ? 1.5 : 1.0,
@@ -295,7 +295,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(

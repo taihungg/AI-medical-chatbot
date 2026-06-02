@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
-import '../splash_screen.dart';
 
 class ClinicManagerDashboard extends StatefulWidget {
   const ClinicManagerDashboard({super.key});
@@ -62,19 +61,10 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
         final apptCount = appState.appointments.length;
         
         return Scaffold(
-          appBar: GlassAppBar(
+          appBar: const GlassAppBar(
             title: "Bảng Điều Hành Phòng Khám",
             actions: [
-              IconButton(
-                icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
-                tooltip: "Đổi vai trò",
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  );
-                },
-              ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
@@ -216,151 +206,144 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final isWide = constraints.maxWidth > 700;
-                      
-                      final chartWidget = GlassCard(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Biểu Đồ Hiệu Suất Giờ Cao Điểm",
-                                  style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const Icon(Icons.bar_chart, color: GlassTheme.cyan),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Số lượng bệnh nhân phân bổ theo khung giờ khám hôm nay.",
-                              style: TextStyle(fontSize: 11, color: GlassTheme.outline),
-                            ),
-                            const SizedBox(height: 24),
-                            
-                            // Beautiful Custom Painted Chart
-                            SizedBox(
-                              height: 180,
-                              width: double.infinity,
-                              child: CustomPaint(
-                                painter: OperationsChartPainter(
-                                  branchIndex: _selectedBranchIndex,
-                                  appointmentsAdded: apptCount,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildLegendItem("08h-10h", GlassTheme.oceanBlue),
-                                _buildLegendItem("10h-12h", GlassTheme.cyan),
-                                _buildLegendItem("14h-16h", Colors.purple),
-                                _buildLegendItem("16h-18h", Colors.teal),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-
-                      final logsWidget = Padding(
-                        padding: EdgeInsets.only(top: isWide ? 0.0 : 16.0),
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Operational Charts
+                          Expanded(
+                            flex: isWide ? 6 : 10,
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    "Nhật Ký Hệ Thống Live",
-                                    style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          "Biểu Đồ Hiệu Suất Giờ Cao Điểm",
+                                          style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const Icon(Icons.bar_chart, color: GlassTheme.cyan),
+                                    ],
                                   ),
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Số lượng bệnh nhân phân bổ theo khung giờ khám hôm nay.",
+                                    style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  
+                                  // Beautiful Custom Painted Chart
+                                  SizedBox(
+                                    height: 180,
+                                    width: double.infinity,
+                                    child: CustomPaint(
+                                      painter: OperationsChartPainter(
+                                        branchIndex: _selectedBranchIndex,
+                                        appointmentsAdded: apptCount,
+                                      ),
                                     ),
+                                  ),
+
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildLegendItem("08h-10h", GlassTheme.oceanBlue),
+                                      _buildLegendItem("10h-12h", GlassTheme.cyan),
+                                      _buildLegendItem("14h-16h", Colors.purple),
+                                      _buildLegendItem("16h-18h", Colors.teal),
+                                    ],
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
-                                style: TextStyle(fontSize: 11, color: GlassTheme.outline),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Log terminal listing
-                              Container(
-                                height: 212,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.white24),
-                                ),
-                                child: ListView.builder(
-                                  itemCount: appState.auditLogs.length,
-                                  itemBuilder: (ctx, idx) {
-                                    final log = appState.auditLogs[idx];
-                                    // Stylize specific logs
-                                    Color logColor = Colors.white70;
-                                    if (log.contains("BS đã ký")) {
-                                      logColor = Colors.green;
-                                    } else if (log.contains("đã đặt lịch")) {
-                                      logColor = GlassTheme.cyan;
-                                    } else if (log.contains("[Hệ thống]")) {
-                                      logColor = Colors.amber;
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 6.0),
-                                      child: Text(
-                                        log,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 10,
-                                          color: logColor,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      );
+                          
+                          // Spacing if wide
+                          if (isWide) const SizedBox(width: 16),
 
-                      if (isWide) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 6,
-                              child: chartWidget,
+                          // Live transaction logs
+                          Expanded(
+                            flex: isWide ? 4 : 10,
+                            child: Padding(
+                              padding: EdgeInsets.only(top: isWide ? 0.0 : 16.0),
+                              child: GlassCard(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Nhật Ký Hệ Thống Live",
+                                          style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                        ),
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.green,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
+                                      style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                                    ),
+                                    const SizedBox(height: 16),
+
+                                    // Log terminal listing
+                                    Container(
+                                      height: 212,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: Colors.white24),
+                                      ),
+                                      child: ListView.builder(
+                                        itemCount: appState.auditLogs.length,
+                                        itemBuilder: (ctx, idx) {
+                                          final log = appState.auditLogs[idx];
+                                          // Stylize specific logs
+                                          Color logColor = Colors.white70;
+                                          if (log.contains("BS đã ký")) {
+                                            logColor = Colors.green;
+                                          } else if (log.contains("đã đặt lịch")) {
+                                            logColor = GlassTheme.cyan;
+                                          } else if (log.contains("[Hệ thống]")) {
+                                            logColor = Colors.amber;
+                                          }
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 6.0),
+                                            child: Text(
+                                              log,
+                                              style: TextStyle(
+                                                fontFamily: 'Courier',
+                                                fontSize: 10,
+                                                color: logColor,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 4,
-                              child: logsWidget,
-                            ),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            chartWidget,
-                            logsWidget,
-                          ],
-                        );
-                      }
+                          ),
+                        ],
+                      );
                     },
                   ),
                   const SizedBox(height: 80),
@@ -460,7 +443,7 @@ class OperationsChartPainter extends CustomPainter {
 
     // Paint axis line grid
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withValues(alpha: 0.15)
       ..strokeWidth = 1.0;
 
     // Draw horizontal grids
@@ -484,7 +467,7 @@ class OperationsChartPainter extends CustomPainter {
 
       // Create neon glass glow effect
       final glowPaint = Paint()
-        ..color = barColors[i].withOpacity(0.4)
+        ..color = barColors[i].withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       
       canvas.drawRRect(barRect, glowPaint);
@@ -492,7 +475,7 @@ class OperationsChartPainter extends CustomPainter {
       // Draw solid column
       final columnPaint = Paint()
         ..shader = LinearGradient(
-          colors: [barColors[i], barColors[i].withOpacity(0.7)],
+          colors: [barColors[i], barColors[i].withValues(alpha: 0.7)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ).createShader(Rect.fromLTWH(x, y, barWidth, h));
@@ -501,7 +484,7 @@ class OperationsChartPainter extends CustomPainter {
 
       // Draw top glowing highlight line
       final highlightPaint = Paint()
-        ..color = Colors.white.withOpacity(0.8)
+        ..color = Colors.white.withValues(alpha: 0.8)
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
       
