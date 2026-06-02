@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
+import 'doctor_management_screen.dart';
+import 'patient_records_screen.dart';
+import 'master_appointment_screen.dart';
 
 class ClinicManagerDashboard extends StatefulWidget {
   const ClinicManagerDashboard({super.key});
@@ -191,6 +194,12 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                         Icons.medical_services,
                         Colors.teal,
                         "Hỗ trợ HD Live",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
+                          );
+                        },
                       ),
                       // Metric 3: Occupancy Rate
                       _buildMetricCard(
@@ -368,6 +377,33 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
               ),
             ),
           ),
+          bottomNavigationBar: GlassNavigationBar(
+            selectedIndex: 0,
+            onTap: (idx) {
+              if (idx == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
+                );
+              } else if (idx == 2) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PatientRecordsScreen()),
+                );
+              } else if (idx == 3) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MasterAppointmentScreen()),
+                );
+              }
+            },
+            items: [
+              GlassNavItem(icon: Icons.dashboard, label: 'Tổng quan'),
+              GlassNavItem(icon: Icons.medical_services, label: 'Bác sĩ'),
+              GlassNavItem(icon: Icons.people, label: 'Bệnh nhân'),
+              GlassNavItem(icon: Icons.event, label: 'Lịch hẹn'),
+            ],
+          ),
         );
       },
     );
@@ -378,36 +414,57 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
     String value,
     IconData icon,
     Color color,
-    String subtitle,
-  ) {
+    String subtitle, {
+    VoidCallback? onTap,
+  }) {
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 9),
+            ),
+            Icon(icon, color: color, size: 20),
+          ],
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: GlassTheme.h1(color: color).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
+        ),
+      ],
+    );
+
+    if (onTap != null) {
+      return GlassCard(
+        padding: EdgeInsets.zero,
+        borderRadius: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: content,
+            ),
+          ),
+        ),
+      );
+    }
+
     return GlassCard(
       padding: const EdgeInsets.all(12),
       borderRadius: 20,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 9),
-              ),
-              Icon(icon, color: color, size: 20),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: GlassTheme.h1(color: color).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
-          ),
-        ],
-      ),
+      child: content,
     );
   }
 

@@ -255,21 +255,7 @@ class _MainFrameworkState extends State<MainFramework> {
 
               // Always visible floating debugger Role Console
               Positioned.fill(
-                child: IgnorePointer(
-                  ignoring: true,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: IgnorePointer(
-                          ignoring: false,
-                          child: const RoleSwitcher(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                child: const RoleSwitcher(),
               ),
             ],
           ),
