@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import '../widgets/glass_widgets.dart';
 import '../state/app_state.dart';
 import '../widgets/role_switcher.dart';
+<<<<<<< HEAD
+=======
 import 'patient/home_dashboard.dart';
+>>>>>>> main
 import 'patient/symptom_flow.dart';
-import 'patient/medication_catalog.dart';
+import 'patient/appointment_booking_tab.dart';
+import 'patient/patient_history_screen.dart';
 import 'doctor/specialist_dashboard.dart';
 import 'manager/clinic_management_dashboard.dart';
 
@@ -109,6 +113,14 @@ class _SplashScreenState extends State<SplashScreen>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
+<<<<<<< HEAD
+                
+                // 1. Patient Option
+                _buildRoleCard(
+                  context,
+                  title: "Người Dùng & Bệnh Nhân",
+                  subtitle: "Tư vấn triệu chứng AI, đặt lịch khám trực tuyến hoặc trực tiếp tại phòng khám.",
+=======
 
                 // 1. Patient / Seeker Option
                 _buildRoleCard(
@@ -116,6 +128,7 @@ class _SplashScreenState extends State<SplashScreen>
                   title: "Người Dùng & Bệnh Nhân",
                   subtitle:
                       "Khám triệu chứng AI, đặt lịch phòng khám, tủ thuốc & tư vấn telehealth trực tuyến.",
+>>>>>>> main
                   icon: Icons.person_outline,
                   role: UserRole.patient,
                   color: GlassTheme.oceanBlue,
@@ -243,7 +256,7 @@ class MainFramework extends StatefulWidget {
 }
 
 class _MainFrameworkState extends State<MainFramework> {
-  // Navigation for Patient/Seeker is separate from Specialist/Manager
+  // Navigation index for Patient bottom tabs
   late int _patientNavIndex;
 
   @override
@@ -262,17 +275,33 @@ class _MainFrameworkState extends State<MainFramework> {
         // Dynamically select layout based on the active role selected in the floating switcher
         return PopScope(
           canPop: false,
-          child: Scaffold(
-            body: Stack(
+          child: Material(
+            color: Colors.transparent,
+            child: Stack(
               children: [
                 // Dynamic view based on Active Role
                 _buildRoleScreen(appState.currentRole),
 
-              // Always visible floating debugger Role Console
-              Positioned.fill(
-                child: const RoleSwitcher(),
-              ),
-            ],
+                // Always visible floating debugger Role Console.
+                // Positioned.fill gives the RoleSwitcher's internal Stack a
+                // bounded size (it positions its own children via bottom/right).
+                Positioned.fill(
+                  child: IgnorePointer(
+                    ignoring: true,
+                    child: Stack(
+                      children: const [
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            ignoring: false,
+                            child: RoleSwitcher(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -283,51 +312,72 @@ class _MainFrameworkState extends State<MainFramework> {
     // We import and render appropriate screens here
     switch (role) {
       case UserRole.patient:
-      case UserRole.seeker:
-        return _buildPatientSeekerShell(role);
+        return _buildPatientShell();
       case UserRole.doctor:
-      case UserRole.specialist:
-        return const DoctorSpecialistShell();
+        return const DoctorShell();
       case UserRole.manager:
         return const ClinicManagerShell();
     }
   }
 
-  Widget _buildPatientSeekerShell(UserRole role) {
-    // Shell managing bottom navigation bar for Patient/Seeker
+  Widget _buildPatientShell() {
+    // Shell managing bottom navigation bar for Patient
+    // Tab 0: AI Chatbot (SymptomFlowScreen)
+    // Tab 1: Đặt lịch khám (AppointmentBookingTab)
+    // Tab 2: Lịch sử y khoa (PatientHistoryScreen)
     final pages = [
-      const PatientHomeDashboard(),
       const SymptomFlowScreen(),
-      const MedicationCatalogScreen(),
+      const AppointmentBookingTab(),
       const PatientHistoryScreen(),
     ];
 
     final items = [
-      GlassNavItem(icon: Icons.home_outlined, label: "Trang chủ"),
-      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Khám AI"),
-      GlassNavItem(icon: Icons.medical_services_outlined, label: "Nhà thuốc"),
-      GlassNavItem(icon: Icons.history_outlined, label: "Lịch sử"),
+      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Tư vấn AI"),
+      GlassNavItem(icon: Icons.edit_calendar, label: "Đặt lịch"),
+      GlassNavItem(icon: Icons.history, label: "Lịch sử"),
     ];
+
+    final activeIndex = _patientNavIndex >= pages.length ? 0 : _patientNavIndex;
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    // Auto-switch to booking tab when AI triggers it
+    final appState = AppState.instance;
+    if (appState.pendingBookingFromAI && _patientNavIndex != 1) {
+      // Schedule the tab switch after the current frame to avoid build-during-build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _patientNavIndex = 1;
+          });
+          appState.consumeBookingTrigger();
+        }
+      });
+    }
 
     return Scaffold(
       extendBody: true,
-      body: pages[_patientNavIndex],
-      bottomNavigationBar: GlassNavigationBar(
-        selectedIndex: _patientNavIndex,
-        onTap: (index) {
-          setState(() {
-            _patientNavIndex = index;
-          });
-        },
-        items: items,
+      body: IndexedStack(
+        index: activeIndex,
+        children: pages,
       ),
+      bottomNavigationBar: isKeyboardOpen
+          ? null
+          : GlassNavigationBar(
+              selectedIndex: activeIndex,
+              onTap: (index) {
+                setState(() {
+                  _patientNavIndex = index;
+                });
+              },
+              items: items,
+            ),
     );
   }
 }
 
-// Mock Shells for Specialist and Manager (We will implement the real screens later)
-class DoctorSpecialistShell extends StatelessWidget {
-  const DoctorSpecialistShell({super.key});
+// Shells for Doctor and Manager
+class DoctorShell extends StatelessWidget {
+  const DoctorShell({super.key});
 
   @override
   Widget build(BuildContext context) {

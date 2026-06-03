@@ -271,7 +271,50 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                   ),
                                 ],
                               ),
-                            ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
+                                style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Log terminal listing
+                              Container(
+                                height: 212,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.white24),
+                                ),
+                                child: ListView.builder(
+                                  itemCount: appState.auditLogs.length,
+                                  itemBuilder: (ctx, idx) {
+                                    final log = appState.auditLogs[idx];
+                                    // Stylize specific logs
+                                    Color logColor = Colors.white70;
+                                    if (log.contains("BS đã ký")) {
+                                      logColor = Colors.green;
+                                    } else if (log.contains("đã đặt lịch")) {
+                                      logColor = GlassTheme.cyan;
+                                    } else if (log.contains("[Hệ thống]")) {
+                                      logColor = Colors.amber;
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 6.0),
+                                      child: Text(
+                                        log,
+                                        style: TextStyle(
+                                          fontFamily: 'Courier',
+                                          fontSize: 10,
+                                          color: logColor,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                           
                           // Spacing if wide

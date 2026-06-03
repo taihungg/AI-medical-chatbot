@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'chat_directive.dart';
+import 'conversation_graph.dart';
 
 enum UserRole {
-  patient,    // Người cần khám bệnh (đánh giá + đặt lịch khám)
-  seeker,     // Người cần tư vấn nhanh (đánh giá + tư vấn trực tuyến)
+  patient,    // Bệnh nhân (đánh giá triệu chứng + đặt lịch khám)
   doctor,     // Bác sĩ (khám, xem vitals, ký đơn thuốc)
-  specialist, // Chuyên gia (xem hồ sơ bệnh án chuyên sâu, duyệt yêu cầu)
-  manager     // Quản lý phòng khám (xem dashboard thống kê, hiệu suất chi nhánh)
+  manager     // Quản lý phòng khám (xem dashboard thống kê)
 }
 
 class ChatMessage {
@@ -15,7 +15,21 @@ class ChatMessage {
   final bool isUser;
   final DateTime time;
 
-  ChatMessage({required this.text, required this.isUser, required this.time});
+  /// Optional interactive component the bot wants rendered under this bubble.
+  /// Null for user messages and plain-text bot messages.
+  final ChatUiDirective? directive;
+
+  /// True once the user has answered this message's directive. The UI then
+  /// renders the component read-only so only the latest directive stays live.
+  bool directiveResolved;
+
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+    required this.time,
+    this.directive,
+    this.directiveResolved = false,
+  });
 }
 
 class AppAppointment {
@@ -155,10 +169,8 @@ class AppState extends ChangeNotifier {
 
   String _getRoleNameVi(UserRole role) {
     switch (role) {
-      case UserRole.patient: return "Người cần khám bệnh";
-      case UserRole.seeker: return "Người cần tư vấn nhanh";
+      case UserRole.patient: return "Bệnh nhân";
       case UserRole.doctor: return "Bác sĩ";
-      case UserRole.specialist: return "Chuyên gia y tế";
       case UserRole.manager: return "Quản lý phòng khám";
     }
   }
@@ -166,9 +178,6 @@ class AppState extends ChangeNotifier {
   // Chatbot State
   final List<ChatMessage> _chatMessages = [];
   List<ChatMessage> get chatMessages => _chatMessages;
-
-  double _assessmentProgress = 0.0;
-  double get assessmentProgress => _assessmentProgress;
 
   bool _isAiTyping = false;
   bool get isAiTyping => _isAiTyping;
@@ -179,6 +188,16 @@ class AppState extends ChangeNotifier {
   String _selectedSymptomsText = '';
   String get selectedSymptomsText => _selectedSymptomsText;
 
+  /// The scripted bot brain. This is the MVP seam — swapping in Gemini means
+  /// replacing what [_generateBotReply] delegates to, not touching the UI.
+  final ConversationEngine _engine = ConversationEngine();
+
+  /// Set true for one notify cycle when the bot decides to route the patient
+  /// to the SOS emergency screen. The chat UI consumes it and navigates.
+  bool _pendingEmergencySos = false;
+  bool get pendingEmergencySos => _pendingEmergencySos;
+  void consumeEmergencySos() => _pendingEmergencySos = false;
+
   // Appointments
   final List<AppAppointment> _appointments = [];
   List<AppAppointment> get appointments => _appointments;
@@ -186,6 +205,29 @@ class AppState extends ChangeNotifier {
   // Selected Appointment for Active Consultations
   AppAppointment? _activeConsultation;
   AppAppointment? get activeConsultation => _activeConsultation;
+
+  // Booking Tab Trigger from AI Chatbot
+  // When AI recommends booking and patient agrees, this flag is set
+  // to auto-switch to the "Đặt lịch khám" tab with pre-filled data.
+  bool _pendingBookingFromAI = false;
+  bool get pendingBookingFromAI => _pendingBookingFromAI;
+
+  /// Called when the patient agrees to book (e.g. taps the report card CTA).
+  /// Sets the trigger flag so MainFramework auto-switches to the booking tab.
+  /// [symptoms] and [risk] are already stored in selectedSymptomsText / currentRiskLevel
+  /// before this call, so the booking tab can read them directly.
+  void triggerBookingFromAI() {
+    _pendingBookingFromAI = true;
+    addAuditLog("Bệnh nhân đồng ý đặt lịch từ khuyến cáo AI. Chuyển sang tab Đặt lịch khám.");
+    notifyListeners();
+  }
+
+  /// Called by MainFramework after it has switched to the booking tab.
+  /// Resets the flag so it doesn't trigger again on subsequent rebuilds.
+  void consumeBookingTrigger() {
+    _pendingBookingFromAI = false;
+    notifyListeners();
+  }
 
   void setActiveConsultation(AppAppointment? appt) {
     _activeConsultation = appt;
@@ -208,11 +250,13 @@ class AppState extends ChangeNotifier {
 
   // Pre-populated default records
   void _initDefaults() {
-    // Add default chat messages
+    // Seed the opening bot turn (greeting + first interactive directive).
+    final opening = _engine.opening();
     _chatMessages.add(ChatMessage(
-      text: "Xin chào! Tôi là Trợ lý AI Care Bridge. Tôi có thể giúp bạn đánh giá các triệu chứng sức khỏe ban đầu của mình. Mọi thông tin trò chuyện đều được bảo mật theo tiêu chuẩn HIPAA. Hãy chia sẻ triệu chứng bạn đang gặp phải nhé!",
+      text: opening.text,
       isUser: false,
-      time: DateTime.now().subtract(const Duration(minutes: 5)),
+      time: DateTime.now(),
+      directive: opening.directive,
     ));
 
     // Prepopulate default appointments for Doctor/Specialist and Manager view
@@ -264,79 +308,97 @@ class AppState extends ChangeNotifier {
     _auditLogs.add("[Hệ thống] Nạp dữ liệu thành công cho 4 chi nhánh phòng khám.");
   }
 
-  // --- ACTIONS ---
+  // --- CHAT ACTIONS ---
+  // The chat is a thin shell over a single seam, [_generateBotReply]. Both
+  // free-text messages and interactive-component responses funnel through
+  // [_runTurn], so swapping the scripted brain for Gemini touches one method.
 
-  // Chat actions
+  /// Patient typed a free-text message.
   void sendChatMessage(String text) {
     if (text.trim().isEmpty) return;
+    _appendUser(text);
+    addAuditLog("Bệnh nhân nhắn: $text");
+    _runTurn(ChatTurnContext(userText: text));
+  }
 
-    _chatMessages.add(ChatMessage(
-      text: text,
-      isUser: true,
-      time: DateTime.now(),
+  /// Patient answered an interactive component (chip / slider / etc).
+  /// [userEcho] is the human-readable bubble to show for their choice.
+  void respondToDirective({
+    required String directiveId,
+    String? selectedValue,
+    List<String>? selectedValues,
+    double? sliderValue,
+    required String userEcho,
+  }) {
+    _markDirectiveResolved(directiveId);
+    _appendUser(userEcho);
+    addAuditLog("Bệnh nhân chọn: $userEcho");
+    _runTurn(ChatTurnContext(
+      directiveId: directiveId,
+      selectedValue: selectedValue,
+      selectedValues: selectedValues,
+      sliderValue: sliderValue,
     ));
-    addAuditLog("Bệnh nhân gửi triệu chứng: $text");
-    notifyListeners();
+  }
 
-    // Trigger AI response simulation
-    _isAiTyping = true;
-    _assessmentProgress = min(1.0, _assessmentProgress + 0.25);
+  void _appendUser(String text) {
+    _chatMessages.add(ChatMessage(text: text, isUser: true, time: DateTime.now()));
     notifyListeners();
+  }
 
-    Timer(const Duration(milliseconds: 1500), () {
-      _isAiTyping = false;
-      String response = "";
-      if (_assessmentProgress < 0.3) {
-        response = "Tôi đã ghi nhận các triệu chứng này. Để hỗ trợ tốt nhất, xin vui lòng cho biết triệu chứng đã xuất hiện được bao lâu và có kèm theo triệu chứng nào khác không? (ví dụ: sốt, chóng mặt, đau buốt...)";
-      } else if (_assessmentProgress < 0.6) {
-        _selectedSymptomsText = text;
-        response = "Cảm ơn bạn. Mức độ tác động đến sinh hoạt hàng ngày của bạn như thế nào? (Chưa ảnh hưởng nhiều / Khó chịu đáng kể / Rất mệt không thể đi lại)";
-      } else if (_assessmentProgress < 0.8) {
-        response = "Thông tin rất hữu ích. Tôi đang tiến hành phân tích đối chiếu với kho cơ sở dữ liệu lâm sàng y khoa. Vui lòng nhấn nút 'Xem Kết Quả Phân Tích' để hệ thống hiển thị phân loại và đề xuất y tế tối ưu nhất.";
-      } else {
-        // Evaluate risk level based on simple keyword search
-        final textLower = text.toLowerCase();
-        if (textLower.contains('đau ngực') || textLower.contains('khó thở') || textLower.contains('cấp cứu') || textLower.contains('ngất')) {
-          _currentRiskLevel = 'Khẩn cấp';
-        } else if (textLower.contains('sốt cao') || textLower.contains('đau dữ dội') || textLower.contains('mệt nhiều')) {
-          _currentRiskLevel = 'Cao';
-        } else if (textLower.contains('ho') || textLower.contains('sổ mũi') || textLower.contains('nhẹ')) {
-          _currentRiskLevel = 'Thấp';
-        } else {
-          _currentRiskLevel = 'Trung bình';
-        }
-        response = "Quy trình phân tích y khoa AI đã hoàn tất! Vui lòng nhấn nút dưới để xem chi tiết phân loại mức độ nguy cơ triệu chứng và các phương án chăm sóc phù hợp.";
+  void _markDirectiveResolved(String directiveId) {
+    for (final m in _chatMessages) {
+      if (m.directive?.directiveId == directiveId) {
+        m.directiveResolved = true;
       }
+    }
+  }
+
+  /// Runs one bot turn: typing indicator → seam → apply reply + side effects.
+  void _runTurn(ChatTurnContext ctx) {
+    _isAiTyping = true;
+    notifyListeners();
+
+    Timer(const Duration(milliseconds: 900), () async {
+      final reply = await _generateBotReply(ctx);
+      _isAiTyping = false;
+
+      if (reply.setSymptomsText != null) _selectedSymptomsText = reply.setSymptomsText!;
+      if (reply.setRiskLevel != null) _currentRiskLevel = reply.setRiskLevel!;
 
       _chatMessages.add(ChatMessage(
-        text: response,
+        text: reply.text,
         isUser: false,
         time: DateTime.now(),
+        directive: reply.directive,
       ));
-      addAuditLog("AI Phản hồi: ${response.substring(0, min(30, response.length))}...");
+
+      if (reply.triggerEmergencySos) _pendingEmergencySos = true;
+      if (reply.triggerBooking) triggerBookingFromAI();
+
+      addAuditLog("AI phản hồi (${reply.directive?.type.name ?? 'text'}).");
       notifyListeners();
     });
   }
 
-  void resetChat() {
-    _chatMessages.clear();
-    _assessmentProgress = 0.0;
-    _currentRiskLevel = 'Thấp';
-    _selectedSymptomsText = '';
-    _chatMessages.add(ChatMessage(
-      text: "Xin chào! Tôi là Trợ lý AI Care Bridge. Hãy chia sẻ bất kỳ triệu chứng sức khỏe nào bạn đang lo lắng nhé!",
-      isUser: false,
-      time: DateTime.now(),
-    ));
-    addAuditLog("Người dùng đặt lại luồng đánh giá AI.");
-    notifyListeners();
+  /// THE SEAM. MVP: scripted engine. Later: `return GeminiService.reply(ctx)`.
+  Future<BotReply> _generateBotReply(ChatTurnContext ctx) async {
+    return _engine.next(ctx);
   }
 
-  void completeDirectAssessment(String symptoms, String risk) {
-    _selectedSymptomsText = symptoms;
-    _currentRiskLevel = risk;
-    _assessmentProgress = 1.0;
-    addAuditLog("Đánh giá triệu chứng trực tiếp: $symptoms (Mức độ: $risk)");
+  void resetChat() {
+    _chatMessages.clear();
+    _currentRiskLevel = 'Thấp';
+    _selectedSymptomsText = '';
+    _isAiTyping = false;
+    final opening = _engine.opening();
+    _chatMessages.add(ChatMessage(
+      text: opening.text,
+      isUser: false,
+      time: DateTime.now(),
+      directive: opening.directive,
+    ));
+    addAuditLog("Người dùng đặt lại cuộc trò chuyện AI.");
     notifyListeners();
   }
 

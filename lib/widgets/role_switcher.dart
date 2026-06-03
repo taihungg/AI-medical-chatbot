@@ -49,13 +49,9 @@ class _RoleSwitcherState extends State<RoleSwitcher>
   String _getRoleNameVi(UserRole role) {
     switch (role) {
       case UserRole.patient:
-        return "Bệnh nhân (Khám bệnh)";
-      case UserRole.seeker:
-        return "Người cần tư vấn nhanh";
+        return "Bệnh nhân";
       case UserRole.doctor:
-        return "Bác sĩ điều trị";
-      case UserRole.specialist:
-        return "Chuyên gia y tế";
+        return "Bác sĩ";
       case UserRole.manager:
         return "Quản lý phòng khám";
     }
@@ -65,12 +61,8 @@ class _RoleSwitcherState extends State<RoleSwitcher>
     switch (role) {
       case UserRole.patient:
         return Icons.person;
-      case UserRole.seeker:
-        return Icons.chat_bubble;
       case UserRole.doctor:
         return Icons.medical_services;
-      case UserRole.specialist:
-        return Icons.psychology;
       case UserRole.manager:
         return Icons.dashboard;
     }
@@ -261,6 +253,47 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                                     ),
                                   ],
                                 ),
+                              ),
+                            ),
+                          );
+                        }),
+                        const Divider(height: 16, color: Colors.white38),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          child: InkWell(
+                            onTap: () {
+                              _toggleExpanded();
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const SplashScreen()),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.logout,
+                                    size: 16,
+                                    color: GlassTheme.error,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      "Quay lại màn hình chính",
+                                      style: TextStyle(
+                                        color: GlassTheme.error,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios, size: 10, color: GlassTheme.error),
+                                ],
                               ),
                             ),
                           ),

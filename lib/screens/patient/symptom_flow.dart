@@ -1,9 +1,16 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import '../splash_screen.dart';
 import '../../state/app_state.dart';
+import '../../state/chat_directive.dart';
 import '../../widgets/glass_widgets.dart';
-import 'recommendation_result.dart';
+import '../../widgets/chat_directives.dart';
+import 'emergency_screens.dart';
 
+/// The AI chatbot screen. A thin, pure chat shell: it renders messages and the
+/// interactive components the bot attaches to them, and forwards every user
+/// action (free text or component response) back into [AppState]. All decision
+/// logic lives in AppState's seam, so this screen never changes when Gemini
+/// replaces the scripted brain.
 class SymptomFlowScreen extends StatefulWidget {
   const SymptomFlowScreen({super.key});
 
@@ -14,37 +21,19 @@ class SymptomFlowScreen extends StatefulWidget {
 class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
-  // Survey selections
-  double _severityValue = 5.0; // 1-10 severity scale
-  String _durationSelected = "1-3 ngày"; // Dưới 24h, 1-3 ngày, > 3 ngày
-  
-  // Phase management
-  // 0: Chat & Symptom selection
-  // 1: Details survey (shows inline details card)
-  // 2: AI Loading screen (full-overlay)
-  int _flowPhase = 0;
-  
-  // AI Progress overlay variables
-  double _analyzingProgress = 0.0;
-  String _analyzingStatus = "Đang kết nối hệ thống y khoa...";
-  Timer? _analysisTimer;
 
-  final List<String> _durationOptions = ["Dưới 24h", "1-3 ngày", "Hơn 3 ngày"];
-
-  final List<Map<String, dynamic>> _quickSymptoms = [
-    {"name": "Đau đầu", "icon": Icons.headset_off, "risk": "Trung bình"},
-    {"name": "Đau ngực", "icon": Icons.favorite_border, "risk": "Khẩn cấp"},
-    {"name": "Sốt cao", "icon": Icons.thermostat, "risk": "Cao"},
-    {"name": "Ho khan", "icon": Icons.air, "risk": "Thấp"},
-    {"name": "Khó thở", "icon": Icons.bubble_chart, "risk": "Cao"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Listen for emergency SOS flag changes outside of build()
+    AppState.instance.addListener(_maybeHandleEmergency);
+  }
 
   @override
   void dispose() {
+    AppState.instance.removeListener(_maybeHandleEmergency);
     _inputController.dispose();
     _scrollController.dispose();
-    _analysisTimer?.cancel();
     super.dispose();
   }
 
@@ -62,105 +51,64 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
   void _handleSend(String text) {
     if (text.trim().isEmpty) return;
-    
-    final appState = AppState.instance;
-    appState.sendChatMessage(text);
+    AppState.instance.sendChatMessage(text);
     _inputController.clear();
     _scrollToBottom();
-    
-    // Automatically trigger showing the Survey details card after 1 conversation exchange
-    if (_flowPhase == 0) {
-      Timer(const Duration(milliseconds: 2000), () {
-        setState(() {
-          _flowPhase = 1;
-        });
-        _scrollToBottom();
-      });
-    }
   }
 
-  void _handleQuickSymptomTap(Map<String, dynamic> symptom) {
-    final name = symptom["name"] as String;
-    final risk = symptom["risk"] as String;
-    
-    final appState = AppState.instance;
-    appState.addAuditLog("Bệnh nhân chọn nhanh triệu chứng: $name (Mức độ: $risk)");
-    
-    // Send selected message
-    appState.sendChatMessage("Tôi bị $name.");
-    
-    setState(() {
-      _flowPhase = 1; // Transition to detail survey
-    });
-    
+  // ── component response handlers → AppState.respondToDirective ──────────────
+
+  void _onPicked(ChatUiDirective d, ChatOption opt) {
+    AppState.instance.respondToDirective(
+      directiveId: d.directiveId,
+      selectedValue: opt.value,
+      userEcho: opt.label,
+    );
     _scrollToBottom();
   }
 
-  void _startAIAnalysis() {
-    setState(() {
-      _flowPhase = 2; // AI analyzing progress screen
-      _analyzingProgress = 0.0;
-    });
-
-    final appState = AppState.instance;
-    appState.addAuditLog("Bệnh nhân khởi động quy trình chẩn đoán AI.");
-
-    int step = 0;
-    _analysisTimer = Timer.periodic(const Duration(milliseconds: 400), (timer) {
-      setState(() {
-        _analyzingProgress += 0.12;
-        step++;
-
-        if (step == 2) {
-          _analyzingStatus = "Đang đối chuẩn triệu chứng với 1.2M hồ sơ...";
-        } else if (step == 5) {
-          _analyzingStatus = "Phân tích tần suất và các chỉ số sinh tồn liên quan...";
-        } else if (step == 7) {
-          _analyzingStatus = "Đang tính toán mức độ rủi ro & giải pháp tối ưu...";
-        }
-
-        if (_analyzingProgress >= 1.0) {
-          _analyzingProgress = 1.0;
-          timer.cancel();
-          _onAnalysisComplete();
-        }
-      });
-    });
+  void _onConfirmed(ChatUiDirective d, List<ChatOption> opts) {
+    final echo =
+        opts.isEmpty ? "Không có triệu chứng kèm theo" : opts.map((e) => e.label).join(", ");
+    AppState.instance.respondToDirective(
+      directiveId: d.directiveId,
+      selectedValues: opts.map((e) => e.value).toList(),
+      userEcho: echo,
+    );
+    _scrollToBottom();
   }
 
-  void _onAnalysisComplete() {
+  void _onSlider(ChatUiDirective d, double value) {
+    final suffix = d.slider?.unitSuffix ?? '/10';
+    AppState.instance.respondToDirective(
+      directiveId: d.directiveId,
+      sliderValue: value,
+      userEcho: "${value.toInt()}$suffix",
+    );
+    _scrollToBottom();
+  }
+
+  void _onBook() {
     final appState = AppState.instance;
-    
-    // Determine risk based on selections
-    String finalRisk = "Thấp";
-    String symptomsSummary = appState.selectedSymptomsText;
-    if (symptomsSummary.isEmpty) {
-      symptomsSummary = "Khảo sát triệu chứng chung";
-    }
-
-    final lowerSymptoms = symptomsSummary.toLowerCase();
-    if (lowerSymptoms.contains("ngực") || lowerSymptoms.contains("khó thở")) {
-      finalRisk = _severityValue >= 7.0 ? "Khẩn cấp" : "Cao";
-    } else if (lowerSymptoms.contains("sốt") || _severityValue >= 6.0) {
-      finalRisk = "Cao";
-    } else if (_severityValue >= 4.0 || _durationSelected == "Hơn 3 ngày") {
-      finalRisk = "Trung bình";
-    }
-
-    appState.completeDirectAssessment(
-      "$symptomsSummary. Thời gian kéo dài: $_durationSelected. Mức độ nghiêm trọng: ${_severityValue.toInt()}/10.",
-      finalRisk,
-    );
-
-    // Push the result screen
+    appState.triggerBookingFromAI();
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => RecommendationResultScreen(
-          symptoms: appState.selectedSymptomsText,
-          risk: finalRisk,
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 1)),
     );
+  }
+
+  /// Bot routed to emergency — open the SOS screen once.
+  void _maybeHandleEmergency() {
+    final appState = AppState.instance;
+    if (appState.pendingEmergencySos) {
+      appState.consumeEmergencySos();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SOSEmergencyAlertScreen()),
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -169,17 +117,34 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Đánh Giá Sức Khỏe AI",
+        title: "Trợ Lý Y Tế AI",
         actions: [
+          // Quick SOS access for emergencies.
+          IconButton(
+            icon: const Icon(Icons.emergency_share, color: GlassTheme.error, size: 26),
+            tooltip: "Cấp cứu 115",
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SOSEmergencyAlertScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.swap_horizontal_circle_outlined,
+                color: GlassTheme.oceanBlue, size: 28),
+            tooltip: "Đổi vai trò",
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const SplashScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue),
-            onPressed: () {
-              appState.resetChat();
-              setState(() {
-                _flowPhase = 0;
-              });
-            },
-          )
+            tooltip: "Trò chuyện mới",
+            onPressed: () => appState.resetChat(),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -215,69 +180,45 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                   ),
                 ),
 
-                // Chat logs list
-                Expanded(
-                  child: ListenableBuilder(
-                    listenable: appState,
-                    builder: (context, child) {
-                      final messages = appState.chatMessages;
-                      
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                        itemCount: messages.length + (_flowPhase == 1 ? 1 : 0) + (appState.isAiTyping ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          // 1. Typing animation
-                          if (index == messages.length && appState.isAiTyping) {
-                            return _buildAiTypingIndicator();
-                          }
-                          
-                          // 2. Render survey block if flow phase is 1 (inline survey bento card)
-                          if (index == messages.length && _flowPhase == 1) {
-                            return _buildSymptomSurveyCard();
-                          }
-                          
-                          final msg = messages[index];
-                          return _buildChatBubble(msg);
-                        },
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      if (index == messages.length && appState.isAiTyping) {
+                        return _buildAiTypingIndicator();
+                      }
+                      final msg = messages[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildChatBubble(msg),
+                          if (msg.directive != null && msg.directive!.isInteractive)
+                            ChatDirectiveView(
+                              directive: msg.directive!,
+                              enabled: !msg.directiveResolved,
+                              onPicked: (opt) => _onPicked(msg.directive!, opt),
+                              onConfirmed: (opts) => _onConfirmed(msg.directive!, opts),
+                              onSlider: (v) => _onSlider(msg.directive!, v),
+                              onBook: _onBook,
+                            ),
+                        ],
                       );
                     },
-                  ),
-                ),
-
-                // Bottom presets or text entry input bar
-                if (_flowPhase == 0) ...[
-                  _buildQuickSymptomsGrid(),
-                  _buildChatBar(),
-                ] else if (_flowPhase == 1) ...[
-                  // Prompt to complete analysis
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
-                    child: GlassButton(
-                      text: "Tiến hành phân tích y khoa AI",
-                      icon: Icons.auto_awesome,
-                      onPressed: _startAIAnalysis,
-                    ),
-                  ),
-                ],
-                
-                const SizedBox(height: 20),
-              ],
+                  );
+                },
+              ),
             ),
-          ),
-
-          // Fullscreen Overlay for AI computing progress (Phase 2)
-          if (_flowPhase == 2) _buildAIProcessingOverlay(),
-        ],
+            _buildChatBar(),
+          ],
+        ),
       ),
     );
   }
 
-  // Visual widgets
-
+  // ── chat bubble ─────────────────────────────────────────────────────────
   Widget _buildChatBubble(ChatMessage message) {
     final isMe = message.isUser;
-    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
@@ -288,13 +229,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(
-                color: GlassTheme.oceanBlue,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(Icons.smart_toy, color: Colors.white, size: 18),
-              ),
+              decoration: const BoxDecoration(color: GlassTheme.oceanBlue, shape: BoxShape.circle),
+              child: const Center(child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
             ),
             const SizedBox(width: 8),
           ],
@@ -314,9 +250,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 message.text,
                 style: GlassTheme.bodyMd(
                   color: isMe ? GlassTheme.oceanBlue : GlassTheme.onSurface,
-                ).copyWith(
-                  fontWeight: isMe ? FontWeight.w600 : FontWeight.normal,
-                ),
+                ).copyWith(fontWeight: isMe ? FontWeight.w600 : FontWeight.normal),
               ),
             ),
           ),
@@ -325,15 +259,10 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                gradient: GlassTheme.accentGradient,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(Icons.person, color: Colors.white, size: 18),
-              ),
+              decoration: BoxDecoration(gradient: GlassTheme.accentGradient, shape: BoxShape.circle),
+              child: const Center(child: Icon(Icons.person, color: Colors.white, size: 18)),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -347,13 +276,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(
-              color: GlassTheme.oceanBlue,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Icon(Icons.smart_toy, color: Colors.white, size: 18),
-            ),
+            decoration: const BoxDecoration(color: GlassTheme.oceanBlue, shape: BoxShape.circle),
+            child: const Center(child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
           ),
           const SizedBox(width: 8),
           const GlassCard(
@@ -407,25 +331,24 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 
   Widget _buildChatBar() {
+    // GlassBackground already wraps the body in a SafeArea, so the Column's
+    // bottom edge sits right at the top of the floating nav bar. Only a small
+    // gap is needed to separate the chat bar from the nav bar.
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 96),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: GlassCard(
         padding: const EdgeInsets.all(8),
         borderRadius: 32,
         opacity: 0.8,
         borderColor: GlassTheme.oceanBlue,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(
-                color: GlassTheme.cyan,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(Icons.mic, color: Colors.white, size: 22),
-              ),
+              decoration: const BoxDecoration(color: GlassTheme.cyan, shape: BoxShape.circle),
+              child: const Center(child: Icon(Icons.mic, color: Colors.white, size: 22)),
             ),
             Expanded(
               child: Padding(
@@ -433,10 +356,17 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 child: TextField(
                   controller: _inputController,
                   style: GlassTheme.bodyMd(),
+                  maxLines: 5,
+                  minLines: 1,
+                  keyboardType: TextInputType.multiline,
+                  textCapitalization: TextCapitalization.sentences,
+                  // Removed textInputAction: TextInputAction.send to fix Vietnamese Telex typing issues
                   decoration: InputDecoration(
                     hintText: "Mô tả triệu chứng của bạn...",
                     hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
                     border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   onSubmitted: _handleSend,
                 ),
@@ -670,10 +600,9 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 }
 
-// Micro pulsing dot animation for chatbot typing
+// Micro pulsing dot animation for chatbot typing.
 class _TypingDot extends StatefulWidget {
   final int delay;
-
   const _TypingDot({required this.delay});
 
   @override
@@ -687,19 +616,12 @@ class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMi
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _anim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
-
     Future.delayed(Duration(milliseconds: widget.delay), () {
-      if (mounted) {
-        _animController.repeat(reverse: true);
-      }
+      if (mounted) _animController.repeat(reverse: true);
     });
   }
 
@@ -716,10 +638,7 @@ class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMi
       child: Container(
         width: 8,
         height: 8,
-        decoration: const BoxDecoration(
-          color: GlassTheme.oceanBlue,
-          shape: BoxShape.circle,
-        ),
+        decoration: const BoxDecoration(color: GlassTheme.oceanBlue, shape: BoxShape.circle),
       ),
     );
   }
