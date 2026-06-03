@@ -603,6 +603,20 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     );
   }
 
+  String _generateMockAiSummary(String symptom) {
+    if (symptom.isEmpty) return "Bệnh nhân chưa khai báo triệu chứng chi tiết qua AI.";
+    final sym = symptom.toLowerCase();
+    if (sym.contains("ho") || sym.contains("phổi") || sym.contains("sốt")) {
+      return "🤖 Trợ lý AI phân tích: Dấu hiệu nhiễm trùng hô hấp. Triệu chứng: $symptom.\n💡 Đề xuất: Đo SpO2, nghe phổi, cân nhắc X-quang ngực.";
+    } else if (sym.contains("đầu") || sym.contains("thần kinh") || sym.contains("chóng mặt")) {
+      return "🤖 Trợ lý AI phân tích: Dấu hiệu liên quan hệ thần kinh/tiền đình. Triệu chứng: $symptom.\n💡 Đề xuất: Kiểm tra huyết áp, test Romberg, loại trừ thiếu máu não.";
+    } else if (sym.contains("bụng") || sym.contains("dạ dày") || sym.contains("ợ")) {
+      return "🤖 Trợ lý AI phân tích: Triệu chứng tiêu hóa nổi bật. Triệu chứng: $symptom.\n💡 Đề xuất: Khám thực thể vùng bụng, khai thác tiền sử H.Pylori.";
+    } else {
+      return "🤖 Trợ lý AI tổng hợp: Bệnh nhân than phiền về '$symptom'.\n💡 Mức độ rủi ro: Cần bác sĩ đánh giá lâm sàng trực tiếp.";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = AppState.instance;
@@ -703,7 +717,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                             const SizedBox(height: 8),
                             _buildReadOnlyBox(
                               appt.aiSummary.isEmpty
-                                  ? "Bệnh nhân đăng ký khám trực tiếp, không sử dụng trợ lý AI."
+                                  ? _generateMockAiSummary(appt.symptomSummary)
                                   : appt.aiSummary,
                             ),
                             const SizedBox(height: 12),
