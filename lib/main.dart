@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'state/app_state.dart';
 import 'screens/splash_screen.dart';
+import 'screens/manager/doctor_management_screen.dart';
 
 void main() {
   // Ensure Flutter binding is initialized

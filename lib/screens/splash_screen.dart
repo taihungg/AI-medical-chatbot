@@ -268,10 +268,11 @@ class _MainFrameworkState extends State<MainFramework> {
                 // Dynamic view based on Active Role
                 _buildRoleScreen(appState.currentRole),
 
-                // Always visible floating debugger Role Console
-                const Positioned.fill(child: RoleSwitcher()),
-              ],
-            ),
+              // Always visible floating debugger Role Console
+              Positioned.fill(
+                child: const RoleSwitcher(),
+              ),
+            ],
           ),
         );
       },
