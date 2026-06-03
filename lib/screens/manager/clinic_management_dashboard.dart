@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
+import 'doctor_management_screen.dart';
+import 'patient_records_screen.dart';
+import 'master_appointment_screen.dart';
 
 class ClinicManagerDashboard extends StatefulWidget {
   const ClinicManagerDashboard({super.key});
@@ -62,19 +65,10 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
         final apptCount = appState.appointments.length;
         
         return Scaffold(
-          appBar: GlassAppBar(
+          appBar: const GlassAppBar(
             title: "Bảng Điều Hành Phòng Khám",
             actions: [
-              IconButton(
-                icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
-                tooltip: "Đổi vai trò",
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  );
-                },
-              ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
@@ -191,6 +185,12 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                         Icons.medical_services,
                         Colors.teal,
                         "Hỗ trợ HD Live",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
+                          );
+                        },
                       ),
                       // Metric 3: Occupancy Rate
                       _buildMetricCard(
@@ -216,76 +216,58 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final isWide = constraints.maxWidth > 700;
-                      
-                      final chartWidget = GlassCard(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Biểu Đồ Hiệu Suất Giờ Cao Điểm",
-                                  style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const Icon(Icons.bar_chart, color: GlassTheme.cyan),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Số lượng bệnh nhân phân bổ theo khung giờ khám hôm nay.",
-                              style: TextStyle(fontSize: 11, color: GlassTheme.outline),
-                            ),
-                            const SizedBox(height: 24),
-                            
-                            // Beautiful Custom Painted Chart
-                            SizedBox(
-                              height: 180,
-                              width: double.infinity,
-                              child: CustomPaint(
-                                painter: OperationsChartPainter(
-                                  branchIndex: _selectedBranchIndex,
-                                  appointmentsAdded: apptCount,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildLegendItem("08h-10h", GlassTheme.oceanBlue),
-                                _buildLegendItem("10h-12h", GlassTheme.cyan),
-                                _buildLegendItem("14h-16h", Colors.purple),
-                                _buildLegendItem("16h-18h", Colors.teal),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-
-                      final logsWidget = Padding(
-                        padding: EdgeInsets.only(top: isWide ? 0.0 : 16.0),
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Operational Charts
+                          Expanded(
+                            flex: isWide ? 6 : 10,
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    "Nhật Ký Hệ Thống Live",
-                                    style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          "Biểu Đồ Hiệu Suất Giờ Cao Điểm",
+                                          style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const Icon(Icons.bar_chart, color: GlassTheme.cyan),
+                                    ],
                                   ),
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Số lượng bệnh nhân phân bổ theo khung giờ khám hôm nay.",
+                                    style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  
+                                  // Beautiful Custom Painted Chart
+                                  SizedBox(
+                                    height: 180,
+                                    width: double.infinity,
+                                    child: CustomPaint(
+                                      painter: OperationsChartPainter(
+                                        branchIndex: _selectedBranchIndex,
+                                        appointmentsAdded: apptCount,
+                                      ),
                                     ),
+                                  ),
+
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildLegendItem("08h-10h", GlassTheme.oceanBlue),
+                                      _buildLegendItem("10h-12h", GlassTheme.cyan),
+                                      _buildLegendItem("14h-16h", Colors.purple),
+                                      _buildLegendItem("16h-18h", Colors.teal),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -334,39 +316,120 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                               ),
                             ],
                           ),
-                        ),
-                      );
+                          
+                          // Spacing if wide
+                          if (isWide) const SizedBox(width: 16),
 
-                      if (isWide) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 6,
-                              child: chartWidget,
+                          // Live transaction logs
+                          Expanded(
+                            flex: isWide ? 4 : 10,
+                            child: Padding(
+                              padding: EdgeInsets.only(top: isWide ? 0.0 : 16.0),
+                              child: GlassCard(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Nhật Ký Hệ Thống Live",
+                                          style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                        ),
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.green,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
+                                      style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                                    ),
+                                    const SizedBox(height: 16),
+
+                                    // Log terminal listing
+                                    Container(
+                                      height: 212,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: Colors.white24),
+                                      ),
+                                      child: ListView.builder(
+                                        itemCount: appState.auditLogs.length,
+                                        itemBuilder: (ctx, idx) {
+                                          final log = appState.auditLogs[idx];
+                                          // Stylize specific logs
+                                          Color logColor = Colors.white70;
+                                          if (log.contains("BS đã ký")) {
+                                            logColor = Colors.green;
+                                          } else if (log.contains("đã đặt lịch")) {
+                                            logColor = GlassTheme.cyan;
+                                          } else if (log.contains("[Hệ thống]")) {
+                                            logColor = Colors.amber;
+                                          }
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 6.0),
+                                            child: Text(
+                                              log,
+                                              style: TextStyle(
+                                                fontFamily: 'Courier',
+                                                fontSize: 10,
+                                                color: logColor,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 4,
-                              child: logsWidget,
-                            ),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            chartWidget,
-                            logsWidget,
-                          ],
-                        );
-                      }
+                          ),
+                        ],
+                      );
                     },
                   ),
                   const SizedBox(height: 80),
                 ],
               ),
             ),
+          ),
+          bottomNavigationBar: GlassNavigationBar(
+            selectedIndex: 0,
+            onTap: (idx) {
+              if (idx == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
+                );
+              } else if (idx == 2) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PatientRecordsScreen()),
+                );
+              } else if (idx == 3) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MasterAppointmentScreen()),
+                );
+              }
+            },
+            items: [
+              GlassNavItem(icon: Icons.dashboard, label: 'Tổng quan'),
+              GlassNavItem(icon: Icons.medical_services, label: 'Bác sĩ'),
+              GlassNavItem(icon: Icons.people, label: 'Bệnh nhân'),
+              GlassNavItem(icon: Icons.event, label: 'Lịch hẹn'),
+            ],
           ),
         );
       },
@@ -378,36 +441,57 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
     String value,
     IconData icon,
     Color color,
-    String subtitle,
-  ) {
+    String subtitle, {
+    VoidCallback? onTap,
+  }) {
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 9),
+            ),
+            Icon(icon, color: color, size: 20),
+          ],
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: GlassTheme.h1(color: color).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
+        ),
+      ],
+    );
+
+    if (onTap != null) {
+      return GlassCard(
+        padding: EdgeInsets.zero,
+        borderRadius: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: content,
+            ),
+          ),
+        ),
+      );
+    }
+
     return GlassCard(
       padding: const EdgeInsets.all(12),
       borderRadius: 20,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 9),
-              ),
-              Icon(icon, color: color, size: 20),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: GlassTheme.h1(color: color).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
-          ),
-        ],
-      ),
+      child: content,
     );
   }
 

@@ -1,9 +1,11 @@
-import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
+
+import 'clinical_workspace.dart';
+import 'doctor_components.dart';
+import 'doctor_timetable_screen.dart';
 
 class DoctorSpecialistDashboard extends StatefulWidget {
   const DoctorSpecialistDashboard({super.key});
@@ -13,7 +15,9 @@ class DoctorSpecialistDashboard extends StatefulWidget {
 }
 
 class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
-  String _selectedFilter = 'Tất cả'; // Tất cả, Chờ khám, Hoàn thành
+  static const String _doctorName = "BS. Nguyễn Văn An";
+  String _selectedFilter = 'Tất cả';
+  String _searchQuery = '';
   AppAppointment? _selectedAppointment;
 
   @override
@@ -26,44 +30,147 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
         final double screenWidth = MediaQuery.of(context).size.width;
         final bool isMobile = screenWidth < 700;
 
-        // Filter appointments
-        final filteredAppointments = appState.appointments.where((appt) {
-          if (_selectedFilter == 'Tất cả') return true;
-          return appt.status == _selectedFilter;
+        // Filter appointments for today only
+        final now = DateTime.now();
+        final todayAppointments = appState.appointments.where((appt) {
+          return appt.dateTime.year == now.year && appt.dateTime.month == now.month && appt.dateTime.day == now.day;
         }).toList();
 
-        // Calculate stats
-        final totalWaiting = appState.appointments.where((a) => a.status == 'Chờ khám').length;
-        final totalDone = appState.appointments.where((a) => a.status == 'Hoàn thành').length;
+        final filteredAppointments = todayAppointments.where((appt) {
+          bool statusMatch = _selectedFilter == 'Tất cả' || appt.status == _selectedFilter;
+          bool nameMatch = _searchQuery.isEmpty || appt.patientName.toLowerCase().contains(_searchQuery.toLowerCase());
+          return statusMatch && nameMatch;
+        }).toList();
+
+        // Sort by timeSlot
+        filteredAppointments.sort((a, b) => a.timeSlot.compareTo(b.timeSlot));
+
+        // Counts for badges
+        final countAll = todayAppointments.length;
+        final countPending = todayAppointments.where((a) => a.status == 'Chưa khám').length;
+        final countExamining = todayAppointments.where((a) => a.status == 'Đang khám').length;
+        final countDone = todayAppointments.where((a) => a.status == 'Đã khám').length;
 
         return Scaffold(
           appBar: GlassAppBar(
-            title: "Cổng Thông Tin Bác Sĩ",
+            title: isMobile ? "Bác Sĩ" : "Cổng Thông Tin Bác Sĩ",
             actions: [
-              IconButton(
-                icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
-                tooltip: "Đổi vai trò",
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  );
+              PopupMenuButton<String>(
+                offset: const Offset(0, 40),
+                tooltip: "Menu Bác sĩ",
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const SplashScreen()),
+                    );
+                  } else if (value == 'toggle_busy') {
+                    appState.toggleDoctorBusy();
+                  } else if (value == 'dashboard') {
+                    setState(() {
+                      _selectedAppointment = null;
+                      _selectedFilter = 'Tất cả';
+                      _searchQuery = '';
+                    });
+                  } else if (value == 'appointments') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const DoctorTimetableScreen()),
+                    );
+                  }
                 },
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: GlassTheme.oceanBlue,
-                      child: Icon(Icons.person_pin, color: Colors.white, size: 20),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'info',
+                    enabled: false,
+                    child: Text(
+                      _doctorName,
+                      style: GlassTheme.bodyLg().copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      "BS. Nguyễn Văn An",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'dashboard',
+                    child: Row(
+                      children: [
+                        Icon(Icons.dashboard_outlined, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Trang Chủ"),
+                      ],
                     ),
-                  ],
+                  ),
+                  const PopupMenuItem(
+                    value: 'appointments',
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_month_outlined, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Lịch Làm Việc"),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'toggle_busy',
+                    child: StatefulBuilder(
+                      builder: (context, setPopupState) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.do_not_disturb_on_outlined, size: 20, color: Colors.black54),
+                                SizedBox(width: 12),
+                                Text("Đang bận"),
+                              ],
+                            ),
+                            Switch(
+                              value: appState.isDoctorBusy,
+                              onChanged: (val) {
+                                appState.toggleDoctorBusy();
+                                setPopupState(() {});
+                              },
+                              activeTrackColor: Colors.red.withValues(alpha: 0.5),
+                              activeThumbColor: Colors.red,
+                              inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
+                            ),
+                          ],
+                        );
+                      }
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red, size: 20),
+                        SizedBox(width: 12),
+                        Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: appState.isDoctorBusy ? Colors.red : GlassTheme.oceanBlue,
+                        child: const Icon(Icons.person_pin, color: Colors.white, size: 20),
+                      ),
+                      if (!isMobile) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          _doctorName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: appState.isDoctorBusy ? Colors.red : null,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -72,7 +179,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // LEFT COLUMN: Queue & Filters (occupies 1/3 if wide screen, full width if mobile)
+                // LEFT COLUMN: Queue & Filters
                 if (!isMobile || _selectedAppointment == null)
                   Expanded(
                     flex: isMobile ? 1 : 12,
@@ -88,10 +195,10 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("CHỜ KHÁM", style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
+                                  Text("CHƯA KHÁM", style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
                                   const SizedBox(height: 6),
                                   Text(
-                                    "$totalWaiting ca",
+                                    "$countPending ca",
                                     style: GlassTheme.h1(color: GlassTheme.oceanBlue).copyWith(fontSize: 24),
                                   ),
                                 ],
@@ -99,16 +206,36 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                             ),
                           ),
                           const SizedBox(width: 12),
+                          if (countExamining > 0) ...[
+                            Expanded(
+                              child: GlassCard(
+                                padding: const EdgeInsets.all(12),
+                                borderColor: Colors.orange.withValues(alpha: 0.4),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("ĐANG KHÁM", style: GlassTheme.labelCaps(color: Colors.orange)),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      "$countExamining ca",
+                                      style: GlassTheme.h1(color: Colors.orange).copyWith(fontSize: 24),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
                           Expanded(
                             child: GlassCard(
                               padding: const EdgeInsets.all(12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("HOÀN THÀNH", style: GlassTheme.labelCaps(color: Colors.green)),
+                                  Text("ĐÃ KHÁM", style: GlassTheme.labelCaps(color: Colors.green)),
                                   const SizedBox(height: 6),
                                   Text(
-                                    "$totalDone ca",
+                                    "$countDone ca",
                                     style: GlassTheme.h1(color: Colors.green).copyWith(fontSize: 24),
                                   ),
                                 ],
@@ -117,14 +244,36 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
-                      // 2. Queue Section Title & Filters
+                      // 2. Search bar
+                      TextField(
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
+                        style: GlassTheme.bodyMd(),
+                        decoration: InputDecoration(
+                          hintText: "Tìm kiếm bệnh nhân...",
+                          hintStyle: TextStyle(color: GlassTheme.onSurfaceVariant),
+                          prefixIcon: Icon(Icons.search, color: GlassTheme.onSurfaceVariant),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.4),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 3. Queue Section Title & Filters
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text("Hàng Đợi Hôm Nay", style: GlassTheme.h2()),
-                          // Active count indicator
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
@@ -158,7 +307,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
                                   gradient: isSelected ? GlassTheme.primaryGradient : null,
-                                  color: isSelected ? null : Colors.white.withValues(alpha: 0.4),
+                                  color: isSelected ? null : Colors.white.withOpacity(0.4),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: isSelected ? Colors.transparent : Colors.white38,
@@ -177,7 +326,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       ),
                       const SizedBox(height: 16),
 
-                      // 3. Queue List
+                      // 4. Queue List
                       if (filteredAppointments.isEmpty)
                         const GlassCard(
                           height: 180,
@@ -198,6 +347,8 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       else
                         ...filteredAppointments.map((appt) {
                           final isSelected = _selectedAppointment?.id == appt.id;
+                          final isDone = appt.status == 'Đã khám';
+                          final isExamining = appt.status == 'Đang khám';
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
                             child: InkWell(
@@ -205,13 +356,16 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                                 setState(() {
                                   _selectedAppointment = appt;
                                 });
-                                // Automatically open full consult if tapped and screens allow
                               },
                               borderRadius: BorderRadius.circular(20),
                               child: GlassCard(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: isSelected ? GlassTheme.oceanBlue : Colors.white,
-                                borderWidth: isSelected ? 1.8 : 1.0,
+                                borderColor: isExamining
+                                    ? Colors.orange
+                                    : isSelected
+                                        ? GlassTheme.oceanBlue
+                                        : Colors.white,
+                                borderWidth: isSelected || isExamining ? 1.8 : 1.0,
                                 opacity: isSelected ? 0.8 : 0.6,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,11 +373,40 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          appt.id,
-                                          style: GlassTheme.labelCaps(color: GlassTheme.outline),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              appt.id,
+                                              style: GlassTheme.labelCaps(color: GlassTheme.outline),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            if (appt.isOnline)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.deepPurple.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: const Text(
+                                                  "🌐 Trực tuyến",
+                                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                                                ),
+                                              )
+                                            else
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: const Text(
+                                                  "🏥 Trực tiếp",
+                                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: GlassTheme.oceanBlue),
+                                                ),
+                                              ),
+                                          ],
                                         ),
-                                        _buildRiskBadgeVi(appt.riskLevel),
+                                        StatusBadge(status: appt.status),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -242,32 +425,21 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                                     ),
                                     const SizedBox(height: 10),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         Row(
                                           children: [
-                                            const Icon(Icons.favorite, color: Colors.pink, size: 14),
-                                            const SizedBox(width: 4),
                                             Text(
-                                              "${appt.vitals['pulse']?.toInt()} bpm",
-                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.pink),
-                                            ),
-                                          ],
-                                        ),
-                                        // Action indicator
-                                        Row(
-                                          children: [
-                                            Text(
-                                              appt.status == 'Hoàn thành' ? "Đã duyệt" : "Xem hồ sơ",
+                                              isDone ? "✓ Đã duyệt" : isExamining ? "⏳ Đang khám" : "Xem hồ sơ",
                                               style: GlassTheme.labelCaps(
-                                                color: appt.status == 'Hoàn thành' ? Colors.green : GlassTheme.oceanBlue,
+                                                color: isDone ? Colors.green : isExamining ? Colors.orange : GlassTheme.oceanBlue,
                                               ),
                                             ),
                                             const SizedBox(width: 4),
                                             Icon(
-                                              appt.status == 'Hoàn thành' ? Icons.check : Icons.arrow_forward_ios,
+                                              isDone ? Icons.check : isExamining ? Icons.medical_services : Icons.arrow_forward_ios,
                                               size: 12,
-                                              color: appt.status == 'Hoàn thành' ? Colors.green : GlassTheme.oceanBlue,
+                                              color: isDone ? Colors.green : isExamining ? Colors.orange : GlassTheme.oceanBlue,
                                             ),
                                           ],
                                         ),
@@ -284,7 +456,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                   ),
                 ),
 
-                // RIGHT SIDEBAR / CLINICAL WORKSPACE (Shows patient details and acts as workspace)
+                // RIGHT SIDEBAR / CLINICAL WORKSPACE
                 if (_selectedAppointment != null)
                   Expanded(
                     flex: isMobile ? 1 : 18,
@@ -326,7 +498,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              "Vui lòng chọn một bệnh nhân từ hàng đợi bên trái để bắt đầu cuộc tư vấn, xem sinh hiệu và lập bệnh án lâm sàng.",
+                              "Vui lòng chọn một bệnh nhân từ hàng đợi bên trái để bắt đầu cuộc tư vấn và lập bệnh án lâm sàng.",
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12, color: GlassTheme.onSurfaceVariant),
                             ),
@@ -354,7 +526,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -570,8 +742,8 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.5),
-              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.4))),
+              color: Colors.white.withOpacity(0.5),
+              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.4))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -605,14 +777,14 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                 // 1. Live Consultation & Telehealth Card
                 GlassCard(
                   padding: const EdgeInsets.all(16),
-                  borderColor: Colors.teal.withValues(alpha: 0.5),
+                  borderColor: Colors.teal.withOpacity(0.5),
                   opacity: 0.8,
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.teal.withValues(alpha: 0.12),
+                          color: Colors.teal.withOpacity(0.12),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.video_call, color: Colors.teal, size: 30),
@@ -640,13 +812,11 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                         onPressed: () {
                           // Update appState active consultation
                           appState.setActiveConsultation(appt);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Đang mở phiên khám cho ${appt.patientName}...'),
-                              duration: const Duration(seconds: 2),
-                              backgroundColor: GlassTheme.oceanBlue,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          // Open consultation screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DoctorConsultationScreen(appointment: appt),
                             ),
                           );
                         },
@@ -815,7 +985,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                 if (appt.status != 'Hoàn thành')
                   GlassCard(
                     padding: const EdgeInsets.all(16),
-                    borderColor: GlassTheme.oceanBlue.withValues(alpha: 0.3),
+                    borderColor: GlassTheme.oceanBlue.withOpacity(0.3),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -951,7 +1121,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: _isRecording ? GlassTheme.error.withValues(alpha: 0.12) : GlassTheme.oceanBlue.withValues(alpha: 0.1),
+          color: _isRecording ? GlassTheme.error.withOpacity(0.12) : GlassTheme.oceanBlue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _isRecording ? GlassTheme.error : Colors.transparent,

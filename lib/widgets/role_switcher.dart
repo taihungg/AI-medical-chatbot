@@ -10,7 +10,8 @@ class RoleSwitcher extends StatefulWidget {
   State<RoleSwitcher> createState() => _RoleSwitcherState();
 }
 
-class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderStateMixin {
+class _RoleSwitcherState extends State<RoleSwitcher>
+    with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
   late AnimationController _animationController;
   late Animation<double> _expandAnimation;
@@ -74,89 +75,182 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
     return ListenableBuilder(
       listenable: appState,
       builder: (context, child) {
-        return Stack(
-          alignment: Alignment.bottomRight,
-          children: [
+        return SizedBox.expand(
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              // Expanded Menu Overlay (above the FAB)
+              if (_isExpanded)
+                GestureDetector(
+                  onTap: _toggleExpanded,
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
 
-            Positioned(
-              bottom: 84, // Sits comfortably above bottom bar
-              right: 16,
-              child: SizeTransition(
-                sizeFactor: _expandAnimation,
-                axisAlignment: -1.0,
-                child: Container(
-                  width: 250,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: GlassCard(
-                    padding: const EdgeInsets.all(12),
-                    borderRadius: 24,
-                    opacity: 0.9,
-                    borderColor: GlassTheme.oceanBlue,
-                    borderWidth: 1.5,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.swap_horizontal_circle, color: GlassTheme.oceanBlue, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Bảng Chọn Vai Trò",
-                              style: GlassTheme.h3(color: GlassTheme.oceanBlue).copyWith(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                        const Divider(height: 16, color: Colors.white38),
-                        ...UserRole.values.map((role) {
-                          final isSelected = appState.currentRole == role;
-                          return Padding(
+              Positioned(
+                bottom: 84, // Sits comfortably above bottom bar
+                right: 16,
+                child: SizeTransition(
+                  sizeFactor: _expandAnimation,
+                  alignment: const Alignment(-1.0, 0.0),
+                  child: Container(
+                    width: 250,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(12),
+                      borderRadius: 24,
+                      opacity: 0.9,
+                      borderColor: GlassTheme.oceanBlue,
+                      borderWidth: 1.5,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.swap_horizontal_circle,
+                                color: GlassTheme.oceanBlue,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Bảng Chọn Vai Trò",
+                                style: GlassTheme.h3(
+                                  color: GlassTheme.oceanBlue,
+                                ).copyWith(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 16, color: Colors.white38),
+                          ...UserRole.values.map((role) {
+                            final isSelected = appState.currentRole == role;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 2.0,
+                              ),
+                              child: InkWell(
+                                onTap: () {
+                                  appState.setRole(role);
+                                  _toggleExpanded();
+                                  // Overlay short dynamic banner
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Đã chuyển sang: ${_getRoleNameVi(role)}",
+                                      ),
+                                      duration: const Duration(seconds: 1),
+                                      backgroundColor: GlassTheme.oceanBlue,
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  decoration: isSelected
+                                      ? BoxDecoration(
+                                          color: GlassTheme.oceanBlue
+                                              .withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        )
+                                      : null,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _getRoleIcon(role),
+                                        size: 18,
+                                        color: isSelected
+                                            ? GlassTheme.oceanBlue
+                                            : GlassTheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          _getRoleNameVi(role),
+                                          style:
+                                              GlassTheme.bodyMd(
+                                                color: isSelected
+                                                    ? GlassTheme.oceanBlue
+                                                    : GlassTheme.onSurface,
+                                              ).copyWith(
+                                                fontWeight: isSelected
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                                fontSize: 12,
+                                              ),
+                                        ),
+                                      ),
+                                      if (isSelected)
+                                        const Icon(
+                                          Icons.check,
+                                          size: 14,
+                                          color: GlassTheme.oceanBlue,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                          const Divider(height: 16, color: Colors.white38),
+                          Padding(
                             padding: const EdgeInsets.symmetric(vertical: 2.0),
                             child: InkWell(
                               onTap: () {
-                                appState.setRole(role);
                                 _toggleExpanded();
-                                // Overlay short dynamic banner
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Đã chuyển sang: ${_getRoleNameVi(role)}"),
-                                    duration: const Duration(seconds: 1),
-                                    backgroundColor: GlassTheme.oceanBlue,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (_) => const SplashScreen(),
                                   ),
                                 );
                               },
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                decoration: isSelected
-                                    ? BoxDecoration(
-                                        color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(12),
-                                      )
-                                    : null,
-                                child: Row(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.error.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Row(
                                   children: [
                                     Icon(
-                                      _getRoleIcon(role),
-                                      size: 18,
-                                      color: isSelected ? GlassTheme.oceanBlue : GlassTheme.onSurfaceVariant,
+                                      Icons.logout,
+                                      size: 16,
+                                      color: GlassTheme.error,
                                     ),
-                                    const SizedBox(width: 10),
+                                    SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
-                                        _getRoleNameVi(role),
-                                        style: GlassTheme.bodyMd(
-                                          color: isSelected ? GlassTheme.oceanBlue : GlassTheme.onSurface,
-                                        ).copyWith(
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        "Quay lại màn hình chính",
+                                        style: TextStyle(
+                                          color: GlassTheme.error,
+                                          fontWeight: FontWeight.bold,
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    if (isSelected)
-                                      const Icon(Icons.check, size: 14, color: GlassTheme.oceanBlue),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 10,
+                                      color: GlassTheme.error,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -203,34 +297,39 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            // Floating Switcher Button
-            Positioned(
-              bottom: 96,
-              right: 16,
-              child: FloatingActionButton(
-                mini: true,
-                onPressed: _toggleExpanded,
-                backgroundColor: GlassTheme.oceanBlue,
-                elevation: 6,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: RotationTransition(
-                  turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnimation),
-                  child: Icon(
-                    _isExpanded ? Icons.close : Icons.tune,
-                    color: Colors.white,
+              // Floating Switcher Button
+              Positioned(
+                bottom: 96,
+                right: 16,
+                child: FloatingActionButton(
+                  mini: true,
+                  onPressed: _toggleExpanded,
+                  backgroundColor: GlassTheme.oceanBlue,
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: RotationTransition(
+                    turns: Tween(
+                      begin: 0.0,
+                      end: 0.5,
+                    ).animate(_expandAnimation),
+                    child: Icon(
+                      _isExpanded ? Icons.close : Icons.tune,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );

@@ -266,19 +266,27 @@ class GlassButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: onPressed,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                Icon(icon, color: Colors.white, size: 18),
+                const SizedBox(width: 4),
               ],
-              Text(
-                text,
-                style: GlassTheme.bodyLg(color: Colors.white).copyWith(
-                  fontWeight: FontWeight.bold,
+              Flexible(
+                child: Text(
+                  text,
+                  style: GlassTheme.bodyLg(color: Colors.white).copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             ],
@@ -306,13 +314,18 @@ class GlassButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, color: GlassTheme.oceanBlue, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(icon, color: GlassTheme.oceanBlue, size: 18),
+                    const SizedBox(width: 4),
                   ],
-                  Text(
-                    text,
-                    style: GlassTheme.bodyLg(color: GlassTheme.oceanBlue).copyWith(
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: GlassTheme.bodyLg(color: GlassTheme.oceanBlue).copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -434,12 +447,14 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actions;
+  final bool automaticallyImplyLeading;
 
   const GlassAppBar({
     super.key,
     required this.title,
     this.leading,
     this.actions,
+    this.automaticallyImplyLeading = true,
   });
 
   @override
@@ -465,6 +480,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: GlassTheme.h2(color: GlassTheme.oceanBlue),
             ),
             centerTitle: false,
+            automaticallyImplyLeading: automaticallyImplyLeading,
             leading: leading,
             actions: actions,
             bottom: PreferredSize(
