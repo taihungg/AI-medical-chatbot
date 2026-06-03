@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
-import '../patient/doctor_consultation.dart';
 import '../splash_screen.dart';
 
 class DoctorSpecialistDashboard extends StatefulWidget {
@@ -129,7 +128,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: GlassTheme.oceanBlue.withOpacity(0.12),
+                              color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -159,7 +158,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
                                   gradient: isSelected ? GlassTheme.primaryGradient : null,
-                                  color: isSelected ? null : Colors.white.withOpacity(0.4),
+                                  color: isSelected ? null : Colors.white.withValues(alpha: 0.4),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: isSelected ? Colors.transparent : Colors.white38,
@@ -294,7 +293,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       decoration: BoxDecoration(
                         border: Border(
                           left: BorderSide(
-                            color: isMobile ? Colors.transparent : Colors.white.withOpacity(0.4),
+                            color: isMobile ? Colors.transparent : Colors.white.withValues(alpha: 0.4),
                             width: isMobile ? 0 : 1,
                           ),
                         ),
@@ -355,7 +354,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -571,8 +570,8 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
-              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.4))),
+              color: Colors.white.withValues(alpha: 0.5),
+              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.4))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -606,14 +605,14 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                 // 1. Live Consultation & Telehealth Card
                 GlassCard(
                   padding: const EdgeInsets.all(16),
-                  borderColor: Colors.teal.withOpacity(0.5),
+                  borderColor: Colors.teal.withValues(alpha: 0.5),
                   opacity: 0.8,
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.teal.withOpacity(0.12),
+                          color: Colors.teal.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.video_call, color: Colors.teal, size: 30),
@@ -641,11 +640,13 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                         onPressed: () {
                           // Update appState active consultation
                           appState.setActiveConsultation(appt);
-                          // Open consultation screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DoctorConsultationScreen(appointment: appt),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Đang mở phiên khám cho ${appt.patientName}...'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: GlassTheme.oceanBlue,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           );
                         },
@@ -814,7 +815,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                 if (appt.status != 'Hoàn thành')
                   GlassCard(
                     padding: const EdgeInsets.all(16),
-                    borderColor: GlassTheme.oceanBlue.withOpacity(0.3),
+                    borderColor: GlassTheme.oceanBlue.withValues(alpha: 0.3),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -950,7 +951,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: _isRecording ? GlassTheme.error.withOpacity(0.12) : GlassTheme.oceanBlue.withOpacity(0.1),
+          color: _isRecording ? GlassTheme.error.withValues(alpha: 0.12) : GlassTheme.oceanBlue.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _isRecording ? GlassTheme.error : Colors.transparent,

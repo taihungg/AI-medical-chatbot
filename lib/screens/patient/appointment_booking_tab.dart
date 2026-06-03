@@ -193,7 +193,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                       height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.green.withOpacity(0.12),
+                        color: Colors.green.withValues(alpha: 0.12),
                         border: Border.all(color: Colors.green, width: 2.5),
                       ),
                       child: const Icon(Icons.check_circle, color: Colors.green, size: 48),
@@ -219,7 +219,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: GlassTheme.oceanBlue.withOpacity(0.08),
+                  color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -329,7 +329,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.cyan.withOpacity(0.15),
+                color: GlassTheme.cyan.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.auto_awesome, color: GlassTheme.oceanBlue, size: 22),
@@ -387,9 +387,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.12),
+        color: badgeColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: badgeColor.withOpacity(0.3), width: 1),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         risk,
@@ -402,7 +402,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     final stepLabels = ["Hình thức", "Thời gian", "Xác nhận"];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-      color: Colors.white.withOpacity(0.3),
+      color: Colors.white.withValues(alpha: 0.3),
       child: Row(
         children: List.generate(3, (idx) {
           final active = _activeStep == idx;
@@ -420,15 +420,15 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     shape: BoxShape.circle,
                     color: active
                         ? GlassTheme.oceanBlue
-                        : (done ? Colors.green : Colors.white.withOpacity(0.6)),
+                        : (done ? Colors.green : Colors.white.withValues(alpha: 0.6)),
                     border: Border.all(
                       color: active
                           ? GlassTheme.oceanBlue
-                          : (done ? Colors.green : GlassTheme.outline.withOpacity(0.4)),
+                          : (done ? Colors.green : GlassTheme.outline.withValues(alpha: 0.4)),
                       width: 2,
                     ),
                     boxShadow: active
-                        ? [BoxShadow(color: GlassTheme.oceanBlue.withOpacity(0.3), blurRadius: 8)]
+                        ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.3), blurRadius: 8)]
                         : [],
                   ),
                   child: Center(
@@ -457,7 +457,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     child: Container(
                       height: 2,
                       decoration: BoxDecoration(
-                        color: done ? Colors.green.withOpacity(0.5) : Colors.white30,
+                        color: done ? Colors.green.withValues(alpha: 0.5) : Colors.white30,
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -496,7 +496,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.local_hospital, color: GlassTheme.oceanBlue, size: 20),
@@ -557,7 +557,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: GlassTheme.oceanBlue.withOpacity(0.1),
+                  color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.location_on, color: GlassTheme.oceanBlue, size: 20),
@@ -593,7 +593,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                           shape: BoxShape.circle,
                           color: isSel ? GlassTheme.oceanBlue : Colors.transparent,
                           border: Border.all(
-                            color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline.withOpacity(0.5),
+                            color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline.withValues(alpha: 0.5),
                             width: 2,
                           ),
                         ),
@@ -624,7 +624,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                       ),
                       Icon(
                         Icons.location_on,
-                        color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline.withOpacity(0.5),
+                        color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline.withValues(alpha: 0.5),
                         size: 18,
                       ),
                     ],
@@ -636,7 +636,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         ] else ...[
           // Online consultation info card
           GlassCard(
-            borderColor: GlassTheme.cyan.withOpacity(0.4),
+            borderColor: GlassTheme.cyan.withValues(alpha: 0.4),
             borderWidth: 1.2,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -672,7 +672,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.person_outline, color: GlassTheme.oceanBlue, size: 20),
@@ -723,14 +723,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isSelected ? GlassTheme.oceanBlue.withOpacity(0.08) : Colors.white.withOpacity(0.4),
+          color: isSelected ? GlassTheme.oceanBlue.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? GlassTheme.cyan : Colors.white.withOpacity(0.6),
+            color: isSelected ? GlassTheme.cyan : Colors.white.withValues(alpha: 0.6),
             width: isSelected ? 2 : 1.2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: GlassTheme.oceanBlue.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, 4))]
+              ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 4))]
               : [],
         ),
         child: Column(
@@ -739,8 +739,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? GlassTheme.oceanBlue.withOpacity(0.15)
-                    : Colors.white.withOpacity(0.5),
+                    ? GlassTheme.oceanBlue.withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -824,7 +824,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.calendar_today, color: GlassTheme.oceanBlue, size: 20),
@@ -861,14 +861,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     decoration: BoxDecoration(
                       color: isSel
                           ? GlassTheme.oceanBlue
-                          : Colors.white.withOpacity(0.45),
+                          : Colors.white.withValues(alpha: 0.45),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSel ? GlassTheme.oceanBlue : Colors.white.withOpacity(0.7),
+                        color: isSel ? GlassTheme.oceanBlue : Colors.white.withValues(alpha: 0.7),
                         width: isSel ? 2 : 1,
                       ),
                       boxShadow: isSel
-                          ? [BoxShadow(color: GlassTheme.oceanBlue.withOpacity(0.25), blurRadius: 10, offset: const Offset(0, 3))]
+                          ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.25), blurRadius: 10, offset: const Offset(0, 3))]
                           : [],
                     ),
                     child: Column(
@@ -879,7 +879,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                             margin: const EdgeInsets.only(bottom: 4),
                             decoration: BoxDecoration(
-                              color: isSel ? Colors.white.withOpacity(0.2) : GlassTheme.cyan.withOpacity(0.15),
+                              color: isSel ? Colors.white.withValues(alpha: 0.2) : GlassTheme.cyan.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -919,7 +919,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.access_time, color: GlassTheme.oceanBlue, size: 20),
@@ -949,14 +949,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 decoration: BoxDecoration(
-                  color: isSel ? GlassTheme.oceanBlue : Colors.white.withOpacity(0.45),
+                  color: isSel ? GlassTheme.oceanBlue : Colors.white.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isSel ? GlassTheme.oceanBlue : Colors.white.withOpacity(0.7),
+                    color: isSel ? GlassTheme.oceanBlue : Colors.white.withValues(alpha: 0.7),
                     width: isSel ? 2 : 1,
                   ),
                   boxShadow: isSel
-                      ? [BoxShadow(color: GlassTheme.oceanBlue.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))]
+                      ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))]
                       : [],
                 ),
                 child: Row(
@@ -988,7 +988,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
         // Doctor & specialty auto-assigned info
         GlassCard(
-          borderColor: GlassTheme.cyan.withOpacity(0.3),
+          borderColor: GlassTheme.cyan.withValues(alpha: 0.3),
           borderWidth: 1,
           opacity: 0.5,
           child: Row(
@@ -996,7 +996,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: GlassTheme.oceanBlue.withOpacity(0.1),
+                  color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.auto_awesome, color: GlassTheme.oceanBlue, size: 20),
@@ -1041,7 +1041,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.assignment_turned_in, color: GlassTheme.oceanBlue, size: 20),
@@ -1120,7 +1120,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
         // Symptoms note card
         GlassCard(
-          borderColor: Colors.amber.withOpacity(0.3),
+          borderColor: Colors.amber.withValues(alpha: 0.3),
           borderWidth: 1,
           opacity: 0.5,
           child: Column(
@@ -1150,7 +1150,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: GlassTheme.oceanBlue.withOpacity(0.08),
+                    color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(

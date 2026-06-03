@@ -78,7 +78,7 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.red.withOpacity(0.15),
+                  color: Colors.red.withValues(alpha: 0.15),
                   border: Border.all(color: Colors.redAccent, width: 3),
                 ),
                 child: const Icon(
@@ -262,7 +262,7 @@ class SelfCareScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.12),
+              color: Colors.green.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: Colors.green[700]!, size: 24),

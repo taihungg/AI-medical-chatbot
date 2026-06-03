@@ -48,13 +48,9 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
   String _getRoleNameVi(UserRole role) {
     switch (role) {
       case UserRole.patient:
-        return "Bệnh nhân (Khám bệnh)";
-      case UserRole.seeker:
-        return "Người cần tư vấn nhanh";
+        return "Bệnh nhân";
       case UserRole.doctor:
-        return "Bác sĩ điều trị";
-      case UserRole.specialist:
-        return "Chuyên gia y tế";
+        return "Bác sĩ";
       case UserRole.manager:
         return "Quản lý phòng khám";
     }
@@ -64,12 +60,8 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
     switch (role) {
       case UserRole.patient:
         return Icons.person;
-      case UserRole.seeker:
-        return Icons.chat_bubble;
       case UserRole.doctor:
         return Icons.medical_services;
-      case UserRole.specialist:
-        return Icons.psychology;
       case UserRole.manager:
         return Icons.dashboard;
     }
@@ -140,7 +132,7 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 decoration: isSelected
                                     ? BoxDecoration(
-                                        color: GlassTheme.oceanBlue.withOpacity(0.12),
+                                        color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(12),
                                       )
                                     : null,
@@ -185,7 +177,7 @@ class _RoleSwitcherState extends State<RoleSwitcher> with SingleTickerProviderSt
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                               decoration: BoxDecoration(
-                                color: GlassTheme.error.withOpacity(0.1),
+                                color: GlassTheme.error.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Row(

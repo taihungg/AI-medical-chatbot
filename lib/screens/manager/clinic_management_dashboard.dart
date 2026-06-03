@@ -301,7 +301,7 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                 height: 212,
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Colors.black.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: Colors.white24),
                                 ),
@@ -460,7 +460,7 @@ class OperationsChartPainter extends CustomPainter {
 
     // Paint axis line grid
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withValues(alpha: 0.15)
       ..strokeWidth = 1.0;
 
     // Draw horizontal grids
@@ -484,7 +484,7 @@ class OperationsChartPainter extends CustomPainter {
 
       // Create neon glass glow effect
       final glowPaint = Paint()
-        ..color = barColors[i].withOpacity(0.4)
+        ..color = barColors[i].withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       
       canvas.drawRRect(barRect, glowPaint);
@@ -492,7 +492,7 @@ class OperationsChartPainter extends CustomPainter {
       // Draw solid column
       final columnPaint = Paint()
         ..shader = LinearGradient(
-          colors: [barColors[i], barColors[i].withOpacity(0.7)],
+          colors: [barColors[i], barColors[i].withValues(alpha: 0.7)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ).createShader(Rect.fromLTWH(x, y, barWidth, h));
@@ -501,7 +501,7 @@ class OperationsChartPainter extends CustomPainter {
 
       // Draw top glowing highlight line
       final highlightPaint = Paint()
-        ..color = Colors.white.withOpacity(0.8)
+        ..color = Colors.white.withValues(alpha: 0.8)
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
       

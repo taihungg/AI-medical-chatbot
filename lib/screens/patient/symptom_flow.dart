@@ -23,7 +23,15 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    // Listen for emergency SOS flag changes outside of build()
+    AppState.instance.addListener(_maybeHandleEmergency);
+  }
+
+  @override
   void dispose() {
+    AppState.instance.removeListener(_maybeHandleEmergency);
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -146,7 +154,6 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               child: ListenableBuilder(
                 listenable: appState,
                 builder: (context, child) {
-                  _maybeHandleEmergency();
                   final messages = appState.chatMessages;
                   final itemCount = messages.length + (appState.isAiTyping ? 1 : 0);
 
@@ -275,9 +282,11 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 
   Widget _buildChatBar() {
-    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    // GlassBackground already wraps the body in a SafeArea, so the Column's
+    // bottom edge sits right at the top of the floating nav bar. Only a small
+    // gap is needed to separate the chat bar from the nav bar.
     return Container(
-      margin: EdgeInsets.fromLTRB(20, 0, 20, isKeyboardOpen ? 12 : 82),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: GlassCard(
         padding: const EdgeInsets.all(8),
         borderRadius: 32,
@@ -298,10 +307,11 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 child: TextField(
                   controller: _inputController,
                   style: GlassTheme.bodyMd(),
-                  maxLines: null,
+                  maxLines: 5,
+                  minLines: 1,
                   keyboardType: TextInputType.multiline,
                   textCapitalization: TextCapitalization.sentences,
-                  textInputAction: TextInputAction.send,
+                  // Removed textInputAction: TextInputAction.send to fix Vietnamese Telex typing issues
                   decoration: InputDecoration(
                     hintText: "Mô tả triệu chứng của bạn...",
                     hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),

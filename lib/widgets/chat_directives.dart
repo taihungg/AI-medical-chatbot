@@ -73,7 +73,7 @@ class _DirectiveShell extends StatelessWidget {
         padding: const EdgeInsets.only(top: 10, bottom: 4, left: 40, right: 4),
         child: GlassCard(
           opacity: 0.5,
-          borderColor: GlassTheme.cyan.withOpacity(0.35),
+          borderColor: GlassTheme.cyan.withValues(alpha: 0.35),
           borderWidth: 1,
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -112,8 +112,8 @@ class _ChipsPicker extends StatelessWidget {
         runSpacing: 8,
         children: directive.options.map((opt) {
           return ActionChip(
-            backgroundColor: Colors.white.withOpacity(0.6),
-            side: BorderSide(color: GlassTheme.oceanBlue.withOpacity(0.35)),
+            backgroundColor: Colors.white.withValues(alpha: 0.6),
+            side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.35)),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             avatar: opt.icon != null
                 ? Icon(opt.icon, size: 16, color: GlassTheme.oceanBlue)
@@ -150,9 +150,9 @@ class _BodyPartPicker extends StatelessWidget {
               width: 92,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: GlassTheme.oceanBlue.withOpacity(0.3)),
+                border: Border.all(color: GlassTheme.oceanBlue.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -204,9 +204,9 @@ class _MultiSelectChipsState extends State<_MultiSelectChips> {
                 selected: isSel,
                 showCheckmark: true,
                 checkmarkColor: Colors.white,
-                backgroundColor: Colors.white.withOpacity(0.6),
+                backgroundColor: Colors.white.withValues(alpha: 0.6),
                 selectedColor: GlassTheme.oceanBlue,
-                side: BorderSide(color: GlassTheme.oceanBlue.withOpacity(0.35)),
+                side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.35)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 avatar: opt.icon != null && !isSel
                     ? Icon(opt.icon, size: 16, color: GlassTheme.oceanBlue)
@@ -331,8 +331,8 @@ class _TimeRangePicker extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.4),
-                  side: BorderSide(color: GlassTheme.oceanBlue.withOpacity(0.4)),
+                  backgroundColor: Colors.white.withValues(alpha: 0.4),
+                  side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.4)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -425,7 +425,7 @@ class _ReportSummaryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: GlassTheme.cyan.withOpacity(0.15),
+                    color: GlassTheme.cyan.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.assignment_outlined, color: GlassTheme.oceanBlue, size: 20),
@@ -441,9 +441,9 @@ class _ReportSummaryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: risk.withOpacity(0.12),
+                    color: risk.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: risk.withOpacity(0.3)),
+                    border: Border.all(color: risk.withValues(alpha: 0.3)),
                   ),
                   child: Text(report.riskLevel,
                       style: GlassTheme.labelCaps(color: risk).copyWith(fontSize: 10)),

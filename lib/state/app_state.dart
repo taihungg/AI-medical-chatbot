@@ -5,11 +5,9 @@ import 'chat_directive.dart';
 import 'conversation_graph.dart';
 
 enum UserRole {
-  patient,    // Người cần khám bệnh (đánh giá + đặt lịch khám)
-  seeker,     // Người cần tư vấn nhanh (đánh giá + tư vấn trực tuyến)
+  patient,    // Bệnh nhân (đánh giá triệu chứng + đặt lịch khám)
   doctor,     // Bác sĩ (khám, xem vitals, ký đơn thuốc)
-  specialist, // Chuyên gia (xem hồ sơ bệnh án chuyên sâu, duyệt yêu cầu)
-  manager     // Quản lý phòng khám (xem dashboard thống kê, hiệu suất chi nhánh)
+  manager     // Quản lý phòng khám (xem dashboard thống kê)
 }
 
 class ChatMessage {
@@ -119,10 +117,8 @@ class AppState extends ChangeNotifier {
 
   String _getRoleNameVi(UserRole role) {
     switch (role) {
-      case UserRole.patient: return "Người cần khám bệnh";
-      case UserRole.seeker: return "Người cần tư vấn nhanh";
+      case UserRole.patient: return "Bệnh nhân";
       case UserRole.doctor: return "Bác sĩ";
-      case UserRole.specialist: return "Chuyên gia y tế";
       case UserRole.manager: return "Quản lý phòng khám";
     }
   }
