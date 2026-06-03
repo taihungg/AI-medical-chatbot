@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/glass_widgets.dart';
 import '../state/app_state.dart';
 import '../widgets/role_switcher.dart';
-<<<<<<< HEAD
-=======
-import 'patient/home_dashboard.dart';
->>>>>>> main
 import 'patient/symptom_flow.dart';
 import 'patient/appointment_booking_tab.dart';
-import 'patient/patient_history_screen.dart';
 import 'doctor/specialist_dashboard.dart';
 import 'manager/clinic_management_dashboard.dart';
 
@@ -106,21 +101,13 @@ class _SplashScreenState extends State<SplashScreen>
                   "BẮT ĐẦU TRẢI NGHIỆM PROTOTYPE (CHỌN VAI TRÒ)",
                   style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
                       .copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-<<<<<<< HEAD
-                
-                // 1. Patient Option
-                _buildRoleCard(
-                  context,
-                  title: "Người Dùng & Bệnh Nhân",
-                  subtitle: "Tư vấn triệu chứng AI, đặt lịch khám trực tuyến hoặc trực tiếp tại phòng khám.",
-=======
 
                 // 1. Patient / Seeker Option
                 _buildRoleCard(
@@ -128,7 +115,6 @@ class _SplashScreenState extends State<SplashScreen>
                   title: "Người Dùng & Bệnh Nhân",
                   subtitle:
                       "Khám triệu chứng AI, đặt lịch phòng khám, tủ thuốc & tư vấn telehealth trực tuyến.",
->>>>>>> main
                   icon: Icons.person_outline,
                   role: UserRole.patient,
                   color: GlassTheme.oceanBlue,

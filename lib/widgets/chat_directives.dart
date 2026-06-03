@@ -41,17 +41,23 @@ class ChatDirectiveView extends StatelessWidget {
       case ChatComponentType.none:
         return const SizedBox.shrink();
       case ChatComponentType.quickPickChips:
-        return _ChipsPicker(directive: directive, enabled: enabled, onPicked: onPicked);
+        return _ChipsPicker(
+            directive: directive, enabled: enabled, onPicked: onPicked);
       case ChatComponentType.bodyPartPicker:
-        return _BodyPartPicker(directive: directive, enabled: enabled, onPicked: onPicked);
+        return _BodyPartPicker(
+            directive: directive, enabled: enabled, onPicked: onPicked);
       case ChatComponentType.multiSelectChips:
-        return _MultiSelectChips(directive: directive, enabled: enabled, onConfirmed: onConfirmed);
+        return _MultiSelectChips(
+            directive: directive, enabled: enabled, onConfirmed: onConfirmed);
       case ChatComponentType.severitySlider:
-        return _SeveritySlider(directive: directive, enabled: enabled, onSlider: onSlider);
+        return _SeveritySlider(
+            directive: directive, enabled: enabled, onSlider: onSlider);
       case ChatComponentType.timeRangePicker:
-        return _TimeRangePicker(directive: directive, enabled: enabled, onPicked: onPicked);
+        return _TimeRangePicker(
+            directive: directive, enabled: enabled, onPicked: onPicked);
       case ChatComponentType.yesNo:
-        return _YesNoButtons(directive: directive, enabled: enabled, onPicked: onPicked);
+        return _YesNoButtons(
+            directive: directive, enabled: enabled, onPicked: onPicked);
       case ChatComponentType.reportSummary:
         return _ReportSummaryCard(report: directive.report!, onBook: onBook);
     }
@@ -63,7 +69,8 @@ class _DirectiveShell extends StatelessWidget {
   final String? prompt;
   final bool enabled;
   final Widget child;
-  const _DirectiveShell({this.prompt, required this.enabled, required this.child});
+  const _DirectiveShell(
+      {this.prompt, required this.enabled, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +89,8 @@ class _DirectiveShell extends StatelessWidget {
               if (prompt != null) ...[
                 Text(
                   prompt!,
-                  style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue).copyWith(fontSize: 10),
+                  style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                      .copyWith(fontSize: 10),
                 ),
                 const SizedBox(height: 10),
               ],
@@ -100,7 +108,8 @@ class _ChipsPicker extends StatelessWidget {
   final ChatUiDirective directive;
   final bool enabled;
   final OnOptionPicked onPicked;
-  const _ChipsPicker({required this.directive, required this.enabled, required this.onPicked});
+  const _ChipsPicker(
+      {required this.directive, required this.enabled, required this.onPicked});
 
   @override
   Widget build(BuildContext context) {
@@ -113,12 +122,15 @@ class _ChipsPicker extends StatelessWidget {
         children: directive.options.map((opt) {
           return ActionChip(
             backgroundColor: Colors.white.withValues(alpha: 0.6),
-            side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.35)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            side:
+                BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.35)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             avatar: opt.icon != null
                 ? Icon(opt.icon, size: 16, color: GlassTheme.oceanBlue)
                 : null,
-            label: Text(opt.label, style: GlassTheme.bodyMd().copyWith(fontSize: 13)),
+            label: Text(opt.label,
+                style: GlassTheme.bodyMd().copyWith(fontSize: 13)),
             onPressed: enabled ? () => onPicked(opt) : null,
           );
         }).toList(),
@@ -132,7 +144,8 @@ class _BodyPartPicker extends StatelessWidget {
   final ChatUiDirective directive;
   final bool enabled;
   final OnOptionPicked onPicked;
-  const _BodyPartPicker({required this.directive, required this.enabled, required this.onPicked});
+  const _BodyPartPicker(
+      {required this.directive, required this.enabled, required this.onPicked});
 
   @override
   Widget build(BuildContext context) {
@@ -152,11 +165,13 @@ class _BodyPartPicker extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: GlassTheme.oceanBlue.withValues(alpha: 0.3)),
+                border: Border.all(
+                    color: GlassTheme.oceanBlue.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
-                  Icon(opt.icon ?? Icons.accessibility_new, color: GlassTheme.oceanBlue, size: 26),
+                  Icon(opt.icon ?? Icons.accessibility_new,
+                      color: GlassTheme.oceanBlue, size: 26),
                   const SizedBox(height: 6),
                   Text(
                     opt.label,
@@ -178,7 +193,10 @@ class _MultiSelectChips extends StatefulWidget {
   final ChatUiDirective directive;
   final bool enabled;
   final OnOptionsConfirmed onConfirmed;
-  const _MultiSelectChips({required this.directive, required this.enabled, required this.onConfirmed});
+  const _MultiSelectChips(
+      {required this.directive,
+      required this.enabled,
+      required this.onConfirmed});
 
   @override
   State<_MultiSelectChips> createState() => _MultiSelectChipsState();
@@ -206,25 +224,32 @@ class _MultiSelectChipsState extends State<_MultiSelectChips> {
                 checkmarkColor: Colors.white,
                 backgroundColor: Colors.white.withValues(alpha: 0.6),
                 selectedColor: GlassTheme.oceanBlue,
-                side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.35)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(
+                    color: GlassTheme.oceanBlue.withValues(alpha: 0.35)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 avatar: opt.icon != null && !isSel
                     ? Icon(opt.icon, size: 16, color: GlassTheme.oceanBlue)
                     : null,
                 label: Text(
                   opt.label,
-                  style: GlassTheme.bodyMd(color: isSel ? Colors.white : GlassTheme.onSurface)
+                  style: GlassTheme.bodyMd(
+                          color: isSel ? Colors.white : GlassTheme.onSurface)
                       .copyWith(fontSize: 13),
                 ),
                 onSelected: widget.enabled
-                    ? (v) => setState(() => v ? _selected.add(opt.value) : _selected.remove(opt.value))
+                    ? (v) => setState(() => v
+                        ? _selected.add(opt.value)
+                        : _selected.remove(opt.value))
                     : null,
               );
             }).toList(),
           ),
           const SizedBox(height: 12),
           GlassButton(
-            text: _selected.isEmpty ? "Bỏ qua / Không có" : "Xác nhận (${_selected.length})",
+            text: _selected.isEmpty
+                ? "Bỏ qua / Không có"
+                : "Xác nhận (${_selected.length})",
             height: 42,
             onPressed: widget.enabled
                 ? () {
@@ -246,7 +271,8 @@ class _SeveritySlider extends StatefulWidget {
   final ChatUiDirective directive;
   final bool enabled;
   final OnSliderSubmitted onSlider;
-  const _SeveritySlider({required this.directive, required this.enabled, required this.onSlider});
+  const _SeveritySlider(
+      {required this.directive, required this.enabled, required this.onSlider});
 
   @override
   State<_SeveritySlider> createState() => _SeveritySliderState();
@@ -262,7 +288,9 @@ class _SeveritySliderState extends State<_SeveritySlider> {
     _value = (spec.min + spec.max) / 2;
   }
 
-  Color _color() => _value >= 7 ? GlassTheme.error : (_value >= 4 ? Colors.orange : Colors.green);
+  Color _color() => _value >= 7
+      ? GlassTheme.error
+      : (_value >= 4 ? Colors.orange : Colors.green);
 
   @override
   Widget build(BuildContext context) {
@@ -289,15 +317,18 @@ class _SeveritySliderState extends State<_SeveritySlider> {
             activeColor: _color(),
             inactiveColor: Colors.white38,
             label: "${_value.toInt()}",
-            onChanged: widget.enabled ? (v) => setState(() => _value = v) : null,
+            onChanged:
+                widget.enabled ? (v) => setState(() => _value = v) : null,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(spec.minLabel,
-                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 11)),
+                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 11)),
               Text(spec.maxLabel,
-                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 11)),
+                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 11)),
             ],
           ),
           const SizedBox(height: 12),
@@ -317,7 +348,8 @@ class _TimeRangePicker extends StatelessWidget {
   final ChatUiDirective directive;
   final bool enabled;
   final OnOptionPicked onPicked;
-  const _TimeRangePicker({required this.directive, required this.enabled, required this.onPicked});
+  const _TimeRangePicker(
+      {required this.directive, required this.enabled, required this.onPicked});
 
   @override
   Widget build(BuildContext context) {
@@ -332,18 +364,22 @@ class _TimeRangePicker extends StatelessWidget {
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   backgroundColor: Colors.white.withValues(alpha: 0.4),
-                  side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.4)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: BorderSide(
+                      color: GlassTheme.oceanBlue.withValues(alpha: 0.4)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: enabled ? () => onPicked(opt) : null,
                 child: Column(
                   children: [
-                    if (opt.icon != null) Icon(opt.icon, size: 16, color: GlassTheme.oceanBlue),
+                    if (opt.icon != null)
+                      Icon(opt.icon, size: 16, color: GlassTheme.oceanBlue),
                     const SizedBox(height: 4),
                     Text(
                       opt.label,
-                      style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue).copyWith(fontSize: 11),
+                      style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)
+                          .copyWith(fontSize: 11),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -362,7 +398,8 @@ class _YesNoButtons extends StatelessWidget {
   final ChatUiDirective directive;
   final bool enabled;
   final OnOptionPicked onPicked;
-  const _YesNoButtons({required this.directive, required this.enabled, required this.onPicked});
+  const _YesNoButtons(
+      {required this.directive, required this.enabled, required this.onPicked});
 
   @override
   Widget build(BuildContext context) {
@@ -428,7 +465,8 @@ class _ReportSummaryCard extends StatelessWidget {
                     color: GlassTheme.cyan.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.assignment_outlined, color: GlassTheme.oceanBlue, size: 20),
+                  child: const Icon(Icons.assignment_outlined,
+                      color: GlassTheme.oceanBlue, size: 20),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -439,14 +477,16 @@ class _ReportSummaryCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: risk.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: risk.withValues(alpha: 0.3)),
                   ),
                   child: Text(report.riskLevel,
-                      style: GlassTheme.labelCaps(color: risk).copyWith(fontSize: 10)),
+                      style: GlassTheme.labelCaps(color: risk)
+                          .copyWith(fontSize: 10)),
                 ),
               ],
             ),
@@ -454,8 +494,10 @@ class _ReportSummaryCard extends StatelessWidget {
             _reportRow("Triệu chứng chính", report.chiefComplaint),
             if (report.associated.isNotEmpty)
               _reportRow("Triệu chứng kèm theo", report.associated.join(", ")),
-            if (report.severity > 0) _reportRow("Mức độ", "${report.severity}/10"),
-            if (report.duration.isNotEmpty) _reportRow("Thời gian", report.duration),
+            if (report.severity > 0)
+              _reportRow("Mức độ", "${report.severity}/10"),
+            if (report.duration.isNotEmpty)
+              _reportRow("Thời gian", report.duration),
             if (report.suggestedSpecialty.isNotEmpty)
               _reportRow("Chuyên khoa gợi ý", report.suggestedSpecialty),
             const SizedBox(height: 12),
@@ -463,7 +505,8 @@ class _ReportSummaryCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               report.recommendation,
-              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(height: 1.4),
+              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                  .copyWith(height: 1.4),
             ),
             const SizedBox(height: 16),
             GlassButton(
@@ -486,10 +529,13 @@ class _ReportSummaryCard extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(label,
-                style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 10)),
+                style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                    .copyWith(fontSize: 10)),
           ),
           Expanded(
-            child: Text(value, style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600)),
+            child: Text(value,
+                style:
+                    GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600)),
           ),
         ],
       ),

@@ -7,7 +7,8 @@ class Appointment {
   final String doctorName;
   final String specialty;
   final String time;
-  final String serviceType; // 'Khám trực tuyến (Telehealth)', 'Khám tại phòng khám (Clinic Visit)'
+  final String
+      serviceType; // 'Khám trực tuyến (Telehealth)', 'Khám tại phòng khám (Clinic Visit)'
   String status; // 'Chờ duyệt', 'Đã xác nhận', 'Đã hủy'
   String? cancelReason;
 
@@ -27,45 +28,46 @@ class MasterAppointmentScreen extends StatefulWidget {
   const MasterAppointmentScreen({super.key});
 
   @override
-  State<MasterAppointmentScreen> createState() => _MasterAppointmentScreenState();
+  State<MasterAppointmentScreen> createState() =>
+      _MasterAppointmentScreenState();
 }
 
 class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
   // Mock data tích hợp luồng appointment_booking và clinic_visit_recommended
   final List<Appointment> _appointments = [
     Appointment(
-      id: 'APT-001', 
-      patientName: 'Trần Thế Bảo', 
-      doctorName: 'BS. Nguyễn Văn An', 
-      specialty: 'Khoa Tim mạch', 
-      time: '08:30 - Hôm nay', 
+      id: 'APT-001',
+      patientName: 'Trần Thế Bảo',
+      doctorName: 'BS. Nguyễn Văn An',
+      specialty: 'Khoa Tim mạch',
+      time: '08:30 - Hôm nay',
       serviceType: 'Khám trực tuyến (Telehealth)',
       status: 'Chờ duyệt',
     ),
     Appointment(
-      id: 'APT-002', 
-      patientName: 'Lê Thị Thu Thảo', 
-      doctorName: 'BS. Lê Thị Bình', 
-      specialty: 'Khoa Nội', 
-      time: '09:15 - Hôm nay', 
+      id: 'APT-002',
+      patientName: 'Lê Thị Thu Thảo',
+      doctorName: 'BS. Lê Thị Bình',
+      specialty: 'Khoa Nội',
+      time: '09:15 - Hôm nay',
       serviceType: 'Khám tại phòng khám (Clinic Visit)',
       status: 'Chờ duyệt',
     ),
     Appointment(
-      id: 'APT-003', 
-      patientName: 'Vũ Hoàng Minh', 
-      doctorName: 'BS. Trần Quốc Đạt', 
-      specialty: 'Khoa Thần kinh', 
-      time: '14:00 - Hôm qua', 
+      id: 'APT-003',
+      patientName: 'Vũ Hoàng Minh',
+      doctorName: 'BS. Trần Quốc Đạt',
+      specialty: 'Khoa Thần kinh',
+      time: '14:00 - Hôm qua',
       serviceType: 'Khám trực tuyến (Telehealth)',
       status: 'Đã xác nhận',
     ),
     Appointment(
-      id: 'APT-004', 
-      patientName: 'Nguyễn Ngọc Anh', 
-      doctorName: 'BS. Phạm Minh Tâm', 
-      specialty: 'Khoa Tim mạch', 
-      time: '10:00 - 29/05', 
+      id: 'APT-004',
+      patientName: 'Nguyễn Ngọc Anh',
+      doctorName: 'BS. Phạm Minh Tâm',
+      specialty: 'Khoa Tim mạch',
+      time: '10:00 - 29/05',
       serviceType: 'Khám tại phòng khám (Clinic Visit)',
       status: 'Đã hủy',
       cancelReason: 'Bệnh nhân bận việc đột xuất',
@@ -82,7 +84,9 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 8),
-            Expanded(child: Text('Đã phê duyệt lịch hẹn cho bệnh nhân ${apt.patientName}.')),
+            Expanded(
+                child: Text(
+                    'Đã phê duyệt lịch hẹn cho bệnh nhân ${apt.patientName}.')),
           ],
         ),
         backgroundColor: Colors.green,
@@ -100,12 +104,15 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: GlassTheme.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
             children: [
               const Icon(Icons.warning_rounded, color: GlassTheme.error),
               const SizedBox(width: 8),
-              Text('Xác nhận Hủy Lịch', style: GlassTheme.h2(color: GlassTheme.error).copyWith(fontSize: 18)),
+              Text('Xác nhận Hủy Lịch',
+                  style: GlassTheme.h2(color: GlassTheme.error)
+                      .copyWith(fontSize: 18)),
             ],
           ),
           content: Column(
@@ -127,8 +134,11 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Lối thoát an toàn (Reversal)
-              child: Text('Đóng', style: TextStyle(color: GlassTheme.outline, fontWeight: FontWeight.bold)),
+              onPressed: () =>
+                  Navigator.of(context).pop(), // Lối thoát an toàn (Reversal)
+              child: Text('Đóng',
+                  style: TextStyle(
+                      color: GlassTheme.outline, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -137,9 +147,12 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: GlassTheme.error,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Xác nhận Hủy', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text('Xác nhận Hủy',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -182,9 +195,11 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 64, color: GlassTheme.outline.withOpacity(0.5)),
+            Icon(Icons.event_busy,
+                size: 64, color: GlassTheme.outline.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
-            Text('Không có lịch hẹn nào.', style: GlassTheme.h3(color: GlassTheme.onSurfaceVariant)),
+            Text('Không có lịch hẹn nào.',
+                style: GlassTheme.h3(color: GlassTheme.onSurfaceVariant)),
           ],
         ),
       );
@@ -210,13 +225,18 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(apt.id, style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
+                    Text(apt.id,
+                        style:
+                            GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isPending 
-                            ? Colors.orange.withOpacity(0.2) 
-                            : (apt.status == 'Đã hủy' ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2)),
+                        color: isPending
+                            ? Colors.orange.withValues(alpha: 0.2)
+                            : (apt.status == 'Đã hủy'
+                                ? Colors.red.withValues(alpha: 0.2)
+                                : Colors.green.withValues(alpha: 0.2)),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -224,23 +244,27 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isPending 
-                              ? Colors.orange[800] 
-                              : (apt.status == 'Đã hủy' ? Colors.red[800] : Colors.green[800]),
+                          color: isPending
+                              ? Colors.orange[800]
+                              : (apt.status == 'Đã hủy'
+                                  ? Colors.red[800]
+                                  : Colors.green[800]),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Body (Avatar & Thông tin cơ bản)
                 Row(
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: GlassTheme.oceanBlue.withOpacity(0.15),
-                      child: const Icon(Icons.person, color: GlassTheme.oceanBlue),
+                      backgroundColor:
+                          GlassTheme.oceanBlue.withValues(alpha: 0.15),
+                      child:
+                          const Icon(Icons.person, color: GlassTheme.oceanBlue),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -251,14 +275,19 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                           const SizedBox(height: 4),
                           Text(
                             '${apt.doctorName} • ${apt.specialty}',
-                            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
+                            style: GlassTheme.bodyMd(
+                                color: GlassTheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.access_time, size: 14, color: GlassTheme.outline),
+                              const Icon(Icons.access_time,
+                                  size: 14, color: GlassTheme.outline),
                               const SizedBox(width: 4),
-                              Text(apt.time, style: GlassTheme.bodyMd(color: GlassTheme.outline).copyWith(fontWeight: FontWeight.bold)),
+                              Text(apt.time,
+                                  style: GlassTheme.bodyMd(
+                                          color: GlassTheme.outline)
+                                      .copyWith(fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ],
@@ -267,41 +296,62 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Service Type Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isTelehealth ? Colors.blueAccent.withOpacity(0.1) : Colors.teal.withOpacity(0.1),
+                    color: isTelehealth
+                        ? Colors.blueAccent.withValues(alpha: 0.1)
+                        : Colors.teal.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isTelehealth ? Colors.blueAccent.withOpacity(0.3) : Colors.teal.withOpacity(0.3)),
+                    border: Border.all(
+                        color: isTelehealth
+                            ? Colors.blueAccent.withValues(alpha: 0.3)
+                            : Colors.teal.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      Icon(isTelehealth ? Icons.video_camera_front : Icons.local_hospital, size: 16, color: isTelehealth ? Colors.blueAccent : Colors.teal),
+                      Icon(
+                          isTelehealth
+                              ? Icons.video_camera_front
+                              : Icons.local_hospital,
+                          size: 16,
+                          color:
+                              isTelehealth ? Colors.blueAccent : Colors.teal),
                       const SizedBox(width: 8),
-                      Text(
-                        apt.serviceType, 
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isTelehealth ? Colors.blueAccent : Colors.teal)
-                      ),
+                      Text(apt.serviceType,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isTelehealth
+                                  ? Colors.blueAccent
+                                  : Colors.teal)),
                     ],
                   ),
                 ),
-                
+
                 if (apt.cancelReason != null) ...[
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.05),
+                      color: Colors.red.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.info_outline, size: 14, color: Colors.red),
+                        const Icon(Icons.info_outline,
+                            size: 14, color: Colors.red),
                         const SizedBox(width: 4),
-                        Expanded(child: Text('Lý do hủy: ${apt.cancelReason}', style: const TextStyle(fontSize: 12, color: Colors.red, fontStyle: FontStyle.italic))),
+                        Expanded(
+                            child: Text('Lý do hủy: ${apt.cancelReason}',
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.red,
+                                    fontStyle: FontStyle.italic))),
                       ],
                     ),
                   )
@@ -318,20 +368,30 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                     children: [
                       TextButton.icon(
                         onPressed: () => _showCancelDialog(apt),
-                        icon: const Icon(Icons.close, color: GlassTheme.error, size: 18),
-                        label: const Text('Từ chối', style: TextStyle(color: GlassTheme.error, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.close,
+                            color: GlassTheme.error, size: 18),
+                        label: const Text('Từ chối',
+                            style: TextStyle(
+                                color: GlassTheme.error,
+                                fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton.icon(
                         onPressed: () => _approveAppointment(apt),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlassTheme.oceanBlue,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           elevation: 4,
-                          shadowColor: GlassTheme.oceanBlue.withOpacity(0.4),
+                          shadowColor:
+                              GlassTheme.oceanBlue.withValues(alpha: 0.4),
                         ),
-                        icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                        label: const Text('Phê duyệt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.check,
+                            color: Colors.white, size: 18),
+                        label: const Text('Phê duyệt',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -354,17 +414,21 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: Text('Điều phối Lịch hẹn', style: GlassTheme.h2(color: GlassTheme.primary)),
+            title: Text('Điều phối Lịch hẹn',
+                style: GlassTheme.h2(color: GlassTheme.primary)),
             iconTheme: const IconThemeData(color: GlassTheme.primary),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(60),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4)),
                   ],
                 ),
                 child: TabBar(
@@ -372,13 +436,17 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                     color: GlassTheme.oceanBlue,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: GlassTheme.oceanBlue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2)),
+                      BoxShadow(
+                          color: GlassTheme.oceanBlue.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2)),
                     ],
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelColor: Colors.white,
                   unselectedLabelColor: GlassTheme.onSurfaceVariant,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13),
                   tabs: const [
                     Tab(text: 'Chờ duyệt'),
                     Tab(text: 'Đã xác nhận'),
@@ -392,7 +460,8 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
             children: [
               _buildAppointmentList('Chờ duyệt'),
               _buildAppointmentList('Đã xác nhận'),
-              _buildAppointmentList('Lịch sử'), // Hàm _buildAppointmentList xử lý gộp trạng thái 'Đã hủy'
+              _buildAppointmentList(
+                  'Lịch sử'), // Hàm _buildAppointmentList xử lý gộp trạng thái 'Đã hủy'
             ],
           ),
         ),

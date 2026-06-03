@@ -39,15 +39,57 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
 
   // Mock data mô phỏng từ AppState
   final List<Doctor> _allDoctors = [
-    Doctor(id: 'BS01', name: 'Nguyễn Văn An', specialty: 'Khoa Tim mạch', branch: 'Chi nhánh Quận 1', status: 'Hoạt động', phone: '0901234567', email: 'an.nguyen@aicare.vn', pendingPrescriptions: 5, finalizedPrescriptions: 12),
-    Doctor(id: 'BS02', name: 'Lê Thị Bình', specialty: 'Khoa Nội tổng quát', branch: 'Chi nhánh Hoàn Kiếm', status: 'Nghỉ phép', phone: '0912345678', email: 'binh.le@aicare.vn', pendingPrescriptions: 0, finalizedPrescriptions: 8),
-    Doctor(id: 'BS03', name: 'Trần Quốc Đạt', specialty: 'Khoa Thần kinh', branch: 'Chi nhánh Hải Châu', status: 'Đã khóa', phone: '0987654321', email: 'dat.tran@aicare.vn', pendingPrescriptions: 0, finalizedPrescriptions: 0),
-    Doctor(id: 'BS04', name: 'Phạm Minh Tâm', specialty: 'Khoa Tim mạch', branch: 'Chi nhánh Quận 1', status: 'Hoạt động', phone: '0909998887', email: 'tam.pham@aicare.vn', pendingPrescriptions: 12, finalizedPrescriptions: 45),
+    Doctor(
+        id: 'BS01',
+        name: 'Nguyễn Văn An',
+        specialty: 'Khoa Tim mạch',
+        branch: 'Chi nhánh Quận 1',
+        status: 'Hoạt động',
+        phone: '0901234567',
+        email: 'an.nguyen@aicare.vn',
+        pendingPrescriptions: 5,
+        finalizedPrescriptions: 12),
+    Doctor(
+        id: 'BS02',
+        name: 'Lê Thị Bình',
+        specialty: 'Khoa Nội tổng quát',
+        branch: 'Chi nhánh Hoàn Kiếm',
+        status: 'Nghỉ phép',
+        phone: '0912345678',
+        email: 'binh.le@aicare.vn',
+        pendingPrescriptions: 0,
+        finalizedPrescriptions: 8),
+    Doctor(
+        id: 'BS03',
+        name: 'Trần Quốc Đạt',
+        specialty: 'Khoa Thần kinh',
+        branch: 'Chi nhánh Hải Châu',
+        status: 'Đã khóa',
+        phone: '0987654321',
+        email: 'dat.tran@aicare.vn',
+        pendingPrescriptions: 0,
+        finalizedPrescriptions: 0),
+    Doctor(
+        id: 'BS04',
+        name: 'Phạm Minh Tâm',
+        specialty: 'Khoa Tim mạch',
+        branch: 'Chi nhánh Quận 1',
+        status: 'Hoạt động',
+        phone: '0909998887',
+        email: 'tam.pham@aicare.vn',
+        pendingPrescriptions: 12,
+        finalizedPrescriptions: 45),
   ];
 
   late List<Doctor> _filteredDoctors;
 
-  final List<String> _specialties = ['Khoa Tim mạch', 'Khoa Nội tổng quát', 'Khoa Thần kinh', 'Khoa Nhi', 'Nha khoa'];
+  final List<String> _specialties = [
+    'Khoa Tim mạch',
+    'Khoa Nội tổng quát',
+    'Khoa Thần kinh',
+    'Khoa Nhi',
+    'Nha khoa'
+  ];
 
   @override
   void initState() {
@@ -58,9 +100,11 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
   void _filterDoctors() {
     setState(() {
       _filteredDoctors = _allDoctors.where((doc) {
-        final matchSearch = doc.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            doc.id.toLowerCase().contains(_searchQuery.toLowerCase());
-        final matchSpecialty = _selectedSpecialty == 'Tất cả' || doc.specialty == _selectedSpecialty;
+        final matchSearch =
+            doc.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                doc.id.toLowerCase().contains(_searchQuery.toLowerCase());
+        final matchSpecialty = _selectedSpecialty == 'Tất cả' ||
+            doc.specialty == _selectedSpecialty;
         return matchSearch && matchSpecialty;
       }).toList();
     });
@@ -72,7 +116,8 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(isError ? Icons.error_outline : Icons.check_circle, color: Colors.white),
+            Icon(isError ? Icons.error_outline : Icons.check_circle,
+                color: Colors.white),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
@@ -101,7 +146,8 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: GlassTheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Xác nhận khóa tài khoản', style: GlassTheme.h2(color: GlassTheme.error)),
+        title: Text('Xác nhận khóa tài khoản',
+            style: GlassTheme.h2(color: GlassTheme.error)),
         content: Text(
           'Bạn có chắc chắn muốn khóa tài khoản của bác sĩ ${doctor.name}?\nBác sĩ này sẽ không thể đăng nhập vào hệ thống.',
           style: GlassTheme.bodyMd(),
@@ -118,13 +164,16 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                 doctor.status = 'Đã khóa';
                 _filterDoctors();
               });
-              _showFeedback('Đã khóa tài khoản bác sĩ ${doctor.name} thành công!');
+              _showFeedback(
+                  'Đã khóa tài khoản bác sĩ ${doctor.name} thành công!');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: GlassTheme.error,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Xác nhận khóa', style: TextStyle(color: Colors.white)),
+            child: const Text('Xác nhận khóa',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -137,7 +186,7 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withOpacity(0.4),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -154,9 +203,11 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                     existingDoctor.phone = phone;
                     existingDoctor.email = email;
                     existingDoctor.specialty = specialty;
-                    _showFeedback('Đã cập nhật thông tin bác sĩ $name thành công!');
+                    _showFeedback(
+                        'Đã cập nhật thông tin bác sĩ $name thành công!');
                   } else {
-                    final newId = 'BS${(_allDoctors.length + 1).toString().padLeft(2, '0')}';
+                    final newId =
+                        'BS${(_allDoctors.length + 1).toString().padLeft(2, '0')}';
                     _allDoctors.insert(
                       0,
                       Doctor(
@@ -183,7 +234,8 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
           position: Tween<Offset>(
             begin: const Offset(0, -1),
             end: const Offset(0, 0),
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
           child: child,
         );
       },
@@ -200,14 +252,17 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: Text('Quản lý Bác sĩ', style: GlassTheme.h2(color: GlassTheme.primary)),
+          title: Text('Quản lý Bác sĩ',
+              style: GlassTheme.h2(color: GlassTheme.primary)),
           iconTheme: const IconThemeData(color: GlassTheme.primary),
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showDoctorFormDialog(),
           backgroundColor: GlassTheme.oceanBlue,
           icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Thêm Bác sĩ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          label: const Text('Thêm Bác sĩ',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -244,14 +299,20 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                   Expanded(
                     flex: 1,
                     child: GlassCard(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       borderRadius: 16,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedSpecialty,
                           isExpanded: true,
-                          icon: const Icon(Icons.filter_list, color: GlassTheme.oceanBlue),
-                          items: filterSpecialties.map((s) => DropdownMenuItem(value: s, child: Text(s, style: GlassTheme.bodyMd()))).toList(),
+                          icon: const Icon(Icons.filter_list,
+                              color: GlassTheme.oceanBlue),
+                          items: filterSpecialties
+                              .map((s) => DropdownMenuItem(
+                                  value: s,
+                                  child: Text(s, style: GlassTheme.bodyMd())))
+                              .toList(),
                           onChanged: (val) {
                             if (val != null) {
                               setState(() {
@@ -267,14 +328,15 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Danh sách Bác sĩ
               Expanded(
                 child: _filteredDoctors.isEmpty
                     ? Center(
                         child: Text(
                           'Không tìm thấy bác sĩ nào.',
-                          style: GlassTheme.bodyLg(color: GlassTheme.onSurfaceVariant),
+                          style: GlassTheme.bodyLg(
+                              color: GlassTheme.onSurfaceVariant),
                         ),
                       )
                     : ListView.builder(
@@ -296,59 +358,87 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                                   children: [
                                     CircleAvatar(
                                       radius: 30,
-                                      backgroundColor: isLocked ? Colors.grey.withOpacity(0.2) : GlassTheme.oceanBlue.withOpacity(0.2),
+                                      backgroundColor: isLocked
+                                          ? Colors.grey.withValues(alpha: 0.2)
+                                          : GlassTheme.oceanBlue
+                                              .withValues(alpha: 0.2),
                                       child: Text(
                                         doctor.name.substring(0, 1),
-                                        style: GlassTheme.h2(color: isLocked ? Colors.grey : GlassTheme.oceanBlue),
+                                        style: GlassTheme.h2(
+                                            color: isLocked
+                                                ? Colors.grey
+                                                : GlassTheme.oceanBlue),
                                       ),
                                     ),
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            doctor.name, 
-                                            style: GlassTheme.h3(color: isLocked ? Colors.grey : GlassTheme.onSurface)
-                                          ),
+                                          Text(doctor.name,
+                                              style: GlassTheme.h3(
+                                                  color: isLocked
+                                                      ? Colors.grey
+                                                      : GlassTheme.onSurface)),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${doctor.id} • ${doctor.specialty}', 
-                                            style: GlassTheme.bodyMd(color: isLocked ? Colors.grey : GlassTheme.onSurfaceVariant)
-                                          ),
+                                              '${doctor.id} • ${doctor.specialty}',
+                                              style: GlassTheme.bodyMd(
+                                                  color: isLocked
+                                                      ? Colors.grey
+                                                      : GlassTheme
+                                                          .onSurfaceVariant)),
                                           const SizedBox(height: 4),
                                           Row(
                                             children: [
                                               Icon(
-                                                isLocked ? Icons.lock : (doctor.status == 'Hoạt động' ? Icons.check_circle : Icons.pause_circle),
+                                                isLocked
+                                                    ? Icons.lock
+                                                    : (doctor.status ==
+                                                            'Hoạt động'
+                                                        ? Icons.check_circle
+                                                        : Icons.pause_circle),
                                                 size: 14,
-                                                color: isLocked ? Colors.grey : (doctor.status == 'Hoạt động' ? Colors.green : Colors.orange),
+                                                color: isLocked
+                                                    ? Colors.grey
+                                                    : (doctor.status ==
+                                                            'Hoạt động'
+                                                        ? Colors.green
+                                                        : Colors.orange),
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
                                                 doctor.status,
                                                 style: GlassTheme.labelCaps(
-                                                  color: isLocked ? Colors.grey : (doctor.status == 'Hoạt động' ? Colors.green : Colors.orange),
+                                                  color: isLocked
+                                                      ? Colors.grey
+                                                      : (doctor.status ==
+                                                              'Hoạt động'
+                                                          ? Colors.green
+                                                          : Colors.orange),
                                                 ),
                                               ),
                                             ],
                                           ),
                                           const SizedBox(height: 8),
                                           // Sign Finalize Prescription Tracker Badge (Visibility & Feedback)
-                                          if (!isLocked) 
+                                          if (!isLocked)
                                             Wrap(
                                               spacing: 8,
                                               runSpacing: 4,
                                               children: [
                                                 _buildPrescriptionBadge(
                                                   icon: Icons.pending_actions,
-                                                  count: doctor.pendingPrescriptions,
+                                                  count: doctor
+                                                      .pendingPrescriptions,
                                                   label: 'Chờ duyệt',
                                                   color: Colors.orange,
                                                 ),
                                                 _buildPrescriptionBadge(
                                                   icon: Icons.fact_check,
-                                                  count: doctor.finalizedPrescriptions,
+                                                  count: doctor
+                                                      .finalizedPrescriptions,
                                                   label: 'Đã ký',
                                                   color: Colors.green,
                                                 ),
@@ -357,22 +447,38 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                                         ],
                                       ),
                                     ),
-                                    
+
                                     // Action Buttons
                                     Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         // Edit Button (Constraint: Bị disable khi đã khóa)
                                         IconButton(
-                                          icon: Icon(Icons.edit, color: isLocked ? Colors.grey : GlassTheme.oceanBlue),
+                                          icon: Icon(Icons.edit,
+                                              color: isLocked
+                                                  ? Colors.grey
+                                                  : GlassTheme.oceanBlue),
                                           tooltip: 'Sửa thông tin',
-                                          onPressed: isLocked ? null : () => _showDoctorFormDialog(existingDoctor: doctor),
+                                          onPressed: isLocked
+                                              ? null
+                                              : () => _showDoctorFormDialog(
+                                                  existingDoctor: doctor),
                                         ),
                                         // Lock/Unlock Button
                                         IconButton(
-                                          icon: Icon(isLocked ? Icons.lock_open : Icons.lock_outline, color: isLocked ? Colors.green : GlassTheme.error),
-                                          tooltip: isLocked ? 'Mở khóa' : 'Khóa tài khoản',
-                                          onPressed: () => _toggleLockDoctor(doctor),
+                                          icon: Icon(
+                                              isLocked
+                                                  ? Icons.lock_open
+                                                  : Icons.lock_outline,
+                                              color: isLocked
+                                                  ? Colors.green
+                                                  : GlassTheme.error),
+                                          tooltip: isLocked
+                                              ? 'Mở khóa'
+                                              : 'Khóa tài khoản',
+                                          onPressed: () =>
+                                              _toggleLockDoctor(doctor),
                                         ),
                                       ],
                                     ),
@@ -391,19 +497,25 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
     );
   }
 
-  Widget _buildPrescriptionBadge({required IconData icon, required int count, required String label, required Color color}) {
+  Widget _buildPrescriptionBadge(
+      {required IconData icon,
+      required int count,
+      required String label,
+      required Color color}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text('$count $label', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+          Text('$count $label',
+              style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
@@ -414,9 +526,14 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
 class DoctorFormBottomSheet extends StatefulWidget {
   final Doctor? doctor;
   final List<String> specialties;
-  final Function(String name, String phone, String email, String specialty) onSave;
+  final Function(String name, String phone, String email, String specialty)
+      onSave;
 
-  const DoctorFormBottomSheet({super.key, this.doctor, required this.specialties, required this.onSave});
+  const DoctorFormBottomSheet(
+      {super.key,
+      this.doctor,
+      required this.specialties,
+      required this.onSave});
 
   @override
   State<DoctorFormBottomSheet> createState() => _DoctorFormBottomSheetState();
@@ -435,7 +552,7 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
     _phoneCtrl = TextEditingController(text: widget.doctor?.phone ?? '');
     _emailCtrl = TextEditingController(text: widget.doctor?.email ?? '');
     _selectedSpecialty = widget.doctor?.specialty ?? widget.specialties.first;
-    
+
     // Add listeners to rebuild UI for button validation
     _nameCtrl.addListener(() => setState(() {}));
     _phoneCtrl.addListener(() => setState(() {}));
@@ -454,9 +571,9 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
     final name = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
     final email = _emailCtrl.text.trim();
-    
+
     if (name.isEmpty || phone.isEmpty || email.isEmpty) return false;
-    
+
     // Simple RegEx validations
     final phoneRegExp = RegExp(r'^[0-9]+$');
     final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
@@ -472,12 +589,17 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
     // Add padding bottom for keyboard
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final topPadding = MediaQuery.of(context).padding.top;
-    
+
     return Container(
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
-      padding: EdgeInsets.only(left: 24, right: 24, top: topPadding + 16, bottom: bottomPadding + 24),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: topPadding + 16,
+          bottom: bottomPadding + 24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white.withValues(alpha: 0.85),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 20)],
       ),
@@ -491,7 +613,7 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
               style: GlassTheme.h2(color: GlassTheme.primary),
             ),
             const SizedBox(height: 24),
-            
+
             // Name
             GlassTextField(
               controller: _nameCtrl,
@@ -500,7 +622,7 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
               prefixIcon: Icons.person_outline,
             ),
             const SizedBox(height: 16),
-            
+
             // Dropdown Specialty (Error Prevention - Không cho tự gõ)
             GlassCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -509,8 +631,12 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
                 child: DropdownButton<String>(
                   value: _selectedSpecialty,
                   isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down, color: GlassTheme.oceanBlue),
-                  items: widget.specialties.map((s) => DropdownMenuItem(value: s, child: Text(s, style: GlassTheme.bodyMd()))).toList(),
+                  icon: const Icon(Icons.keyboard_arrow_down,
+                      color: GlassTheme.oceanBlue),
+                  items: widget.specialties
+                      .map((s) => DropdownMenuItem(
+                          value: s, child: Text(s, style: GlassTheme.bodyMd())))
+                      .toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedSpecialty = val);
                   },
@@ -542,24 +668,29 @@ class _DoctorFormBottomSheetState extends State<DoctorFormBottomSheet> {
               width: double.infinity,
               height: 54,
               child: ElevatedButton(
-                onPressed: _isValid() ? () {
-                  widget.onSave(_nameCtrl.text.trim(), _phoneCtrl.text.trim(), _emailCtrl.text.trim(), _selectedSpecialty);
-                  Navigator.of(context).pop();
-                } : null,
+                onPressed: _isValid()
+                    ? () {
+                        widget.onSave(
+                            _nameCtrl.text.trim(),
+                            _phoneCtrl.text.trim(),
+                            _emailCtrl.text.trim(),
+                            _selectedSpecialty);
+                        Navigator.of(context).pop();
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: GlassTheme.oceanBlue,
                   disabledBackgroundColor: Colors.grey[300],
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   elevation: _isValid() ? 4 : 0,
                 ),
-                child: Text(
-                  'Lưu Thông Tin', 
-                  style: TextStyle(
-                    color: _isValid() ? Colors.white : Colors.grey[500],
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  )
-                ),
+                child: Text('Lưu Thông Tin',
+                    style: TextStyle(
+                      color: _isValid() ? Colors.white : Colors.grey[500],
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    )),
               ),
             ),
           ],

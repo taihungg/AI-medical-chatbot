@@ -215,9 +215,14 @@ class ConversationEngine {
           directiveId: 'root',
           prompt: 'Triệu chứng chính',
           options: [
-            ChatOption(label: 'Đau đầu', value: 'dau_dau', icon: Icons.psychology_alt),
+            ChatOption(
+                label: 'Đau đầu', value: 'dau_dau', icon: Icons.psychology_alt),
             ChatOption(label: 'Đau bụng', value: 'dau_bung', icon: Icons.sick),
-            ChatOption(label: 'Đau ngực', value: 'dau_nguc', icon: Icons.monitor_heart, riskHint: 'Khẩn cấp'),
+            ChatOption(
+                label: 'Đau ngực',
+                value: 'dau_nguc',
+                icon: Icons.monitor_heart,
+                riskHint: 'Khẩn cấp'),
             ChatOption(label: 'Sốt', value: 'sot', icon: Icons.thermostat),
             ChatOption(label: 'Ho / Hô hấp', value: 'ho', icon: Icons.air),
           ],
@@ -233,10 +238,18 @@ class ConversationEngine {
           directiveId: 'dau_dau_detail',
           prompt: 'Chọn các triệu chứng kèm theo (có thể chọn nhiều)',
           options: [
-            ChatOption(label: 'Buồn nôn', value: 'buon_non', icon: Icons.water_drop),
-            ChatOption(label: 'Sợ ánh sáng', value: 'so_anh_sang', icon: Icons.light_mode),
-            ChatOption(label: 'Đau nửa đầu', value: 'nua_dau', icon: Icons.psychology_alt),
-            ChatOption(label: 'Chóng mặt', value: 'chong_mat', icon: Icons.blur_on),
+            ChatOption(
+                label: 'Buồn nôn', value: 'buon_non', icon: Icons.water_drop),
+            ChatOption(
+                label: 'Sợ ánh sáng',
+                value: 'so_anh_sang',
+                icon: Icons.light_mode),
+            ChatOption(
+                label: 'Đau nửa đầu',
+                value: 'nua_dau',
+                icon: Icons.psychology_alt),
+            ChatOption(
+                label: 'Chóng mặt', value: 'chong_mat', icon: Icons.blur_on),
           ],
         ),
       ),
@@ -244,13 +257,15 @@ class ConversationEngine {
     'dau_bung_detail': ScriptedNode(
       id: 'dau_bung_detail',
       build: (_) => const BotReply(
-        text: 'Bạn mô tả thêm về cơn đau bụng nhé. Có kèm triệu chứng nào không?',
+        text:
+            'Bạn mô tả thêm về cơn đau bụng nhé. Có kèm triệu chứng nào không?',
         directive: ChatUiDirective(
           type: ChatComponentType.multiSelectChips,
           directiveId: 'dau_bung_detail',
           prompt: 'Chọn các triệu chứng kèm theo',
           options: [
-            ChatOption(label: 'Buồn nôn', value: 'buon_non', icon: Icons.water_drop),
+            ChatOption(
+                label: 'Buồn nôn', value: 'buon_non', icon: Icons.water_drop),
             ChatOption(label: 'Tiêu chảy', value: 'tieu_chay'),
             ChatOption(label: 'Đầy hơi', value: 'no_hoi'),
             ChatOption(label: 'Quặn đau từng cơn', value: 'quan_dau'),
@@ -267,10 +282,14 @@ class ConversationEngine {
           directiveId: 'sot_detail',
           prompt: 'Chọn các dấu hiệu đi kèm',
           options: [
-            ChatOption(label: 'Sốt cao trên 39°C', value: 'sot_cao', icon: Icons.thermostat),
+            ChatOption(
+                label: 'Sốt cao trên 39°C',
+                value: 'sot_cao',
+                icon: Icons.thermostat),
             ChatOption(label: 'Rét run', value: 'ret_run'),
             ChatOption(label: 'Đổ mồ hôi', value: 'do_mo_hoi'),
-            ChatOption(label: 'Đau đầu', value: 'nua_dau', icon: Icons.psychology_alt),
+            ChatOption(
+                label: 'Đau đầu', value: 'nua_dau', icon: Icons.psychology_alt),
           ],
         ),
       ),
@@ -285,7 +304,8 @@ class ConversationEngine {
           prompt: 'Chọn các triệu chứng kèm theo',
           options: [
             ChatOption(label: 'Ho có đờm', value: 'ho_dam'),
-            ChatOption(label: 'Khó thở nhẹ', value: 'kho_tho_nhe', icon: Icons.air),
+            ChatOption(
+                label: 'Khó thở nhẹ', value: 'kho_tho_nhe', icon: Icons.air),
             ChatOption(label: 'Đau họng', value: 'dau_hong'),
             ChatOption(label: 'Sốt', value: 'sot_cao', icon: Icons.thermostat),
           ],
@@ -302,8 +322,13 @@ class ConversationEngine {
           type: ChatComponentType.yesNo,
           directiveId: 'emergency_check',
           options: [
-            ChatOption(label: 'Có', value: 'yes', icon: Icons.check_circle_outline, riskHint: 'Khẩn cấp'),
-            ChatOption(label: 'Không', value: 'no', icon: Icons.cancel_outlined),
+            ChatOption(
+                label: 'Có',
+                value: 'yes',
+                icon: Icons.check_circle_outline,
+                riskHint: 'Khẩn cấp'),
+            ChatOption(
+                label: 'Không', value: 'no', icon: Icons.cancel_outlined),
           ],
         ),
       ),
@@ -337,9 +362,14 @@ class ConversationEngine {
           type: ChatComponentType.timeRangePicker,
           directiveId: 'onset',
           timeRanges: [
-            ChatOption(label: 'Dưới 24h', value: 'under_24h', icon: Icons.schedule),
-            ChatOption(label: '1 - 3 ngày', value: '1_3_days', icon: Icons.schedule),
-            ChatOption(label: 'Hơn 3 ngày', value: 'over_3_days', icon: Icons.schedule),
+            ChatOption(
+                label: 'Dưới 24h', value: 'under_24h', icon: Icons.schedule),
+            ChatOption(
+                label: '1 - 3 ngày', value: '1_3_days', icon: Icons.schedule),
+            ChatOption(
+                label: 'Hơn 3 ngày',
+                value: 'over_3_days',
+                icon: Icons.schedule),
           ],
         ),
       ),
@@ -402,7 +432,8 @@ class ConversationEngine {
     if (emergency || high) {
       final risk = emergency ? 'Khẩn cấp' : 'Cao';
       final report = ReportData(
-        chiefComplaint: text.trim().isEmpty ? 'Triệu chứng khai báo tự do' : text.trim(),
+        chiefComplaint:
+            text.trim().isEmpty ? 'Triệu chứng khai báo tự do' : text.trim(),
         riskLevel: risk,
         recommendation: risk == 'Khẩn cấp'
             ? 'Tình trạng của bạn cần được thăm khám khẩn cấp.'
@@ -424,9 +455,11 @@ class ConversationEngine {
 
     if (_freeTextTurns >= 3) {
       final report = ReportData(
-        chiefComplaint: text.trim().isEmpty ? 'Triệu chứng khai báo tự do' : text.trim(),
+        chiefComplaint:
+            text.trim().isEmpty ? 'Triệu chứng khai báo tự do' : text.trim(),
         riskLevel: 'Trung bình',
-        recommendation: 'Bạn nên đặt lịch khám để bác sĩ đánh giá chi tiết hơn.',
+        recommendation:
+            'Bạn nên đặt lịch khám để bác sĩ đánh giá chi tiết hơn.',
         suggestedSpecialty: 'Khoa Nội tổng quát',
       );
       return BotReply(

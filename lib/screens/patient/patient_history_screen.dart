@@ -14,8 +14,10 @@ class PatientHistoryScreen extends StatelessWidget {
       listenable: appState,
       builder: (context, child) {
         final allAppts = appState.appointments;
-        final activeAppts = allAppts.where((a) => a.status != 'Hoàn thành').toList();
-        final pastAppts = allAppts.where((a) => a.status == 'Hoàn thành').toList();
+        final activeAppts =
+            allAppts.where((a) => a.status != 'Hoàn thành').toList();
+        final pastAppts =
+            allAppts.where((a) => a.status == 'Hoàn thành').toList();
 
         return Scaffold(
           appBar: GlassAppBar(
@@ -50,9 +52,9 @@ class PatientHistoryScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         ...activeAppts.map((appt) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildActiveAppointmentCard(appt),
-                        )),
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: _buildActiveAppointmentCard(appt),
+                            )),
                         const SizedBox(height: 24),
                       ],
 
@@ -70,12 +72,14 @@ class PatientHistoryScreen extends StatelessWidget {
                         GlassCard(
                           child: Center(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 32.0),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 32.0),
                               child: Column(
                                 children: [
                                   Icon(Icons.inbox_outlined,
                                       size: 48,
-                                      color: GlassTheme.onSurfaceVariant.withValues(alpha: 0.4)),
+                                      color: GlassTheme.onSurfaceVariant
+                                          .withValues(alpha: 0.4)),
                                   const SizedBox(height: 12),
                                   Text(
                                     "Chưa có lịch sử khám bệnh",
@@ -89,9 +93,9 @@ class PatientHistoryScreen extends StatelessWidget {
                         )
                       else
                         ...pastAppts.map((appt) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildPastAppointmentCard(appt),
-                        )),
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: _buildPastAppointmentCard(appt),
+                            )),
                     ],
                   ),
           ),
@@ -164,8 +168,12 @@ class PatientHistoryScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: GlassTheme.h3(color: GlassTheme.onSurface).copyWith(fontSize: 16)),
-            Text(subtitle, style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12)),
+            Text(title,
+                style: GlassTheme.h3(color: GlassTheme.onSurface)
+                    .copyWith(fontSize: 16)),
+            Text(subtitle,
+                style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                    .copyWith(fontSize: 12)),
           ],
         ),
       ],
@@ -182,8 +190,10 @@ class PatientHistoryScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatusBadge(appt.status, Colors.amber, Colors.amber.shade800),
-              Text(appt.id, style: GlassTheme.labelCaps(color: GlassTheme.outline)),
+              _buildStatusBadge(
+                  appt.status, Colors.amber, Colors.amber.shade800),
+              Text(appt.id,
+                  style: GlassTheme.labelCaps(color: GlassTheme.outline)),
             ],
           ),
           const SizedBox(height: 12),
@@ -192,17 +202,21 @@ class PatientHistoryScreen extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: GlassTheme.oceanBlue.withValues(alpha: 0.1),
-                child: const Icon(Icons.person, color: GlassTheme.oceanBlue, size: 22),
+                child: const Icon(Icons.person,
+                    color: GlassTheme.oceanBlue, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(appt.doctorName, style: GlassTheme.h3().copyWith(fontSize: 15)),
+                    Text(appt.doctorName,
+                        style: GlassTheme.h3().copyWith(fontSize: 15)),
                     Text(
                       "${appt.specialty} • ${appt.branchName}",
-                      style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12),
+                      style:
+                          GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                              .copyWith(fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -220,18 +234,22 @@ class PatientHistoryScreen extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.calendar_today, size: 16, color: GlassTheme.oceanBlue),
+                const Icon(Icons.calendar_today,
+                    size: 16, color: GlassTheme.oceanBlue),
                 const SizedBox(width: 8),
                 Text(
                   "${appt.dateTime.day.toString().padLeft(2, '0')}/${appt.dateTime.month.toString().padLeft(2, '0')}/${appt.dateTime.year}",
-                  style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600),
+                  style:
+                      GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 12),
-                const Icon(Icons.access_time, size: 16, color: GlassTheme.oceanBlue),
+                const Icon(Icons.access_time,
+                    size: 16, color: GlassTheme.oceanBlue),
                 const SizedBox(width: 4),
                 Text(
                   appt.timeSlot,
-                  style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600),
+                  style:
+                      GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -240,13 +258,14 @@ class PatientHistoryScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.medical_information_outlined, size: 16,
-                  color: _riskColor(appt.riskLevel)),
+              Icon(Icons.medical_information_outlined,
+                  size: 16, color: _riskColor(appt.riskLevel)),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   appt.symptomSummary,
-                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 13),
+                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 13),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -267,30 +286,35 @@ class PatientHistoryScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildStatusBadge(appt.status, Colors.green, Colors.green),
-              Text(appt.id, style: GlassTheme.labelCaps(color: GlassTheme.outline)),
+              Text(appt.id,
+                  style: GlassTheme.labelCaps(color: GlassTheme.outline)),
             ],
           ),
           const SizedBox(height: 12),
           Text(appt.doctorName, style: GlassTheme.h3().copyWith(fontSize: 15)),
           Text(
             "${appt.specialty} • ${appt.branchName}",
-            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12),
+            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                .copyWith(fontSize: 12),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 14, color: GlassTheme.oceanBlue),
+              const Icon(Icons.calendar_today,
+                  size: 14, color: GlassTheme.oceanBlue),
               const SizedBox(width: 6),
               Text(
                 "${appt.dateTime.day.toString().padLeft(2, '0')}/${appt.dateTime.month.toString().padLeft(2, '0')}/${appt.dateTime.year} - ${appt.timeSlot}",
-                style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+                style: GlassTheme.bodyMd()
+                    .copyWith(fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             "Triệu chứng: ${appt.symptomSummary}",
-            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 13),
+            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                .copyWith(fontSize: 13),
           ),
           if (appt.clinicalNotes.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -299,26 +323,30 @@ class PatientHistoryScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: GlassTheme.teal.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: GlassTheme.teal.withValues(alpha: 0.2)),
+                border:
+                    Border.all(color: GlassTheme.teal.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.description_outlined, size: 16, color: GlassTheme.teal),
+                      Icon(Icons.description_outlined,
+                          size: 16, color: GlassTheme.teal),
                       const SizedBox(width: 6),
                       Text(
                         "Kết luận từ bác sĩ",
                         style: GlassTheme.bodyMd(color: GlassTheme.teal)
-                            .copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+                            .copyWith(
+                                fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
                     appt.clinicalNotes,
-                    style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 13),
+                    style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 13),
                   ),
                 ],
               ),
@@ -366,10 +394,14 @@ class PatientHistoryScreen extends StatelessWidget {
 
   Color _riskColor(String risk) {
     switch (risk) {
-      case 'Khẩn cấp': return GlassTheme.error;
-      case 'Cao': return Colors.orange;
-      case 'Trung bình': return GlassTheme.oceanBlue;
-      default: return GlassTheme.teal;
+      case 'Khẩn cấp':
+        return GlassTheme.error;
+      case 'Cao':
+        return Colors.orange;
+      case 'Trung bình':
+        return GlassTheme.oceanBlue;
+      default:
+        return GlassTheme.teal;
     }
   }
 }

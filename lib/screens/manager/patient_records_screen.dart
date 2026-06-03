@@ -40,54 +40,63 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
   // Mock data mô phỏng dữ liệu kết hợp Symptom Flow
   final List<Patient> _allPatients = [
     Patient(
-      id: 'BN-8801', 
-      name: 'Trần Thế Bảo', 
+      id: 'BN-8801',
+      name: 'Trần Thế Bảo',
       phone: '0901234567',
-      age: 45, 
-      gender: 'Nam', 
-      lastVisit: 'Hôm nay', 
+      age: 45,
+      gender: 'Nam',
+      lastVisit: 'Hôm nay',
       category: 'Khách mới',
       healthStatus: 'Khẩn cấp',
-      aiSymptomSummary: 'Bệnh nhân báo cáo đau đầu dữ dội vùng thái dương kéo dài 3 ngày, kèm buồn nôn nhẹ. Huyết áp đo tại nhà (theo lời khai) là 150/95. AI phân loại nguy cơ cao (Red Flag), đề xuất khám chuyên khoa Thần Kinh ngay lập tức.',
+      aiSymptomSummary:
+          'Bệnh nhân báo cáo đau đầu dữ dội vùng thái dương kéo dài 3 ngày, kèm buồn nôn nhẹ. Huyết áp đo tại nhà (theo lời khai) là 150/95. AI phân loại nguy cơ cao (Red Flag), đề xuất khám chuyên khoa Thần Kinh ngay lập tức.',
     ),
     Patient(
-      id: 'BN-8802', 
-      name: 'Lê Thị Thu Thảo', 
+      id: 'BN-8802',
+      name: 'Lê Thị Thu Thảo',
       phone: '0987654321',
-      age: 32, 
-      gender: 'Nữ', 
-      lastVisit: '12/05/2026', 
+      age: 32,
+      gender: 'Nữ',
+      lastVisit: '12/05/2026',
       category: 'Tái khám',
       healthStatus: 'Ổn định',
-      aiSymptomSummary: 'Bệnh nhân tái khám định kỳ trào ngược dạ dày. Các triệu chứng ợ chua đã giảm 80% sau 2 tuần dùng thuốc theo toa cũ. Không có triệu chứng mới phát sinh. AI đánh giá tiến triển tốt.',
+      aiSymptomSummary:
+          'Bệnh nhân tái khám định kỳ trào ngược dạ dày. Các triệu chứng ợ chua đã giảm 80% sau 2 tuần dùng thuốc theo toa cũ. Không có triệu chứng mới phát sinh. AI đánh giá tiến triển tốt.',
     ),
     Patient(
-      id: 'BN-8803', 
-      name: 'Vũ Hoàng Minh', 
+      id: 'BN-8803',
+      name: 'Vũ Hoàng Minh',
       phone: '0911223344',
-      age: 50, 
-      gender: 'Nam', 
-      lastVisit: '01/05/2026', 
+      age: 50,
+      gender: 'Nam',
+      lastVisit: '01/05/2026',
       category: 'Cần theo dõi',
       healthStatus: 'Khẩn cấp',
-      aiSymptomSummary: 'Chỉ số đường huyết (tự đo) tăng đột biến lên 12 mmol/L trong 2 ngày qua. Bệnh nhân có biểu hiện mệt mỏi, khát nước nhiều. AI cảnh báo rủi ro biến chứng tiểu đường, yêu cầu liên hệ bệnh nhân gấp.',
+      aiSymptomSummary:
+          'Chỉ số đường huyết (tự đo) tăng đột biến lên 12 mmol/L trong 2 ngày qua. Bệnh nhân có biểu hiện mệt mỏi, khát nước nhiều. AI cảnh báo rủi ro biến chứng tiểu đường, yêu cầu liên hệ bệnh nhân gấp.',
     ),
     Patient(
-      id: 'BN-8804', 
-      name: 'Nguyễn Ngọc Anh', 
+      id: 'BN-8804',
+      name: 'Nguyễn Ngọc Anh',
       phone: '0933445566',
-      age: 28, 
-      gender: 'Nữ', 
-      lastVisit: 'Hôm qua', 
+      age: 28,
+      gender: 'Nữ',
+      lastVisit: 'Hôm qua',
       category: 'Khách mới',
       healthStatus: 'Ổn định',
-      aiSymptomSummary: 'Triệu chứng cảm cúm thông thường: Sốt nhẹ 37.8, sổ mũi, ho khan. Đã test nhanh Covid-19 âm tính. AI dự đoán viêm hô hấp trên do virus, đề xuất tư vấn Telehealth để cấp thuốc giảm triệu chứng.',
+      aiSymptomSummary:
+          'Triệu chứng cảm cúm thông thường: Sốt nhẹ 37.8, sổ mũi, ho khan. Đã test nhanh Covid-19 âm tính. AI dự đoán viêm hô hấp trên do virus, đề xuất tư vấn Telehealth để cấp thuốc giảm triệu chứng.',
     ),
   ];
 
   late List<Patient> _filteredPatients;
 
-  final List<String> _filters = ['Tất cả', 'Khách mới', 'Tái khám', 'Cần theo dõi'];
+  final List<String> _filters = [
+    'Tất cả',
+    'Khách mới',
+    'Tái khám',
+    'Cần theo dõi'
+  ];
 
   @override
   void initState() {
@@ -103,8 +112,9 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
         final matchSearch = p.name.toLowerCase().contains(searchLower) ||
             p.phone.contains(searchLower) ||
             p.id.toLowerCase().contains(searchLower);
-            
-        final matchFilter = _selectedFilter == 'Tất cả' || p.category == _selectedFilter;
+
+        final matchFilter =
+            _selectedFilter == 'Tất cả' || p.category == _selectedFilter;
         return matchSearch && matchFilter;
       }).toList();
     });
@@ -116,7 +126,7 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, anim1, anim2) {
         return Align(
@@ -125,7 +135,8 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
             color: Colors.transparent,
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+              constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8),
               child: GlassCard(
                 padding: const EdgeInsets.all(24),
                 borderRadius: 24,
@@ -137,9 +148,11 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Hồ sơ chi tiết', style: GlassTheme.h2(color: GlassTheme.primary)),
+                          Text('Hồ sơ chi tiết',
+                              style: GlassTheme.h2(color: GlassTheme.primary)),
                           IconButton(
-                            icon: const Icon(Icons.close, color: GlassTheme.outline),
+                            icon: const Icon(Icons.close,
+                                color: GlassTheme.outline),
                             onPressed: () => Navigator.of(context).pop(),
                           )
                         ],
@@ -150,9 +163,12 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                         children: [
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor: GlassTheme.oceanBlue.withOpacity(0.2),
+                            backgroundColor:
+                                GlassTheme.oceanBlue.withValues(alpha: 0.2),
                             child: Icon(
-                              patient.gender == 'Nam' ? Icons.face : Icons.face_3,
+                              patient.gender == 'Nam'
+                                  ? Icons.face
+                                  : Icons.face_3,
                               size: 30,
                               color: GlassTheme.oceanBlue,
                             ),
@@ -163,13 +179,20 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(patient.name, style: GlassTheme.h3()),
-                                Text('${patient.id} • ${patient.age} tuổi • ${patient.gender}', style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)),
+                                Text(
+                                    '${patient.id} • ${patient.age} tuổi • ${patient.gender}',
+                                    style: GlassTheme.bodyMd(
+                                        color: GlassTheme.onSurfaceVariant)),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.phone, size: 14, color: GlassTheme.outline),
+                                    const Icon(Icons.phone,
+                                        size: 14, color: GlassTheme.outline),
                                     const SizedBox(width: 4),
-                                    Text(patient.phone, style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)),
+                                    Text(patient.phone,
+                                        style: GlassTheme.bodyMd(
+                                            color:
+                                                GlassTheme.onSurfaceVariant)),
                                   ],
                                 ),
                               ],
@@ -178,38 +201,48 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Khu vực Dữ liệu AI (Symptom Flow Integration)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.deepPurple.withOpacity(0.1), Colors.blueAccent.withOpacity(0.05)],
+                            colors: [
+                              Colors.deepPurple.withValues(alpha: 0.1),
+                              Colors.blueAccent.withValues(alpha: 0.05)
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                          border: Border.all(
+                              color: Colors.deepPurple.withValues(alpha: 0.2)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 20),
+                                const Icon(Icons.auto_awesome,
+                                    color: Colors.deepPurple, size: 20),
                                 const SizedBox(width: 8),
-                                Text('Lịch sử khai báo triệu chứng (AI)', style: GlassTheme.h3(color: Colors.deepPurple).copyWith(fontSize: 16)),
+                                Text('Lịch sử khai báo triệu chứng (AI)',
+                                    style:
+                                        GlassTheme.h3(color: Colors.deepPurple)
+                                            .copyWith(fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 12),
                             Text(
                               patient.aiSymptomSummary,
-                              style: GlassTheme.bodyMd(color: GlassTheme.onSurface).copyWith(height: 1.5),
+                              style:
+                                  GlassTheme.bodyMd(color: GlassTheme.onSurface)
+                                      .copyWith(height: 1.5),
                             ),
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
@@ -219,7 +252,9 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                           onPressed: () {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Chuyển hướng đến màn hình Bệnh án chi tiết...')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Chuyển hướng đến màn hình Bệnh án chi tiết...')),
                             );
                           },
                         ),
@@ -236,7 +271,8 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
         return FadeTransition(
           opacity: anim1,
           child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1.0).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic)),
+            scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic)),
             child: child,
           ),
         );
@@ -252,7 +288,8 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: Text('Quản lý Bệnh nhân', style: GlassTheme.h2(color: GlassTheme.primary)),
+          title: Text('Quản lý Bệnh nhân',
+              style: GlassTheme.h2(color: GlassTheme.primary)),
           iconTheme: const IconThemeData(color: GlassTheme.primary),
         ),
         body: Padding(
@@ -300,16 +337,23 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                             _filterPatients();
                           });
                         },
-                        selectedColor: GlassTheme.oceanBlue.withOpacity(0.25),
-                        backgroundColor: Colors.white.withOpacity(0.4),
+                        selectedColor:
+                            GlassTheme.oceanBlue.withValues(alpha: 0.25),
+                        backgroundColor: Colors.white.withValues(alpha: 0.4),
                         labelStyle: TextStyle(
-                          color: isSelected ? GlassTheme.primary : GlassTheme.onSurfaceVariant,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected
+                              ? GlassTheme.primary
+                              : GlassTheme.onSurfaceVariant,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                         side: BorderSide(
-                          color: isSelected ? GlassTheme.oceanBlue : Colors.transparent,
+                          color: isSelected
+                              ? GlassTheme.oceanBlue
+                              : Colors.transparent,
                         ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
                       ),
                     );
                   }).toList(),
@@ -326,7 +370,7 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                         itemBuilder: (context, index) {
                           final patient = _filteredPatients[index];
                           final isUrgent = patient.healthStatus == 'Khẩn cấp';
-                          
+
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
                             child: Material(
@@ -337,15 +381,20 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                                 child: GlassCard(
                                   padding: const EdgeInsets.all(16.0),
                                   borderRadius: 20,
-                                  borderColor: isUrgent ? GlassTheme.error.withOpacity(0.3) : Colors.white,
+                                  borderColor: isUrgent
+                                      ? GlassTheme.error.withValues(alpha: 0.3)
+                                      : Colors.white,
                                   child: Row(
                                     children: [
                                       // Avatar
                                       CircleAvatar(
                                         radius: 28,
-                                        backgroundColor: GlassTheme.cyan.withOpacity(0.2),
+                                        backgroundColor: GlassTheme.cyan
+                                            .withValues(alpha: 0.2),
                                         child: Icon(
-                                          patient.gender == 'Nam' ? Icons.face : Icons.face_3,
+                                          patient.gender == 'Nam'
+                                              ? Icons.face
+                                              : Icons.face_3,
                                           color: GlassTheme.oceanBlue,
                                           size: 28,
                                         ),
@@ -354,13 +403,17 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                                       // Thông tin bệnh nhân
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text(patient.name, style: GlassTheme.h3()),
+                                            Text(patient.name,
+                                                style: GlassTheme.h3()),
                                             const SizedBox(height: 4),
                                             Text(
                                               '${patient.id} • ${patient.gender}, ${patient.age} tuổi',
-                                              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
+                                              style: GlassTheme.bodyMd(
+                                                  color: GlassTheme
+                                                      .onSurfaceVariant),
                                             ),
                                             const SizedBox(height: 8),
                                             // Badges trạng thái (Visibility)
@@ -374,8 +427,14 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                                                 ),
                                                 _buildStatusBadge(
                                                   text: patient.healthStatus,
-                                                  color: isUrgent ? GlassTheme.error : Colors.green,
-                                                  icon: isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                                                  color: isUrgent
+                                                      ? GlassTheme.error
+                                                      : Colors.green,
+                                                  icon: isUrgent
+                                                      ? Icons
+                                                          .warning_amber_rounded
+                                                      : Icons
+                                                          .check_circle_outline,
                                                 ),
                                               ],
                                             ),
@@ -383,7 +442,10 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                                         ),
                                       ),
                                       // Icon mũi tên (Affordances)
-                                      Icon(Icons.chevron_right, color: GlassTheme.outline.withOpacity(0.5), size: 28),
+                                      Icon(Icons.chevron_right,
+                                          color: GlassTheme.outline
+                                              .withValues(alpha: 0.5),
+                                          size: 28),
                                     ],
                                   ),
                                 ),
@@ -400,13 +462,14 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
     );
   }
 
-  Widget _buildStatusBadge({required String text, required Color color, IconData? icon}) {
+  Widget _buildStatusBadge(
+      {required String text, required Color color, IconData? icon}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -415,7 +478,9 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
             Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
           ],
-          Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+          Text(text,
+              style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
@@ -434,10 +499,11 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.search_off_rounded, size: 64, color: GlassTheme.oceanBlue.withOpacity(0.6)),
+              child: Icon(Icons.search_off_rounded,
+                  size: 64, color: GlassTheme.oceanBlue.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 24),
             Text(

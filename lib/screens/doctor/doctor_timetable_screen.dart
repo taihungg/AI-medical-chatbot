@@ -23,8 +23,10 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
     _selectedDate = DateTime(now.year, now.month, now.day);
   }
 
-  int get _daysInMonth => DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-  int get _firstWeekday => DateTime(_currentMonth.year, _currentMonth.month, 1).weekday; // 1 = Monday, 7 = Sunday
+  int get _daysInMonth =>
+      DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+  int get _firstWeekday => DateTime(_currentMonth.year, _currentMonth.month, 1)
+      .weekday; // 1 = Monday, 7 = Sunday
 
   void _previousMonth() {
     setState(() {
@@ -58,7 +60,7 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
     final selectedAppointments = appState.appointments
         .where((appt) => _isSameDay(appt.dateTime, _selectedDate))
         .toList();
-        
+
     // Sắp xếp ca khám theo thời gian (dựa vào timeSlot, vd: "08:30 - 09:00")
     selectedAppointments.sort((a, b) => a.timeSlot.compareTo(b.timeSlot));
 
@@ -70,7 +72,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
           PopupMenuButton<String>(
             offset: const Offset(0, 56),
             color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             onSelected: (value) {
               if (value == 'switch_role') {
                 showDialog(
@@ -88,7 +91,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                 value: 'dashboard',
                 child: Row(
                   children: [
-                    Icon(Icons.dashboard_outlined, size: 20, color: Colors.black54),
+                    Icon(Icons.dashboard_outlined,
+                        size: 20, color: Colors.black54),
                     SizedBox(width: 12),
                     Text("Bảng điều khiển"),
                   ],
@@ -97,32 +101,31 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
               const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'toggle_busy',
-                child: StatefulBuilder(
-                  builder: (context, setPopupState) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.do_not_disturb_on_outlined, size: 20, color: Colors.black54),
-                            SizedBox(width: 12),
-                            Text("Đang bận"),
-                          ],
-                        ),
-                        Switch(
-                          value: appState.isDoctorBusy,
-                          onChanged: (val) {
-                            appState.toggleDoctorBusy();
-                            setPopupState(() {});
-                          },
-                          activeTrackColor: Colors.red.withValues(alpha: 0.5),
-                          activeThumbColor: Colors.red,
-                          inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
-                        ),
-                      ],
-                    );
-                  }
-                ),
+                child: StatefulBuilder(builder: (context, setPopupState) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.do_not_disturb_on_outlined,
+                              size: 20, color: Colors.black54),
+                          SizedBox(width: 12),
+                          Text("Đang bận"),
+                        ],
+                      ),
+                      Switch(
+                        value: appState.isDoctorBusy,
+                        onChanged: (val) {
+                          appState.toggleDoctorBusy();
+                          setPopupState(() {});
+                        },
+                        activeTrackColor: Colors.red.withValues(alpha: 0.5),
+                        activeThumbColor: Colors.red,
+                        inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
+                      ),
+                    ],
+                  );
+                }),
               ),
               const PopupMenuDivider(),
               const PopupMenuItem(
@@ -142,8 +145,11 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: appState.isDoctorBusy ? Colors.red : GlassTheme.oceanBlue,
-                    child: const Icon(Icons.person_pin, color: Colors.white, size: 20),
+                    backgroundColor: appState.isDoctorBusy
+                        ? Colors.red
+                        : GlassTheme.oceanBlue,
+                    child: const Icon(Icons.person_pin,
+                        color: Colors.white, size: 20),
                   ),
                 ],
               ),
@@ -171,15 +177,22 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                     children: [
                       _buildCalendarSection(),
                       const SizedBox(height: 16),
-                      _buildDetailsSection(selectedAppointments, isMobile: true),
+                      _buildDetailsSection(selectedAppointments,
+                          isMobile: true),
                     ],
                   )
                 : Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(flex: 4, child: _buildCalendarSection()),
-                      Container(width: 1, height: 600, color: Colors.grey.withValues(alpha: 0.2)),
-                      Expanded(flex: 6, child: _buildDetailsSection(selectedAppointments, isMobile: false)),
+                      Container(
+                          width: 1,
+                          height: 600,
+                          color: Colors.grey.withValues(alpha: 0.2)),
+                      Expanded(
+                          flex: 6,
+                          child: _buildDetailsSection(selectedAppointments,
+                              isMobile: false)),
                     ],
                   ),
           ),
@@ -198,21 +211,30 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(Icons.chevron_left, color: GlassTheme.oceanBlue),
+                icon:
+                    const Icon(Icons.chevron_left, color: GlassTheme.oceanBlue),
                 onPressed: _previousMonth,
                 style: IconButton.styleFrom(
-                  shape: CircleBorder(side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.5))),
+                  shape: CircleBorder(
+                      side: BorderSide(
+                          color: GlassTheme.oceanBlue.withValues(alpha: 0.5))),
                 ),
               ),
               Text(
                 "Tháng ${_currentMonth.month}, ${_currentMonth.year}",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlassTheme.oceanBlue),
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: GlassTheme.oceanBlue),
               ),
               IconButton(
-                icon: const Icon(Icons.chevron_right, color: GlassTheme.oceanBlue),
+                icon: const Icon(Icons.chevron_right,
+                    color: GlassTheme.oceanBlue),
                 onPressed: _nextMonth,
                 style: IconButton.styleFrom(
-                  shape: CircleBorder(side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.5))),
+                  shape: CircleBorder(
+                      side: BorderSide(
+                          color: GlassTheme.oceanBlue.withValues(alpha: 0.5))),
                 ),
               ),
             ],
@@ -226,7 +248,9 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                       child: Center(
                         child: Text(
                           day,
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87),
                         ),
                       ),
                     ))
@@ -248,7 +272,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                 return const SizedBox.shrink(); // Empty cell
               }
 
-              final date = DateTime(_currentMonth.year, _currentMonth.month, dayOffset + 1);
+              final date = DateTime(
+                  _currentMonth.year, _currentMonth.month, dayOffset + 1);
               final isSelected = _isSameDay(date, _selectedDate);
               final hasAppointments = _hasAppointmentsOnDay(date);
               final isToday = _isSameDay(date, DateTime.now());
@@ -262,7 +287,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                 child: Container(
                   margin: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isSelected ? GlassTheme.oceanBlue : Colors.transparent,
+                    color:
+                        isSelected ? GlassTheme.oceanBlue : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Stack(
@@ -271,8 +297,14 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                       Text(
                         "${date.day}",
                         style: TextStyle(
-                          fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? Colors.white : (isToday ? GlassTheme.oceanBlue : Colors.black87),
+                          fontWeight: isSelected || isToday
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? Colors.white
+                              : (isToday
+                                  ? GlassTheme.oceanBlue
+                                  : Colors.black87),
                         ),
                       ),
                       if (hasAppointments)
@@ -298,10 +330,13 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
     );
   }
 
-  Widget _buildDetailsSection(List<AppAppointment> appointments, {bool isMobile = false}) {
+  Widget _buildDetailsSection(List<AppAppointment> appointments,
+      {bool isMobile = false}) {
     return Container(
       padding: EdgeInsets.all(isMobile ? 12.0 : 24.0),
-      color: isMobile ? Colors.transparent : const Color(0xFFF8F9FA), // Mobile bỏ màu nền xám
+      color: isMobile
+          ? Colors.transparent
+          : const Color(0xFFF8F9FA), // Mobile bỏ màu nền xám
       constraints: const BoxConstraints(minHeight: 600),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,7 +345,10 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
             child: Text(
               "Bạn có ${appointments.length} lịch khám ngày ${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87),
             ),
           ),
           const SizedBox(height: 16),
@@ -320,7 +358,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
               child: Center(
                 child: Text(
                   "Không có lịch khám nào trong ngày này.",
-                  style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                  style: TextStyle(
+                      color: Colors.grey, fontStyle: FontStyle.italic),
                 ),
               ),
             )
@@ -337,7 +376,9 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
     final startTime = times.isNotEmpty ? times[0].trim() : "";
     final endTime = times.length > 1 ? times[1].trim() : "";
     final isOnline = appt.isOnline;
-    final statusColor = appt.status == 'Đã khám' ? Colors.green : (appt.status == 'Đang khám' ? Colors.orange : GlassTheme.oceanBlue);
+    final statusColor = appt.status == 'Đã khám'
+        ? Colors.green
+        : (appt.status == 'Đang khám' ? Colors.orange : GlassTheme.oceanBlue);
 
     bool isOverdue = false;
     if (appt.status == 'Chưa khám' && endTime.isNotEmpty) {
@@ -345,7 +386,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
       if (parts.length == 2) {
         final endHour = int.tryParse(parts[0]) ?? 0;
         final endMin = int.tryParse(parts[1]) ?? 0;
-        final endDateTime = DateTime(appt.dateTime.year, appt.dateTime.month, appt.dateTime.day, endHour, endMin);
+        final endDateTime = DateTime(appt.dateTime.year, appt.dateTime.month,
+            appt.dateTime.day, endHour, endMin);
         if (DateTime.now().isAfter(endDateTime)) {
           isOverdue = true;
         }
@@ -405,14 +447,26 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                         ),
                       ),
                       const Spacer(),
-                      Text(startTime, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
-                      Text("|", style: TextStyle(color: Colors.grey.withValues(alpha: 0.5), fontSize: 10, height: 1.2)),
-                      Text(endTime, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+                      Text(startTime,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black87)),
+                      Text("|",
+                          style: TextStyle(
+                              color: Colors.grey.withValues(alpha: 0.5),
+                              fontSize: 10,
+                              height: 1.2)),
+                      Text(endTime,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black87)),
                       const Spacer(),
                     ],
                   ),
                 ),
-                
+
                 // Line phân cách đỏ (hoặc xanh)
                 Container(
                   width: 3,
@@ -435,18 +489,24 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                             Expanded(
                               child: Text(
                                 "${appt.id} - ${appt.patientName}",
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                                style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87),
                               ),
                             ),
                             _buildStatusBadge(appt.status),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        _buildSmallDetailRow(Icons.medical_services_outlined, appt.specialty),
+                        _buildSmallDetailRow(
+                            Icons.medical_services_outlined, appt.specialty),
                         const SizedBox(height: 4),
-                        _buildSmallDetailRow(Icons.location_on_outlined, appt.branchName),
+                        _buildSmallDetailRow(
+                            Icons.location_on_outlined, appt.branchName),
                         const SizedBox(height: 4),
-                        _buildSmallDetailRow(Icons.info_outline, appt.symptomSummary),
+                        _buildSmallDetailRow(
+                            Icons.info_outline, appt.symptomSummary),
                         if (isOverdue) ...[
                           const SizedBox(height: 12),
                           Align(
@@ -454,16 +514,20 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Đã gửi yêu cầu dời lịch hẹn cho bệnh nhân ${appt.patientName}.")),
+                                  SnackBar(
+                                      content: Text(
+                                          "Đã gửi yêu cầu dời lịch hẹn cho bệnh nhân ${appt.patientName}.")),
                                 );
                               },
-                              icon: const Icon(Icons.notification_important, size: 16),
+                              icon: const Icon(Icons.notification_important,
+                                  size: 16),
                               label: const Text("Gửi thông báo dời lịch"),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red.shade50,
                                 foregroundColor: Colors.red.shade700,
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
                                 minimumSize: Size.zero,
                               ),
                             ),
@@ -502,9 +566,14 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
   Widget _buildStatusBadge(String status) {
     Color color;
     switch (status) {
-      case 'Đã khám': color = Colors.green; break;
-      case 'Đang khám': color = Colors.orange; break;
-      default: color = Colors.blue;
+      case 'Đã khám':
+        color = Colors.green;
+        break;
+      case 'Đang khám':
+        color = Colors.orange;
+        break;
+      default:
+        color = Colors.blue;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -514,7 +583,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
       ),
       child: Text(
         status,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
       ),
     );
   }

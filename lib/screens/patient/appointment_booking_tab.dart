@@ -25,8 +25,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   String _selectedSlot = "09:00 - 09:30";
 
   // Additional patient info for booking
-  final TextEditingController _nameController = TextEditingController(text: "Nguyễn Minh Anh");
-  final TextEditingController _phoneController = TextEditingController(text: "0912 345 678");
+  final TextEditingController _nameController =
+      TextEditingController(text: "Nguyễn Minh Anh");
+  final TextEditingController _phoneController =
+      TextEditingController(text: "0912 345 678");
   final TextEditingController _noteController = TextEditingController();
 
   final List<String> _branches = [
@@ -79,16 +81,24 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     final appState = AppState.instance;
     final symptomsText = appState.selectedSymptomsText.toLowerCase();
 
-    if (symptomsText.contains("ngực") || symptomsText.contains("tim") || symptomsText.contains("mạch")) {
+    if (symptomsText.contains("ngực") ||
+        symptomsText.contains("tim") ||
+        symptomsText.contains("mạch")) {
       _selectedSpecialty = "Khoa Tim mạch";
       _selectedDoctor = "BS. Nguyễn Văn An";
-    } else if (symptomsText.contains("đầu") || symptomsText.contains("não") || symptomsText.contains("thần kinh")) {
+    } else if (symptomsText.contains("đầu") ||
+        symptomsText.contains("não") ||
+        symptomsText.contains("thần kinh")) {
       _selectedSpecialty = "Khoa Thần kinh";
       _selectedDoctor = "BS. Trần Quốc Đạt";
-    } else if (symptomsText.contains("nhi") || symptomsText.contains("bé") || symptomsText.contains("trẻ")) {
+    } else if (symptomsText.contains("nhi") ||
+        symptomsText.contains("bé") ||
+        symptomsText.contains("trẻ")) {
       _selectedSpecialty = "Khoa Nhi";
       _selectedDoctor = "BS. Phạm Minh Tuấn";
-    } else if (symptomsText.contains("ho") || symptomsText.contains("phổi") || symptomsText.contains("hô hấp")) {
+    } else if (symptomsText.contains("ho") ||
+        symptomsText.contains("phổi") ||
+        symptomsText.contains("hô hấp")) {
       _selectedSpecialty = "Khoa Hô hấp";
       _selectedDoctor = "BS. Lê Thị Bình";
     } else {
@@ -98,18 +108,26 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   }
 
   List<DateTime> _getBookingDates() {
-    return List.generate(7, (idx) => DateTime.now().add(Duration(days: idx + 1)));
+    return List.generate(
+        7, (idx) => DateTime.now().add(Duration(days: idx + 1)));
   }
 
   String _getWeekdayVi(int day) {
     switch (day) {
-      case 1: return "T2";
-      case 2: return "T3";
-      case 3: return "T4";
-      case 4: return "T5";
-      case 5: return "T6";
-      case 6: return "T7";
-      default: return "CN";
+      case 1:
+        return "T2";
+      case 2:
+        return "T3";
+      case 3:
+        return "T4";
+      case 4:
+        return "T5";
+      case 5:
+        return "T6";
+      case 6:
+        return "T7";
+      default:
+        return "CN";
     }
   }
 
@@ -196,7 +214,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                         color: Colors.green.withValues(alpha: 0.12),
                         border: Border.all(color: Colors.green, width: 2.5),
                       ),
-                      child: const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                      child: const Icon(Icons.check_circle,
+                          color: Colors.green, size: 48),
                     ),
                   );
                 },
@@ -217,7 +236,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
@@ -226,7 +246,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                   children: [
                     Text(
                       "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} • $_selectedSlot",
-                      style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue).copyWith(fontWeight: FontWeight.bold),
+                      style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)
+                          .copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
                       "Mã lịch hẹn: ${appState.appointments.isNotEmpty ? appState.appointments.first.id : 'APT-XXXX'}",
@@ -273,7 +294,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         title: "Đặt Lịch Khám",
         actions: [
           IconButton(
-            icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
+            icon: const Icon(Icons.swap_horizontal_circle_outlined,
+                color: GlassTheme.oceanBlue, size: 28),
             tooltip: "Đổi vai trò",
             onPressed: () {
               Navigator.of(context).pushReplacement(
@@ -332,7 +354,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 color: GlassTheme.cyan.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.auto_awesome, color: GlassTheme.oceanBlue, size: 22),
+              child: const Icon(Icons.auto_awesome,
+                  color: GlassTheme.oceanBlue, size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -343,7 +366,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     children: [
                       Text(
                         "AI Khuyến Nghị Đặt Lịch",
-                        style: GlassTheme.h3(color: GlassTheme.oceanBlue).copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: GlassTheme.h3(color: GlassTheme.oceanBlue)
+                            .copyWith(
+                                fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
                       _buildRiskBadge(appState.currentRiskLevel),
@@ -352,18 +377,21 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                   const SizedBox(height: 6),
                   Text(
                     appState.selectedSymptomsText,
-                    style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12, height: 1.3),
+                    style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 12, height: 1.3),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.medical_services_outlined, size: 14, color: GlassTheme.oceanBlue),
+                      const Icon(Icons.medical_services_outlined,
+                          size: 14, color: GlassTheme.oceanBlue),
                       const SizedBox(width: 6),
                       Text(
                         "Chuyên khoa gợi ý: $_selectedSpecialty",
-                        style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue).copyWith(fontSize: 10),
+                        style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                            .copyWith(fontSize: 10),
                       ),
                     ],
                   ),
@@ -379,10 +407,18 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   Widget _buildRiskBadge(String risk) {
     Color badgeColor;
     switch (risk) {
-      case "Khẩn cấp": badgeColor = GlassTheme.error; break;
-      case "Cao": badgeColor = Colors.orange[800]!; break;
-      case "Trung bình": badgeColor = GlassTheme.oceanBlue; break;
-      default: badgeColor = Colors.green; break;
+      case "Khẩn cấp":
+        badgeColor = GlassTheme.error;
+        break;
+      case "Cao":
+        badgeColor = Colors.orange[800]!;
+        break;
+      case "Trung bình":
+        badgeColor = GlassTheme.oceanBlue;
+        break;
+      default:
+        badgeColor = Colors.green;
+        break;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -420,15 +456,24 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     shape: BoxShape.circle,
                     color: active
                         ? GlassTheme.oceanBlue
-                        : (done ? Colors.green : Colors.white.withValues(alpha: 0.6)),
+                        : (done
+                            ? Colors.green
+                            : Colors.white.withValues(alpha: 0.6)),
                     border: Border.all(
                       color: active
                           ? GlassTheme.oceanBlue
-                          : (done ? Colors.green : GlassTheme.outline.withValues(alpha: 0.4)),
+                          : (done
+                              ? Colors.green
+                              : GlassTheme.outline.withValues(alpha: 0.4)),
                       width: 2,
                     ),
                     boxShadow: active
-                        ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.3), blurRadius: 8)]
+                        ? [
+                            BoxShadow(
+                                color:
+                                    GlassTheme.oceanBlue.withValues(alpha: 0.3),
+                                blurRadius: 8)
+                          ]
                         : [],
                   ),
                   child: Center(
@@ -437,7 +482,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                         : Text(
                             "${idx + 1}",
                             style: GlassTheme.labelCaps(
-                              color: active ? Colors.white : GlassTheme.onSurfaceVariant,
+                              color: active
+                                  ? Colors.white
+                                  : GlassTheme.onSurfaceVariant,
                             ).copyWith(fontSize: 12),
                           ),
                   ),
@@ -447,7 +494,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 Text(
                   stepLabels[idx],
                   style: GlassTheme.labelCaps(
-                    color: active ? GlassTheme.oceanBlue : (done ? Colors.green : GlassTheme.outline),
+                    color: active
+                        ? GlassTheme.oceanBlue
+                        : (done ? Colors.green : GlassTheme.outline),
                   ).copyWith(fontSize: 10),
                 ),
                 // Connector line
@@ -457,7 +506,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     child: Container(
                       height: 2,
                       decoration: BoxDecoration(
-                        color: done ? Colors.green.withValues(alpha: 0.5) : Colors.white30,
+                        color: done
+                            ? Colors.green.withValues(alpha: 0.5)
+                            : Colors.white30,
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -499,12 +550,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.local_hospital, color: GlassTheme.oceanBlue, size: 20),
+              child: const Icon(Icons.local_hospital,
+                  color: GlassTheme.oceanBlue, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
               "Chọn hình thức khám",
-              style: GlassTheme.h3().copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GlassTheme.h3()
+                  .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -560,12 +613,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                   color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.location_on, color: GlassTheme.oceanBlue, size: 20),
+                child: const Icon(Icons.location_on,
+                    color: GlassTheme.oceanBlue, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
                 "Chọn chi nhánh phòng khám",
-                style: GlassTheme.h3().copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                style: GlassTheme.h3()
+                    .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -591,14 +646,18 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isSel ? GlassTheme.oceanBlue : Colors.transparent,
+                          color:
+                              isSel ? GlassTheme.oceanBlue : Colors.transparent,
                           border: Border.all(
-                            color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline.withValues(alpha: 0.5),
+                            color: isSel
+                                ? GlassTheme.oceanBlue
+                                : GlassTheme.outline.withValues(alpha: 0.5),
                             width: 2,
                           ),
                         ),
                         child: isSel
-                            ? const Icon(Icons.check, size: 14, color: Colors.white)
+                            ? const Icon(Icons.check,
+                                size: 14, color: Colors.white)
                             : null,
                       ),
                       const SizedBox(width: 12),
@@ -611,20 +670,28 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                               style: GlassTheme.h3().copyWith(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: isSel ? GlassTheme.oceanBlue : GlassTheme.onSurface,
+                                color: isSel
+                                    ? GlassTheme.oceanBlue
+                                    : GlassTheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              parts.length > 1 ? parts.sublist(1).join(" - ") : "",
-                              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 11),
+                              parts.length > 1
+                                  ? parts.sublist(1).join(" - ")
+                                  : "",
+                              style: GlassTheme.bodyMd(
+                                      color: GlassTheme.onSurfaceVariant)
+                                  .copyWith(fontSize: 11),
                             ),
                           ],
                         ),
                       ),
                       Icon(
                         Icons.location_on,
-                        color: isSel ? GlassTheme.oceanBlue : GlassTheme.outline.withValues(alpha: 0.5),
+                        color: isSel
+                            ? GlassTheme.oceanBlue
+                            : GlassTheme.outline.withValues(alpha: 0.5),
                         size: 18,
                       ),
                     ],
@@ -641,7 +708,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline, color: GlassTheme.oceanBlue, size: 22),
+                const Icon(Icons.info_outline,
+                    color: GlassTheme.oceanBlue, size: 22),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -649,12 +717,15 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     children: [
                       Text(
                         "Tư vấn trực tuyến qua video",
-                        style: GlassTheme.h3().copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: GlassTheme.h3().copyWith(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         "Kết nối nhanh với bác sĩ chuyên khoa qua Video Call. Không giới hạn địa lý, phù hợp cho tư vấn ban đầu dựa trên hồ sơ triệu chứng AI của bạn.",
-                        style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12, height: 1.4),
+                        style: GlassTheme.bodyMd(
+                                color: GlassTheme.onSurfaceVariant)
+                            .copyWith(fontSize: 12, height: 1.4),
                       ),
                     ],
                   ),
@@ -675,12 +746,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.person_outline, color: GlassTheme.oceanBlue, size: 20),
+              child: const Icon(Icons.person_outline,
+                  color: GlassTheme.oceanBlue, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
               "Thông tin người khám",
-              style: GlassTheme.h3().copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GlassTheme.h3()
+                  .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -723,14 +796,23 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isSelected ? GlassTheme.oceanBlue.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.4),
+          color: isSelected
+              ? GlassTheme.oceanBlue.withValues(alpha: 0.08)
+              : Colors.white.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? GlassTheme.cyan : Colors.white.withValues(alpha: 0.6),
+            color: isSelected
+                ? GlassTheme.cyan
+                : Colors.white.withValues(alpha: 0.6),
             width: isSelected ? 2 : 1.2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 4))]
+              ? [
+                  BoxShadow(
+                      color: GlassTheme.oceanBlue.withValues(alpha: 0.12),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4))
+                ]
               : [],
         ),
         child: Column(
@@ -762,7 +844,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 10),
+              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                  .copyWith(fontSize: 10),
               textAlign: TextAlign.center,
             ),
           ],
@@ -784,7 +867,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 9)),
+          Text(label,
+              style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                  .copyWith(fontSize: 9)),
           const SizedBox(height: 4),
           Row(
             children: [
@@ -827,12 +912,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.calendar_today, color: GlassTheme.oceanBlue, size: 20),
+              child: const Icon(Icons.calendar_today,
+                  color: GlassTheme.oceanBlue, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
               "Chọn ngày khám",
-              style: GlassTheme.h3().copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GlassTheme.h3()
+                  .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -844,7 +931,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             itemCount: dates.length,
             itemBuilder: (ctx, index) {
               final d = dates[index];
-              final isSel = _selectedDate.day == d.day && _selectedDate.month == d.month;
+              final isSel =
+                  _selectedDate.day == d.day && _selectedDate.month == d.month;
               final isToday = index == 0;
 
               return Padding(
@@ -864,11 +952,19 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                           : Colors.white.withValues(alpha: 0.45),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSel ? GlassTheme.oceanBlue : Colors.white.withValues(alpha: 0.7),
+                        color: isSel
+                            ? GlassTheme.oceanBlue
+                            : Colors.white.withValues(alpha: 0.7),
                         width: isSel ? 2 : 1,
                       ),
                       boxShadow: isSel
-                          ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.25), blurRadius: 10, offset: const Offset(0, 3))]
+                          ? [
+                              BoxShadow(
+                                  color: GlassTheme.oceanBlue
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3))
+                            ]
                           : [],
                     ),
                     child: Column(
@@ -876,23 +972,29 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                       children: [
                         if (isToday)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
                             margin: const EdgeInsets.only(bottom: 4),
                             decoration: BoxDecoration(
-                              color: isSel ? Colors.white.withValues(alpha: 0.2) : GlassTheme.cyan.withValues(alpha: 0.15),
+                              color: isSel
+                                  ? Colors.white.withValues(alpha: 0.2)
+                                  : GlassTheme.cyan.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               "Gần nhất",
                               style: GlassTheme.labelCaps(
-                                color: isSel ? Colors.white : GlassTheme.oceanBlue,
+                                color:
+                                    isSel ? Colors.white : GlassTheme.oceanBlue,
                               ).copyWith(fontSize: 8),
                             ),
                           ),
                         Text(
                           _getWeekdayVi(d.weekday),
                           style: GlassTheme.labelCaps(
-                            color: isSel ? Colors.white70 : GlassTheme.onSurfaceVariant,
+                            color: isSel
+                                ? Colors.white70
+                                : GlassTheme.onSurfaceVariant,
                           ).copyWith(fontSize: 10),
                         ),
                         const SizedBox(height: 4),
@@ -922,19 +1024,22 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.access_time, color: GlassTheme.oceanBlue, size: 20),
+              child: const Icon(Icons.access_time,
+                  color: GlassTheme.oceanBlue, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
               "Chọn khung giờ",
-              style: GlassTheme.h3().copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GlassTheme.h3()
+                  .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           "Các khung giờ còn trống tại ${_selectedType == "Trực tuyến" ? "phòng khám trực tuyến" : _selectedBranch.split(" - ").first}",
-          style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12),
+          style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+              .copyWith(fontSize: 12),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -947,16 +1052,27 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               borderRadius: BorderRadius.circular(14),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 decoration: BoxDecoration(
-                  color: isSel ? GlassTheme.oceanBlue : Colors.white.withValues(alpha: 0.45),
+                  color: isSel
+                      ? GlassTheme.oceanBlue
+                      : Colors.white.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isSel ? GlassTheme.oceanBlue : Colors.white.withValues(alpha: 0.7),
+                    color: isSel
+                        ? GlassTheme.oceanBlue
+                        : Colors.white.withValues(alpha: 0.7),
                     width: isSel ? 2 : 1,
                   ),
                   boxShadow: isSel
-                      ? [BoxShadow(color: GlassTheme.oceanBlue.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))]
+                      ? [
+                          BoxShadow(
+                              color:
+                                  GlassTheme.oceanBlue.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2))
+                        ]
                       : [],
                 ),
                 child: Row(
@@ -999,7 +1115,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                   color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.auto_awesome, color: GlassTheme.oceanBlue, size: 20),
+                child: const Icon(Icons.auto_awesome,
+                    color: GlassTheme.oceanBlue, size: 20),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1008,16 +1125,21 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                   children: [
                     Text(
                       "Bác sĩ & Chuyên khoa được phân bổ",
-                      style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 9),
+                      style: GlassTheme.labelCaps(
+                              color: GlassTheme.onSurfaceVariant)
+                          .copyWith(fontSize: 9),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _selectedDoctor,
-                      style: GlassTheme.h3().copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: GlassTheme.h3()
+                          .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       _selectedSpecialty,
-                      style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12),
+                      style:
+                          GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                              .copyWith(fontSize: 12),
                     ),
                   ],
                 ),
@@ -1044,12 +1166,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.assignment_turned_in, color: GlassTheme.oceanBlue, size: 20),
+              child: const Icon(Icons.assignment_turned_in,
+                  color: GlassTheme.oceanBlue, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
               "Xác nhận thông tin đặt lịch",
-              style: GlassTheme.h3().copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+              style: GlassTheme.h3()
+                  .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -1070,19 +1194,25 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               _buildConfirmRow(
                 Icons.person,
                 "Người khám",
-                _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : "Nguyễn Minh Anh",
+                _nameController.text.trim().isNotEmpty
+                    ? _nameController.text.trim()
+                    : "Nguyễn Minh Anh",
               ),
               const Divider(color: Colors.white30, height: 20),
               _buildConfirmRow(
                 Icons.phone_android,
                 "Số điện thoại",
-                _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : "0912 345 678",
+                _phoneController.text.trim().isNotEmpty
+                    ? _phoneController.text.trim()
+                    : "0912 345 678",
               ),
               const Divider(color: Colors.white30, height: 20),
 
               // Type
               _buildConfirmRow(
-                _selectedType == "Trực tuyến" ? Icons.video_call : Icons.local_hospital,
+                _selectedType == "Trực tuyến"
+                    ? Icons.video_call
+                    : Icons.local_hospital,
                 "Hình thức",
                 _selectedType == "Trực tuyến"
                     ? "Tư vấn trực tuyến qua Video Call"
@@ -1094,7 +1224,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               _buildConfirmRow(
                 Icons.location_on,
                 "Địa điểm",
-                _selectedType == "Trực tuyến" ? "Phòng khám Trực tuyến" : _selectedBranch,
+                _selectedType == "Trực tuyến"
+                    ? "Phòng khám Trực tuyến"
+                    : _selectedBranch,
               ),
               const Divider(color: Colors.white30, height: 20),
 
@@ -1128,11 +1260,13 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.sick_outlined, size: 18, color: Colors.amber),
+                  const Icon(Icons.sick_outlined,
+                      size: 18, color: Colors.amber),
                   const SizedBox(width: 8),
                   Text(
                     "Mô tả tình trạng / Triệu chứng",
-                    style: GlassTheme.h3().copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                    style: GlassTheme.h3()
+                        .copyWith(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -1143,12 +1277,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                     : _noteController.text.isNotEmpty
                         ? _noteController.text
                         : "Khám sức khỏe định kỳ.",
-                style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 13, height: 1.4),
+                style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                    .copyWith(fontSize: 13, height: 1.4),
               ),
               const SizedBox(height: 8),
               if (appState.selectedSymptomsText.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(6),
@@ -1156,11 +1292,13 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.psychology, size: 12, color: GlassTheme.oceanBlue),
+                      const Icon(Icons.psychology,
+                          size: 12, color: GlassTheme.oceanBlue),
                       const SizedBox(width: 4),
                       Text(
                         "Được điền tự động từ AI Chatbot",
-                        style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue).copyWith(fontSize: 9),
+                        style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                            .copyWith(fontSize: 9),
                       ),
                     ],
                   ),
@@ -1179,7 +1317,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Ghi chú thêm (tuỳ chọn)", style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 9)),
+              Text("Ghi chú thêm (tuỳ chọn)",
+                  style:
+                      GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                          .copyWith(fontSize: 9)),
               const SizedBox(height: 4),
               TextField(
                 controller: _noteController,
@@ -1212,12 +1353,14 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             children: [
               Text(
                 title,
-                style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 10),
+                style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                    .copyWith(fontSize: 10),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600, height: 1.3),
+                style: GlassTheme.bodyMd()
+                    .copyWith(fontWeight: FontWeight.w600, height: 1.3),
               ),
             ],
           ),

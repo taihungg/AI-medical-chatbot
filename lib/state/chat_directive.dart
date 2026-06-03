@@ -44,7 +44,8 @@ const Map<String, IconData> kChatIconByName = {
   'close': Icons.cancel_outlined,
 };
 
-IconData? _iconFromName(String? name) => name == null ? null : kChatIconByName[name];
+IconData? _iconFromName(String? name) =>
+    name == null ? null : kChatIconByName[name];
 
 String? _nameFromIcon(IconData? icon) {
   if (icon == null) return null;
@@ -167,7 +168,9 @@ class ReportData {
 
   factory ReportData.fromJson(Map<String, dynamic> j) => ReportData(
         chiefComplaint: j['chiefComplaint'] as String? ?? '',
-        associated: (j['associated'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        associated:
+            (j['associated'] as List?)?.map((e) => e.toString()).toList() ??
+                const [],
         severity: (j['severity'] as num?)?.toInt() ?? 0,
         duration: j['duration'] as String? ?? '',
         riskLevel: j['riskLevel'] as String? ?? 'Trung bình',
@@ -195,7 +198,8 @@ class ChatUiDirective {
   final List<ChatOption> timeRanges;
   final ReportData? report;
   final bool allowFreeText; // free text is always allowed; this is a UI hint
-  final String directiveId; // correlates a user's response back to this directive
+  final String
+      directiveId; // correlates a user's response back to this directive
 
   const ChatUiDirective({
     required this.type,
@@ -209,7 +213,8 @@ class ChatUiDirective {
   });
 
   /// A plain text bubble with no interactive component.
-  factory ChatUiDirective.text() => const ChatUiDirective(type: ChatComponentType.none);
+  factory ChatUiDirective.text() =>
+      const ChatUiDirective(type: ChatComponentType.none);
 
   bool get isInteractive => type != ChatComponentType.none;
 
@@ -223,12 +228,16 @@ class ChatUiDirective {
                 ?.map((e) => ChatOption.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             const [],
-        slider: j['slider'] == null ? null : SliderSpec.fromJson(j['slider'] as Map<String, dynamic>),
+        slider: j['slider'] == null
+            ? null
+            : SliderSpec.fromJson(j['slider'] as Map<String, dynamic>),
         timeRanges: (j['timeRanges'] as List?)
                 ?.map((e) => ChatOption.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             const [],
-        report: j['report'] == null ? null : ReportData.fromJson(j['report'] as Map<String, dynamic>),
+        report: j['report'] == null
+            ? null
+            : ReportData.fromJson(j['report'] as Map<String, dynamic>),
         allowFreeText: j['allowFreeText'] as bool? ?? true,
         directiveId: j['directiveId'] as String? ?? '',
       );
@@ -236,9 +245,11 @@ class ChatUiDirective {
   Map<String, dynamic> toJson() => {
         'type': type.name,
         if (prompt != null) 'prompt': prompt,
-        if (options.isNotEmpty) 'options': options.map((o) => o.toJson()).toList(),
+        if (options.isNotEmpty)
+          'options': options.map((o) => o.toJson()).toList(),
         if (slider != null) 'slider': slider!.toJson(),
-        if (timeRanges.isNotEmpty) 'timeRanges': timeRanges.map((o) => o.toJson()).toList(),
+        if (timeRanges.isNotEmpty)
+          'timeRanges': timeRanges.map((o) => o.toJson()).toList(),
         if (report != null) 'report': report!.toJson(),
         'allowFreeText': allowFreeText,
         'directiveId': directiveId,
@@ -270,7 +281,8 @@ class BotReply {
 /// Gemini will receive essentially this (history + the latest user action).
 class ChatTurnContext {
   final String userText; // latest free text ("" for pure component responses)
-  final String? directiveId; // which directive is being answered (null = free text)
+  final String?
+      directiveId; // which directive is being answered (null = free text)
   final String? selectedValue; // single chip / yesNo / bodyPart / time value
   final List<String>? selectedValues; // multi-select values
   final double? sliderValue; // severity

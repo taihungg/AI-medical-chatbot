@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../splash_screen.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
-import 'appointment_booking.dart';
+import 'appointment_booking_tab.dart';
 import 'doctor_consultation.dart';
 
 class RecommendationResultScreen extends StatelessWidget {
@@ -18,19 +18,27 @@ class RecommendationResultScreen extends StatelessWidget {
 
   Color _getRiskColor() {
     switch (risk) {
-      case "Khẩn cấp": return GlassTheme.error;
-      case "Cao": return Colors.orange[800]!;
-      case "Trung bình": return GlassTheme.oceanBlue;
-      default: return Colors.green[700]!;
+      case "Khẩn cấp":
+        return GlassTheme.error;
+      case "Cao":
+        return Colors.orange[800]!;
+      case "Trung bình":
+        return GlassTheme.oceanBlue;
+      default:
+        return Colors.green[700]!;
     }
   }
 
   String _getRiskIcon() {
     switch (risk) {
-      case "Khẩn cấp": return "🆘";
-      case "Cao": return "⚠️";
-      case "Trung bình": return "ℹ️";
-      default: return "✅";
+      case "Khẩn cấp":
+        return "🆘";
+      case "Cao":
+        return "⚠️";
+      case "Trung bình":
+        return "ℹ️";
+      default:
+        return "✅";
     }
   }
 
@@ -87,7 +95,8 @@ class RecommendationResultScreen extends StatelessWidget {
                   children: [
                     Text(
                       "MỨC ĐỘ NGUY CƠ: $risk",
-                      style: GlassTheme.h1(color: _getRiskColor()).copyWith(fontSize: 24),
+                      style: GlassTheme.h1(color: _getRiskColor())
+                          .copyWith(fontSize: 24),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -106,12 +115,16 @@ class RecommendationResultScreen extends StatelessWidget {
                   children: [
                     Text(
                       "Tóm Tắt Khảo Sát Triệu Chứng",
-                      style: GlassTheme.h3().copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: GlassTheme.h3()
+                          .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      symptoms.isEmpty ? "Khảo sát triệu chứng sức khỏe tổng quát." : symptoms,
-                      style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
+                      symptoms.isEmpty
+                          ? "Khảo sát triệu chứng sức khỏe tổng quát."
+                          : symptoms,
+                      style:
+                          GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -131,7 +144,8 @@ class RecommendationResultScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           "Khuyên Nghị Y Tế AI",
-                          style: GlassTheme.h3(color: _getRiskColor()).copyWith(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: GlassTheme.h3(color: _getRiskColor()).copyWith(
+                              fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -156,7 +170,8 @@ class RecommendationResultScreen extends StatelessWidget {
                   icon: Icons.edit_calendar,
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AppointmentBookingScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const AppointmentBookingTab()),
                     );
                   },
                 ),
@@ -187,7 +202,8 @@ class RecommendationResultScreen extends StatelessWidget {
                   icon: Icons.edit_calendar,
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AppointmentBookingScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const AppointmentBookingTab()),
                     );
                   },
                 ),
@@ -198,7 +214,9 @@ class RecommendationResultScreen extends StatelessWidget {
                   icon: Icons.local_pharmacy,
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 2)),
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              const MainFramework(initialPatientTab: 2)),
                     );
                   },
                 ),
@@ -215,22 +233,27 @@ class RecommendationResultScreen extends StatelessWidget {
                   },
                 ),
               ],
-              
+
               const SizedBox(height: 24),
-              
+
               // Back to Home
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 0)),
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            const MainFramework(initialPatientTab: 0)),
                   );
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.arrow_back, size: 16, color: GlassTheme.oceanBlue),
+                    const Icon(Icons.arrow_back,
+                        size: 16, color: GlassTheme.oceanBlue),
                     const SizedBox(width: 8),
-                    Text("Trở về Trang chủ", style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
+                    Text("Trở về Trang chủ",
+                        style:
+                            GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
                   ],
                 ),
               ),
@@ -259,7 +282,8 @@ class RecommendationResultScreen extends StatelessWidget {
 
     appState.setActiveConsultation(simulatedAppt);
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => DoctorConsultationScreen(appointment: simulatedAppt)),
+      MaterialPageRoute(
+          builder: (_) => DoctorConsultationScreen(appointment: simulatedAppt)),
     );
   }
 
@@ -268,19 +292,22 @@ class RecommendationResultScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: GlassTheme.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: GlassTheme.error.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(
+            color: GlassTheme.error.withValues(alpha: 0.3), width: 1.5),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Text(
             "Cảnh Báo Cấp Cứu Sức Khỏe",
-            style: GlassTheme.h3(color: GlassTheme.error).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+            style: GlassTheme.h3(color: GlassTheme.error)
+                .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             "Hệ thống khuyên bạn kích hoạt cuộc gọi khẩn cấp đến tổng đài 115 ngay.",
-            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12),
+            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                .copyWith(fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -288,13 +315,15 @@ class RecommendationResultScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: GlassTheme.error,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
               elevation: 8,
               shadowColor: GlassTheme.error.withValues(alpha: 0.5),
             ),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SOSEmergencyAlertScreen()),
+                MaterialPageRoute(
+                    builder: (_) => const SOSEmergencyAlertScreen()),
               );
             },
             child: Row(
@@ -304,7 +333,8 @@ class RecommendationResultScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   "KÍCH HOẠT SOS CẤP CỨU",
-                  style: GlassTheme.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                  style: GlassTheme.bodyLg(color: Colors.white)
+                      .copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -320,7 +350,8 @@ class SOSEmergencyAlertScreen extends StatefulWidget {
   const SOSEmergencyAlertScreen({super.key});
 
   @override
-  State<SOSEmergencyAlertScreen> createState() => _SOSEmergencyAlertScreenState();
+  State<SOSEmergencyAlertScreen> createState() =>
+      _SOSEmergencyAlertScreenState();
 }
 
 class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
@@ -364,7 +395,8 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
   }
 
   void _triggerCall() {
-    AppState.instance.addAuditLog("Hệ thống kích hoạt cuộc gọi khẩn cấp SOS tới 115.");
+    AppState.instance
+        .addAuditLog("Hệ thống kích hoạt cuộc gọi khẩn cấp SOS tới 115.");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text("Đang thực hiện cuộc gọi cấp cứu đến 115..."),
@@ -402,7 +434,8 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
 
               Text(
                 "KÍCH HOẠT CẤP CỨU 115",
-                style: GlassTheme.h1(color: Colors.white).copyWith(fontSize: 26),
+                style:
+                    GlassTheme.h1(color: Colors.white).copyWith(fontSize: 26),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -428,7 +461,8 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
                   child: Center(
                     child: Text(
                       "$_secondsRemaining",
-                      style: GlassTheme.h1(color: Colors.white).copyWith(fontSize: 64),
+                      style: GlassTheme.h1(color: Colors.white)
+                          .copyWith(fontSize: 64),
                     ),
                   ),
                 ),
@@ -452,11 +486,13 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
                             children: [
                               Text(
                                 "Bệnh viện gần nhất của bạn:",
-                                style: GlassTheme.labelCaps(color: Colors.white70),
+                                style:
+                                    GlassTheme.labelCaps(color: Colors.white70),
                               ),
                               Text(
                                 "Bệnh viện Đa Khoa Chi Nhánh A (Cách 1.8km)",
-                                style: GlassTheme.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                                style: GlassTheme.bodyMd(color: Colors.white)
+                                    .copyWith(fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -466,7 +502,8 @@ class _SOSEmergencyAlertScreenState extends State<SOSEmergencyAlertScreen> {
                     const SizedBox(height: 16),
                     Text(
                       "Địa chỉ: 154 Trần Hưng Đạo, Quận 1, TP. HCM",
-                      style: GlassTheme.bodyMd(color: Colors.white70).copyWith(fontSize: 12),
+                      style: GlassTheme.bodyMd(color: Colors.white70)
+                          .copyWith(fontSize: 12),
                     ),
                   ],
                 ),
@@ -518,46 +555,41 @@ class SelfCareScreen extends StatelessWidget {
               style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
-
             _buildTipCard(
               "1. Nghỉ ngơi & Tránh lao động nặng",
               "Nghỉ ngơi hoàn toàn từ 1-2 ngày giúp cơ thể hồi phục nhanh. Tránh nâng vật nặng hoặc tập thể thao gắng sức.",
               Icons.king_bed,
             ),
             const SizedBox(height: 16),
-
             _buildTipCard(
               "2. Bổ sung nước & Điện giải",
               "Uống nhiều nước ấm, nước hoa quả giàu Vitamin C hoặc dung dịch điện giải Oresol nếu có sốt nhẹ hoặc ho mệt.",
               Icons.local_drink,
             ),
             const SizedBox(height: 16),
-
             _buildTipCard(
               "3. Dinh dưỡng lành mạnh",
               "Ăn cháo loãng, súp nóng dễ tiêu hóa. Bổ sung rau xanh và trái cây tươi để nâng cao sức đề kháng.",
               Icons.restaurant,
             ),
             const SizedBox(height: 16),
-
             _buildTipCard(
               "4. Theo dõi triệu chứng",
               "Thường xuyên đo nhiệt độ cơ thể và kiểm tra các dấu hiệu đặc biệt. Nếu sốt cao hơn 38.5°C hoặc đau ngực tăng lên, hãy chuyển vai trò sang khám trực tuyến ngay lập tức.",
               Icons.query_stats,
             ),
-            
             const SizedBox(height: 40),
-            
             GlassButton(
               text: "Xem danh mục thuốc gia đình",
               icon: Icons.local_pharmacy,
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 2)),
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          const MainFramework(initialPatientTab: 2)),
                 );
               },
             ),
-            
             const SizedBox(height: 80),
           ],
         ),
@@ -585,12 +617,14 @@ class SelfCareScreen extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GlassTheme.h3().copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: GlassTheme.h3()
+                      .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   desc,
-                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 12),
+                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 12),
                 ),
               ],
             ),

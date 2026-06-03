@@ -82,7 +82,8 @@ class RecordingWavePainter extends CustomPainter {
 
     for (int i = 0; i < barsCount; i++) {
       final double x = (i + 1) * barGap;
-      final double waveHeight = 2.0 + 8.0 * sin(seconds * 5 + i) * cos(seconds * 3 + i * 2).abs();
+      final double waveHeight =
+          2.0 + 8.0 * sin(seconds * 5 + i) * cos(seconds * 3 + i * 2).abs();
       canvas.drawLine(
         Offset(x, midY - waveHeight),
         Offset(x, midY + waveHeight),

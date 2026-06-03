@@ -3,7 +3,7 @@ import '../../widgets/glass_widgets.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;
-  
+
   const StatusBadge({super.key, required this.status});
 
   @override

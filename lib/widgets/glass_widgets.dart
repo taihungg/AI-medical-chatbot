@@ -36,48 +36,48 @@ class GlassTheme {
 
   // Typography Styles
   static TextStyle h1({Color color = onSurface}) => GoogleFonts.poppins(
-    fontSize: 30,
-    fontWeight: FontWeight.w600,
-    height: 1.2,
-    letterSpacing: -0.6,
-    color: color,
-  );
+        fontSize: 30,
+        fontWeight: FontWeight.w600,
+        height: 1.2,
+        letterSpacing: -0.6,
+        color: color,
+      );
 
   static TextStyle h2({Color color = onSurface}) => GoogleFonts.poppins(
-    fontSize: 22,
-    fontWeight: FontWeight.w600,
-    height: 1.3,
-    letterSpacing: -0.3,
-    color: color,
-  );
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+        letterSpacing: -0.3,
+        color: color,
+      );
 
   static TextStyle h3({Color color = onSurface}) => GoogleFonts.poppins(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-    color: color,
-  );
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        height: 1.4,
+        color: color,
+      );
 
   static TextStyle bodyLg({Color color = onSurface}) => GoogleFonts.inter(
-    fontSize: 17,
-    fontWeight: FontWeight.w400,
-    height: 1.5,
-    color: color,
-  );
+        fontSize: 17,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+        color: color,
+      );
 
   static TextStyle bodyMd({Color color = onSurface}) => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-    color: color,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.4,
+        color: color,
+      );
 
   static TextStyle labelCaps({Color color = onSurface}) => GoogleFonts.inter(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.8,
-    color: color,
-  );
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.8,
+        color: color,
+      );
 }
 
 // Background layer with organic meshes and glowing blobs
@@ -265,7 +265,8 @@ class GlassButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             padding: EdgeInsets.zero,
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -320,7 +321,8 @@ class GlassButton extends StatelessWidget {
                   Flexible(
                     child: Text(
                       text,
-                      style: GlassTheme.bodyLg(color: GlassTheme.oceanBlue).copyWith(
+                      style: GlassTheme.bodyLg(color: GlassTheme.oceanBlue)
+                          .copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -421,14 +423,17 @@ class _GlassTextFieldState extends State<GlassTextField> {
                 decoration: InputDecoration(
                   hintText: widget.hint,
                   hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 16.0),
                   border: InputBorder.none,
                   prefixIcon: widget.prefixIcon != null
-                      ? Icon(widget.prefixIcon, color: GlassTheme.oceanBlue, size: 20)
+                      ? Icon(widget.prefixIcon,
+                          color: GlassTheme.oceanBlue, size: 20)
                       : null,
                   suffixIcon: widget.suffixIcon != null
                       ? IconButton(
-                          icon: Icon(widget.suffixIcon, color: GlassTheme.oceanBlue, size: 20),
+                          icon: Icon(widget.suffixIcon,
+                              color: GlassTheme.oceanBlue, size: 20),
                           onPressed: widget.onSuffixPressed,
                         )
                       : null,
@@ -548,14 +553,18 @@ class GlassNavigationBar extends StatelessWidget {
                       children: [
                         Icon(
                           item.icon,
-                          color: active ? GlassTheme.oceanBlue : GlassTheme.onSurfaceVariant,
+                          color: active
+                              ? GlassTheme.oceanBlue
+                              : GlassTheme.onSurfaceVariant,
                           size: 24,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           item.label,
                           style: GlassTheme.labelCaps(
-                            color: active ? GlassTheme.oceanBlue : GlassTheme.onSurfaceVariant,
+                            color: active
+                                ? GlassTheme.oceanBlue
+                                : GlassTheme.onSurfaceVariant,
                           ).copyWith(fontSize: 9),
                         ),
                       ],

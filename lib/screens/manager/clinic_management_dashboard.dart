@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
-import '../splash_screen.dart';
 import 'doctor_management_screen.dart';
 import 'patient_records_screen.dart';
 import 'master_appointment_screen.dart';
@@ -15,7 +14,8 @@ class ClinicManagerDashboard extends StatefulWidget {
 }
 
 class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
-  int _selectedBranchIndex = 0; // 0: Chi nhánh A, 1: Chi nhánh B, 2: Chi nhánh C, 3: Chi nhánh D
+  int _selectedBranchIndex =
+      0; // 0: Chi nhánh A, 1: Chi nhánh B, 2: Chi nhánh C, 3: Chi nhánh D
   final List<String> _branches = [
     "Cơ sở A - Quận 1, TP. HCM",
     "Cơ sở B - Hoàn Kiếm, Hà Nội",
@@ -60,10 +60,10 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
       builder: (context, child) {
         // Fetch current active branch metrics
         final metrics = _branchMetrics[_selectedBranchIndex];
-        
+
         // Count total appointments in app state
         final apptCount = appState.appointments.length;
-        
+
         return Scaffold(
           appBar: const GlassAppBar(
             title: "Bảng Điều Hành Phòng Khám",
@@ -75,12 +75,14 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                     CircleAvatar(
                       radius: 16,
                       backgroundColor: GlassTheme.oceanBlue,
-                      child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
+                      child: Icon(Icons.admin_panel_settings,
+                          color: Colors.white, size: 20),
                     ),
                     SizedBox(width: 8),
                     Text(
                       "Quản lý: Trần Quốc Hùng",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ],
                 ),
@@ -95,7 +97,8 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                 children: [
                   // 1. Branch Tab Selector Drawer (Glass Row)
                   GlassCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     borderRadius: 20,
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -113,20 +116,27 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                               borderRadius: BorderRadius.circular(12),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 10),
                                 decoration: BoxDecoration(
-                                  gradient: isSelected ? GlassTheme.primaryGradient : null,
+                                  gradient: isSelected
+                                      ? GlassTheme.primaryGradient
+                                      : null,
                                   color: isSelected ? null : Colors.white24,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: isSelected ? Colors.transparent : Colors.white30,
+                                    color: isSelected
+                                        ? Colors.transparent
+                                        : Colors.white30,
                                   ),
                                 ),
                                 child: Row(
                                   children: [
                                     Icon(
                                       Icons.local_hospital_outlined,
-                                      color: isSelected ? Colors.white : GlassTheme.oceanBlue,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : GlassTheme.oceanBlue,
                                       size: 16,
                                     ),
                                     const SizedBox(width: 8),
@@ -134,8 +144,12 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                       _branches[idx].split(" - ")[0],
                                       style: TextStyle(
                                         fontSize: 12,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                        color: isSelected ? Colors.white : GlassTheme.onSurface,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : GlassTheme.onSurface,
                                       ),
                                     ),
                                   ],
@@ -157,7 +171,8 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                   const SizedBox(height: 4),
                   const Text(
                     "Theo dõi thời gian thực các chỉ số hoạt động, hiệu suất và hoạt động lâm sàng.",
-                    style: TextStyle(fontSize: 12, color: GlassTheme.onSurfaceVariant),
+                    style: TextStyle(
+                        fontSize: 12, color: GlassTheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 20),
 
@@ -165,7 +180,8 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
+                    crossAxisCount:
+                        MediaQuery.of(context).size.width > 600 ? 4 : 2,
                     childAspectRatio: 1.5,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
@@ -188,7 +204,8 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const DoctorManagementScreen()),
                           );
                         },
                       ),
@@ -228,25 +245,30 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Text(
                                           "Biểu Đồ Hiệu Suất Giờ Cao Điểm",
-                                          style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                          style: GlassTheme.h3().copyWith(
+                                              fontWeight: FontWeight.bold),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      const Icon(Icons.bar_chart, color: GlassTheme.cyan),
+                                      const Icon(Icons.bar_chart,
+                                          color: GlassTheme.cyan),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
                                   const Text(
                                     "Số lượng bệnh nhân phân bổ theo khung giờ khám hôm nay.",
-                                    style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: GlassTheme.outline),
                                   ),
                                   const SizedBox(height: 24),
-                                  
+
                                   // Beautiful Custom Painted Chart
                                   SizedBox(
                                     height: 180,
@@ -261,62 +283,23 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
 
                                   const SizedBox(height: 16),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
                                     children: [
-                                      _buildLegendItem("08h-10h", GlassTheme.oceanBlue),
-                                      _buildLegendItem("10h-12h", GlassTheme.cyan),
-                                      _buildLegendItem("14h-16h", Colors.purple),
+                                      _buildLegendItem(
+                                          "08h-10h", GlassTheme.oceanBlue),
+                                      _buildLegendItem(
+                                          "10h-12h", GlassTheme.cyan),
+                                      _buildLegendItem(
+                                          "14h-16h", Colors.purple),
                                       _buildLegendItem("16h-18h", Colors.teal),
                                     ],
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
-                                style: TextStyle(fontSize: 11, color: GlassTheme.outline),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Log terminal listing
-                              Container(
-                                height: 212,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.white24),
-                                ),
-                                child: ListView.builder(
-                                  itemCount: appState.auditLogs.length,
-                                  itemBuilder: (ctx, idx) {
-                                    final log = appState.auditLogs[idx];
-                                    // Stylize specific logs
-                                    Color logColor = Colors.white70;
-                                    if (log.contains("BS đã ký")) {
-                                      logColor = Colors.green;
-                                    } else if (log.contains("đã đặt lịch")) {
-                                      logColor = GlassTheme.cyan;
-                                    } else if (log.contains("[Hệ thống]")) {
-                                      logColor = Colors.amber;
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 6.0),
-                                      child: Text(
-                                        log,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 10,
-                                          color: logColor,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          
+
                           // Spacing if wide
                           if (isWide) const SizedBox(width: 16),
 
@@ -324,18 +307,21 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                           Expanded(
                             flex: isWide ? 4 : 10,
                             child: Padding(
-                              padding: EdgeInsets.only(top: isWide ? 0.0 : 16.0),
+                              padding:
+                                  EdgeInsets.only(top: isWide ? 0.0 : 16.0),
                               child: GlassCard(
                                 padding: const EdgeInsets.all(20),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           "Nhật Ký Hệ Thống Live",
-                                          style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
+                                          style: GlassTheme.h3().copyWith(
+                                              fontWeight: FontWeight.bold),
                                         ),
                                         Container(
                                           width: 8,
@@ -350,7 +336,9 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                     const SizedBox(height: 4),
                                     const Text(
                                       "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
-                                      style: TextStyle(fontSize: 11, color: GlassTheme.outline),
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: GlassTheme.outline),
                                     ),
                                     const SizedBox(height: 16),
 
@@ -359,9 +347,11 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                       height: 212,
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.08),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.08),
                                         borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: Colors.white24),
+                                        border:
+                                            Border.all(color: Colors.white24),
                                       ),
                                       child: ListView.builder(
                                         itemCount: appState.auditLogs.length,
@@ -371,13 +361,16 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                           Color logColor = Colors.white70;
                                           if (log.contains("BS đã ký")) {
                                             logColor = Colors.green;
-                                          } else if (log.contains("đã đặt lịch")) {
+                                          } else if (log
+                                              .contains("đã đặt lịch")) {
                                             logColor = GlassTheme.cyan;
-                                          } else if (log.contains("[Hệ thống]")) {
+                                          } else if (log
+                                              .contains("[Hệ thống]")) {
                                             logColor = Colors.amber;
                                           }
                                           return Padding(
-                                            padding: const EdgeInsets.only(bottom: 6.0),
+                                            padding: const EdgeInsets.only(
+                                                bottom: 6.0),
                                             child: Text(
                                               log,
                                               style: TextStyle(
@@ -410,17 +403,20 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
               if (idx == 1) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const DoctorManagementScreen()),
                 );
               } else if (idx == 2) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PatientRecordsScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const PatientRecordsScreen()),
                 );
               } else if (idx == 3) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MasterAppointmentScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const MasterAppointmentScreen()),
                 );
               }
             },
@@ -452,7 +448,8 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
           children: [
             Text(
               title,
-              style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 9),
+              style: GlassTheme.labelCaps(color: GlassTheme.outline)
+                  .copyWith(fontSize: 9),
             ),
             Icon(icon, color: color, size: 20),
           ],
@@ -460,12 +457,14 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
         const Spacer(),
         Text(
           value,
-          style: GlassTheme.h1(color: color).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+          style: GlassTheme.h1(color: color)
+              .copyWith(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
+          style:
+              const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
         ),
       ],
     );
@@ -504,7 +503,9 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 10, color: GlassTheme.onSurfaceVariant)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 10, color: GlassTheme.onSurfaceVariant)),
       ],
     );
   }
@@ -515,7 +516,8 @@ class OperationsChartPainter extends CustomPainter {
   final int branchIndex;
   final int appointmentsAdded;
 
-  OperationsChartPainter({required this.branchIndex, required this.appointmentsAdded});
+  OperationsChartPainter(
+      {required this.branchIndex, required this.appointmentsAdded});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -524,11 +526,11 @@ class OperationsChartPainter extends CustomPainter {
       [0.65, 0.85, 0.45, 0.55], // Branch A
       [0.45, 0.60, 0.50, 0.35], // Branch B
       [0.35, 0.45, 0.55, 0.25], // Branch C
-      [0.25, 0.35, 0.40, 0.20]  // Branch D
+      [0.25, 0.35, 0.40, 0.20] // Branch D
     ];
 
     final heights = List<double>.from(baseHeights[branchIndex]);
-    
+
     // Add dynamically based on appointments booked (increments bars)
     if (appointmentsAdded > 0) {
       heights[1] = min(1.0, heights[1] + (appointmentsAdded * 0.05));
@@ -554,11 +556,13 @@ class OperationsChartPainter extends CustomPainter {
     }
 
     final double barWidth = 32.0;
-    final double spacing = (size.width - (heights.length * barWidth)) / (heights.length + 1);
+    final double spacing =
+        (size.width - (heights.length * barWidth)) / (heights.length + 1);
 
     for (int i = 0; i < heights.length; i++) {
       final double x = spacing + i * (barWidth + spacing);
-      final double h = heights[i] * (size.height - 20); // leave 20px padding at top
+      final double h =
+          heights[i] * (size.height - 20); // leave 20px padding at top
       final double y = size.height - h;
 
       final barRect = RRect.fromRectAndRadius(
@@ -570,7 +574,7 @@ class OperationsChartPainter extends CustomPainter {
       final glowPaint = Paint()
         ..color = barColors[i].withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-      
+
       canvas.drawRRect(barRect, glowPaint);
 
       // Draw solid column
@@ -588,13 +592,14 @@ class OperationsChartPainter extends CustomPainter {
         ..color = Colors.white.withValues(alpha: 0.8)
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
-      
+
       canvas.drawRRect(barRect, highlightPaint);
     }
   }
 
   @override
   bool shouldRepaint(covariant OperationsChartPainter oldDelegate) {
-    return oldDelegate.branchIndex != branchIndex || oldDelegate.appointmentsAdded != appointmentsAdded;
+    return oldDelegate.branchIndex != branchIndex ||
+        oldDelegate.appointmentsAdded != appointmentsAdded;
   }
 }

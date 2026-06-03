@@ -5,9 +5,9 @@ import 'chat_directive.dart';
 import 'conversation_graph.dart';
 
 enum UserRole {
-  patient,    // Bệnh nhân (đánh giá triệu chứng + đặt lịch khám)
-  doctor,     // Bác sĩ (khám, xem vitals, ký đơn thuốc)
-  manager     // Quản lý phòng khám (xem dashboard thống kê)
+  patient, // Bệnh nhân (đánh giá triệu chứng + đặt lịch khám)
+  doctor, // Bác sĩ (khám, xem vitals, ký đơn thuốc)
+  manager // Quản lý phòng khám (xem dashboard thống kê)
 }
 
 class ChatMessage {
@@ -43,12 +43,14 @@ class AppAppointment {
   final String symptomSummary;
   final String riskLevel; // 'Thấp' | 'Trung bình' | 'Cao' | 'Khẩn cấp'
   final String aiSummary; // Tóm tắt AI từ chat bot, BS đọc trước khi khám
-  final bool isOnline; // Xác định ca khám này là online (trực tuyến) hay offline (trực tiếp)
+  final bool
+      isOnline; // Xác định ca khám này là online (trực tuyến) hay offline (trực tiếp)
   String status; // 'Chưa khám' | 'Đã khám'
   String clinicalNotes;
   bool prescriptionSigned;
   List<String> prescriptionList;
-  Map<String, double> vitals; // 'pulse', 'spO2', 'temp', 'bpSystolic', 'bpDiastolic'
+  Map<String, double>
+      vitals; // 'pulse', 'spO2', 'temp', 'bpSystolic', 'bpDiastolic'
 
   AppAppointment({
     required this.id,
@@ -116,7 +118,7 @@ class AppState extends ChangeNotifier {
   // Doctor status toggle (Rảnh / Bận)
   bool _isDoctorBusy = false;
   bool get isDoctorBusy => _isDoctorBusy;
-  
+
   void toggleDoctorBusy() {
     _isDoctorBusy = !_isDoctorBusy;
     if (!_isDoctorBusy) {
@@ -124,10 +126,13 @@ class AppState extends ChangeNotifier {
         final currentId = _activeConsultation!.id;
         updateAppointmentStatus(currentId, 'Chưa khám');
         _activeConsultation = null;
-        addAuditLog("Bác sĩ tự động chuyển ca $currentId sang CHƯA KHÁM do tắt trạng thái BẬN");
+        addAuditLog(
+            "Bác sĩ tự động chuyển ca $currentId sang CHƯA KHÁM do tắt trạng thái BẬN");
       }
     }
-    addAuditLog(_isDoctorBusy ? "Bác sĩ chuyển trạng thái sang ĐANG BẬN" : "Bác sĩ chuyển trạng thái sang ĐANG RẢNH");
+    addAuditLog(_isDoctorBusy
+        ? "Bác sĩ chuyển trạng thái sang ĐANG BẬN"
+        : "Bác sĩ chuyển trạng thái sang ĐANG RẢNH");
     notifyListeners();
   }
 
@@ -169,9 +174,12 @@ class AppState extends ChangeNotifier {
 
   String _getRoleNameVi(UserRole role) {
     switch (role) {
-      case UserRole.patient: return "Bệnh nhân";
-      case UserRole.doctor: return "Bác sĩ";
-      case UserRole.manager: return "Quản lý phòng khám";
+      case UserRole.patient:
+        return "Bệnh nhân";
+      case UserRole.doctor:
+        return "Bác sĩ";
+      case UserRole.manager:
+        return "Quản lý phòng khám";
     }
   }
 
@@ -218,7 +226,8 @@ class AppState extends ChangeNotifier {
   /// before this call, so the booking tab can read them directly.
   void triggerBookingFromAI() {
     _pendingBookingFromAI = true;
-    addAuditLog("Bệnh nhân đồng ý đặt lịch từ khuyến cáo AI. Chuyển sang tab Đặt lịch khám.");
+    addAuditLog(
+        "Bệnh nhân đồng ý đặt lịch từ khuyến cáo AI. Chuyển sang tab Đặt lịch khám.");
     notifyListeners();
   }
 
@@ -240,7 +249,8 @@ class AppState extends ChangeNotifier {
 
   void addAuditLog(String message) {
     final now = DateTime.now();
-    final timeStr = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    final timeStr =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
     _auditLogs.insert(0, "[$timeStr] $message");
     if (_auditLogs.length > 50) {
       _auditLogs.removeLast();
@@ -262,50 +272,212 @@ class AppState extends ChangeNotifier {
     // Prepopulate default appointments for Doctor/Specialist and Manager view
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Ngày -2
-    _appointments.add(AppAppointment(id: "APT-8801", patientName: "Trần Thế Bảo", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today.subtract(const Duration(days: 2)), timeSlot: "08:00 - 08:30", symptomSummary: "Đau tức ngực trái", status: "Đã khám", isOnline: false, riskLevel: "Cao",
-      clinicalNotes: "S: Đau ngực trái lan ra vai khi vận động.\nO: Nhịp tim 88 l/p, HA 140/90, không có tiếng thổi tim.\nA: Cơn đau thắt ngực ổn định.\nP: Đo điện tâm đồ, kiểm tra men tim. Cấp thuốc giãn mạch.",
-      prescriptionSigned: true, prescriptionList: ["Nitroglycerin 0.4mg (1 hộp) - Ngậm dưới lưỡi khi đau", "Aspirin 81mg (30 viên) - Uống sau ăn sáng"],
+    _appointments.add(AppAppointment(
+      id: "APT-8801",
+      patientName: "Trần Thế Bảo",
+      branchName: "Phòng khám A",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Tim mạch",
+      dateTime: today.subtract(const Duration(days: 2)),
+      timeSlot: "08:00 - 08:30",
+      symptomSummary: "Đau tức ngực trái",
+      status: "Đã khám",
+      isOnline: false,
+      riskLevel: "Cao",
+      clinicalNotes:
+          "S: Đau ngực trái lan ra vai khi vận động.\nO: Nhịp tim 88 l/p, HA 140/90, không có tiếng thổi tim.\nA: Cơn đau thắt ngực ổn định.\nP: Đo điện tâm đồ, kiểm tra men tim. Cấp thuốc giãn mạch.",
+      prescriptionSigned: true,
+      prescriptionList: [
+        "Nitroglycerin 0.4mg (1 hộp) - Ngậm dưới lưỡi khi đau",
+        "Aspirin 81mg (30 viên) - Uống sau ăn sáng"
+      ],
     ));
-    _appointments.add(AppAppointment(id: "APT-8802", patientName: "Lê Thị Thu Thảo", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tổng quát", dateTime: today.subtract(const Duration(days: 2)), timeSlot: "09:00 - 09:30", symptomSummary: "Ho khan kéo dài", status: "Đã khám", isOnline: true, riskLevel: "Trung bình",
-      clinicalNotes: "S: Ho khan 3 tuần, sốt nhẹ về chiều.\nO: Họng hơi đỏ, phổi không rales.\nA: Viêm họng mạn tính.\nP: Chụp X-quang phổi, uống nhiều nước ấm.",
-      prescriptionSigned: true, prescriptionList: ["Amoxicillin 500mg (20 viên) - Uống ngày 2 lần", "Siro ho Prospan (1 chai)"],
+    _appointments.add(AppAppointment(
+      id: "APT-8802",
+      patientName: "Lê Thị Thu Thảo",
+      branchName: "Phòng khám A",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Nội tổng quát",
+      dateTime: today.subtract(const Duration(days: 2)),
+      timeSlot: "09:00 - 09:30",
+      symptomSummary: "Ho khan kéo dài",
+      status: "Đã khám",
+      isOnline: true,
+      riskLevel: "Trung bình",
+      clinicalNotes:
+          "S: Ho khan 3 tuần, sốt nhẹ về chiều.\nO: Họng hơi đỏ, phổi không rales.\nA: Viêm họng mạn tính.\nP: Chụp X-quang phổi, uống nhiều nước ấm.",
+      prescriptionSigned: true,
+      prescriptionList: [
+        "Amoxicillin 500mg (20 viên) - Uống ngày 2 lần",
+        "Siro ho Prospan (1 chai)"
+      ],
     ));
-    _appointments.add(AppAppointment(id: "APT-8803", patientName: "Vũ Hoàng Minh", branchName: "Phòng khám B", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Thần kinh", dateTime: today.subtract(const Duration(days: 2)), timeSlot: "10:00 - 10:30", symptomSummary: "Đau nửa đầu", status: "Đã khám", isOnline: false, riskLevel: "Cao",
-      clinicalNotes: "S: Đau nửa đầu dữ dội, buồn nôn, sợ ánh sáng.\nO: Khám thần kinh khu trú âm tính.\nA: Hội chứng Migraine.\nP: Tránh ánh sáng chói, nằm nghỉ ngơi.",
-      prescriptionSigned: true, prescriptionList: ["Sumatriptan 50mg (6 viên) - Uống 1 viên khi có cơn đau", "Paracetamol 500mg (20 viên) - Dự phòng giảm đau"],
+    _appointments.add(AppAppointment(
+      id: "APT-8803",
+      patientName: "Vũ Hoàng Minh",
+      branchName: "Phòng khám B",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Thần kinh",
+      dateTime: today.subtract(const Duration(days: 2)),
+      timeSlot: "10:00 - 10:30",
+      symptomSummary: "Đau nửa đầu",
+      status: "Đã khám",
+      isOnline: false,
+      riskLevel: "Cao",
+      clinicalNotes:
+          "S: Đau nửa đầu dữ dội, buồn nôn, sợ ánh sáng.\nO: Khám thần kinh khu trú âm tính.\nA: Hội chứng Migraine.\nP: Tránh ánh sáng chói, nằm nghỉ ngơi.",
+      prescriptionSigned: true,
+      prescriptionList: [
+        "Sumatriptan 50mg (6 viên) - Uống 1 viên khi có cơn đau",
+        "Paracetamol 500mg (20 viên) - Dự phòng giảm đau"
+      ],
     ));
 
     // Ngày -1
-    _appointments.add(AppAppointment(id: "APT-8804", patientName: "Phạm Văn Đức", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today.subtract(const Duration(days: 1)), timeSlot: "08:00 - 08:30", symptomSummary: "Nhói ngực", status: "Đã khám", isOnline: true, riskLevel: "Trung bình",
-      clinicalNotes: "S: Thi thoảng nhói ngực trái, kéo dài vài giây.\nO: Điện tâm đồ bình thường.\nA: Đau ngực cơ năng.\nP: Theo dõi thêm, giảm căng thẳng.",
-      prescriptionSigned: true, prescriptionList: ["Magnesium B6 (30 viên) - Uống ngày 2 lần"],
+    _appointments.add(AppAppointment(
+      id: "APT-8804",
+      patientName: "Phạm Văn Đức",
+      branchName: "Phòng khám A",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Tim mạch",
+      dateTime: today.subtract(const Duration(days: 1)),
+      timeSlot: "08:00 - 08:30",
+      symptomSummary: "Nhói ngực",
+      status: "Đã khám",
+      isOnline: true,
+      riskLevel: "Trung bình",
+      clinicalNotes:
+          "S: Thi thoảng nhói ngực trái, kéo dài vài giây.\nO: Điện tâm đồ bình thường.\nA: Đau ngực cơ năng.\nP: Theo dõi thêm, giảm căng thẳng.",
+      prescriptionSigned: true,
+      prescriptionList: ["Magnesium B6 (30 viên) - Uống ngày 2 lần"],
     ));
-    _appointments.add(AppAppointment(id: "APT-8805", patientName: "Trần Thị Mai", branchName: "Phòng khám C", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tổng quát", dateTime: today.subtract(const Duration(days: 1)), timeSlot: "09:00 - 09:30", symptomSummary: "Đau dạ dày", status: "Đã khám", isOnline: false, riskLevel: "Trung bình",
-      clinicalNotes: "S: Đau vùng thượng vị sau ăn.\nO: Ấn đau thượng vị, không đề kháng.\nA: Viêm loét dạ dày tá tràng.\nP: Nội soi dạ dày sau điều trị.",
-      prescriptionSigned: true, prescriptionList: ["Omeprazole 20mg (28 viên) - Uống trước ăn sáng", "Gaviscon (20 gói)"],
+    _appointments.add(AppAppointment(
+      id: "APT-8805",
+      patientName: "Trần Thị Mai",
+      branchName: "Phòng khám C",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Nội tổng quát",
+      dateTime: today.subtract(const Duration(days: 1)),
+      timeSlot: "09:00 - 09:30",
+      symptomSummary: "Đau dạ dày",
+      status: "Đã khám",
+      isOnline: false,
+      riskLevel: "Trung bình",
+      clinicalNotes:
+          "S: Đau vùng thượng vị sau ăn.\nO: Ấn đau thượng vị, không đề kháng.\nA: Viêm loét dạ dày tá tràng.\nP: Nội soi dạ dày sau điều trị.",
+      prescriptionSigned: true,
+      prescriptionList: [
+        "Omeprazole 20mg (28 viên) - Uống trước ăn sáng",
+        "Gaviscon (20 gói)"
+      ],
     ));
-    _appointments.add(AppAppointment(id: "APT-8806", patientName: "Lý Kiều Loan", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today.subtract(const Duration(days: 1)), timeSlot: "14:00 - 14:30", symptomSummary: "Tức ngực khó thở", status: "Đã khám", isOnline: false, riskLevel: "Khẩn cấp",
-      clinicalNotes: "S: Khó thở nhẹ về đêm.\nO: Nhịp tim 90 l/p, phổi rales ẩm 2 đáy.\nA: Suy tim độ II.\nP: Cấp thuốc lợi tiểu, hạn chế muối.",
-      prescriptionSigned: true, prescriptionList: ["Furosemide 40mg (14 viên) - Uống buổi sáng", "Bisoprolol 5mg (30 viên)"],
+    _appointments.add(AppAppointment(
+      id: "APT-8806",
+      patientName: "Lý Kiều Loan",
+      branchName: "Phòng khám A",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Tim mạch",
+      dateTime: today.subtract(const Duration(days: 1)),
+      timeSlot: "14:00 - 14:30",
+      symptomSummary: "Tức ngực khó thở",
+      status: "Đã khám",
+      isOnline: false,
+      riskLevel: "Khẩn cấp",
+      clinicalNotes:
+          "S: Khó thở nhẹ về đêm.\nO: Nhịp tim 90 l/p, phổi rales ẩm 2 đáy.\nA: Suy tim độ II.\nP: Cấp thuốc lợi tiểu, hạn chế muối.",
+      prescriptionSigned: true,
+      prescriptionList: [
+        "Furosemide 40mg (14 viên) - Uống buổi sáng",
+        "Bisoprolol 5mg (30 viên)"
+      ],
     ));
 
     // Hôm nay
-    _appointments.add(AppAppointment(id: "APT-8807", patientName: "Phan Nhật Nam", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Thần kinh", dateTime: today, timeSlot: "08:00 - 08:30", symptomSummary: "Chóng mặt", status: "Đã khám", isOnline: true, riskLevel: "Thấp",
-      clinicalNotes: "S: Chóng mặt khi thay đổi tư thế.\nO: Không ghi nhận run hay yếu chi.\nA: Chóng mặt tư thế kịch phát.\nP: Hướng dẫn bài tập Epley, kê thuốc giảm chóng mặt.",
-      prescriptionSigned: true, prescriptionList: ["Betahistine 24mg (20 viên) - Uống ngày 2 lần"],
+    _appointments.add(AppAppointment(
+      id: "APT-8807",
+      patientName: "Phan Nhật Nam",
+      branchName: "Phòng khám A",
+      doctorName: "BS. Nguyễn Văn An",
+      specialty: "Khoa Thần kinh",
+      dateTime: today,
+      timeSlot: "08:00 - 08:30",
+      symptomSummary: "Chóng mặt",
+      status: "Đã khám",
+      isOnline: true,
+      riskLevel: "Thấp",
+      clinicalNotes:
+          "S: Chóng mặt khi thay đổi tư thế.\nO: Không ghi nhận run hay yếu chi.\nA: Chóng mặt tư thế kịch phát.\nP: Hướng dẫn bài tập Epley, kê thuốc giảm chóng mặt.",
+      prescriptionSigned: true,
+      prescriptionList: ["Betahistine 24mg (20 viên) - Uống ngày 2 lần"],
     ));
-    _appointments.add(AppAppointment(id: "APT-8808", patientName: "Bùi Văn Nam", branchName: "Phòng khám B", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Tim mạch", dateTime: today, timeSlot: "09:00 - 09:30", symptomSummary: "Khám định kỳ", status: "Chưa khám", isOnline: false, riskLevel: "Thấp"));
-    _appointments.add(AppAppointment(id: "APT-8809", patientName: "Hoàng Thị Cúc", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tiết", dateTime: today, timeSlot: "10:00 - 10:30", symptomSummary: "Tiểu đường", status: "Chưa khám", isOnline: true, riskLevel: "Trung bình"));
+    _appointments.add(AppAppointment(
+        id: "APT-8808",
+        patientName: "Bùi Văn Nam",
+        branchName: "Phòng khám B",
+        doctorName: "BS. Nguyễn Văn An",
+        specialty: "Khoa Tim mạch",
+        dateTime: today,
+        timeSlot: "09:00 - 09:30",
+        symptomSummary: "Khám định kỳ",
+        status: "Chưa khám",
+        isOnline: false,
+        riskLevel: "Thấp"));
+    _appointments.add(AppAppointment(
+        id: "APT-8809",
+        patientName: "Hoàng Thị Cúc",
+        branchName: "Phòng khám A",
+        doctorName: "BS. Nguyễn Văn An",
+        specialty: "Khoa Nội tiết",
+        dateTime: today,
+        timeSlot: "10:00 - 10:30",
+        symptomSummary: "Tiểu đường",
+        status: "Chưa khám",
+        isOnline: true,
+        riskLevel: "Trung bình"));
 
     // Tương lai
-    _appointments.add(AppAppointment(id: "APT-8810", patientName: "Lê Minh Tuấn", branchName: "Phòng khám C", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Hô hấp", dateTime: today.add(const Duration(days: 1)), timeSlot: "08:00 - 08:30", symptomSummary: "Khó thở", status: "Chưa khám", isOnline: true, riskLevel: "Cao"));
-    _appointments.add(AppAppointment(id: "APT-8811", patientName: "Đinh Quang Hiếu", branchName: "Phòng khám A", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Nội tổng quát", dateTime: today.add(const Duration(days: 1)), timeSlot: "09:00 - 09:30", symptomSummary: "Tư vấn tổng quát", status: "Chưa khám", isOnline: false, riskLevel: "Thấp"));
-    _appointments.add(AppAppointment(id: "APT-8812", patientName: "Nguyễn Thị Hoa", branchName: "Phòng khám B", doctorName: "BS. Nguyễn Văn An", specialty: "Khoa Xương khớp", dateTime: today.add(const Duration(days: 1)), timeSlot: "10:00 - 10:30", symptomSummary: "Đau lưng", status: "Chưa khám", isOnline: false, riskLevel: "Trung bình"));
+    _appointments.add(AppAppointment(
+        id: "APT-8810",
+        patientName: "Lê Minh Tuấn",
+        branchName: "Phòng khám C",
+        doctorName: "BS. Nguyễn Văn An",
+        specialty: "Khoa Hô hấp",
+        dateTime: today.add(const Duration(days: 1)),
+        timeSlot: "08:00 - 08:30",
+        symptomSummary: "Khó thở",
+        status: "Chưa khám",
+        isOnline: true,
+        riskLevel: "Cao"));
+    _appointments.add(AppAppointment(
+        id: "APT-8811",
+        patientName: "Đinh Quang Hiếu",
+        branchName: "Phòng khám A",
+        doctorName: "BS. Nguyễn Văn An",
+        specialty: "Khoa Nội tổng quát",
+        dateTime: today.add(const Duration(days: 1)),
+        timeSlot: "09:00 - 09:30",
+        symptomSummary: "Tư vấn tổng quát",
+        status: "Chưa khám",
+        isOnline: false,
+        riskLevel: "Thấp"));
+    _appointments.add(AppAppointment(
+        id: "APT-8812",
+        patientName: "Nguyễn Thị Hoa",
+        branchName: "Phòng khám B",
+        doctorName: "BS. Nguyễn Văn An",
+        specialty: "Khoa Xương khớp",
+        dateTime: today.add(const Duration(days: 1)),
+        timeSlot: "10:00 - 10:30",
+        symptomSummary: "Đau lưng",
+        status: "Chưa khám",
+        isOnline: false,
+        riskLevel: "Trung bình"));
 
     _auditLogs.add("[Hệ thống] Hệ thống AI Care Bridge đã sẵn sàng phục vụ.");
-    _auditLogs.add("[Hệ thống] Nạp dữ liệu thành công cho 4 chi nhánh phòng khám.");
+    _auditLogs
+        .add("[Hệ thống] Nạp dữ liệu thành công cho 4 chi nhánh phòng khám.");
   }
 
   // --- CHAT ACTIONS ---
@@ -342,7 +514,8 @@ class AppState extends ChangeNotifier {
   }
 
   void _appendUser(String text) {
-    _chatMessages.add(ChatMessage(text: text, isUser: true, time: DateTime.now()));
+    _chatMessages
+        .add(ChatMessage(text: text, isUser: true, time: DateTime.now()));
     notifyListeners();
   }
 
@@ -363,7 +536,9 @@ class AppState extends ChangeNotifier {
       final reply = await _generateBotReply(ctx);
       _isAiTyping = false;
 
-      if (reply.setSymptomsText != null) _selectedSymptomsText = reply.setSymptomsText!;
+      if (reply.setSymptomsText != null) {
+        _selectedSymptomsText = reply.setSymptomsText!;
+      }
       if (reply.setRiskLevel != null) _currentRiskLevel = reply.setRiskLevel!;
 
       _chatMessages.add(ChatMessage(
@@ -422,7 +597,8 @@ class AppState extends ChangeNotifier {
       specialty: specialty,
       dateTime: date,
       timeSlot: slot,
-      symptomSummary: symptoms.isEmpty ? "Đăng ký tư vấn y tế tổng quát" : symptoms,
+      symptomSummary:
+          symptoms.isEmpty ? "Đăng ký tư vấn y tế tổng quát" : symptoms,
       riskLevel: risk,
       status: "Chưa khám",
       vitals: {
@@ -435,7 +611,8 @@ class AppState extends ChangeNotifier {
     );
 
     _appointments.insert(0, newAppt);
-    addAuditLog("Bệnh nhân $patientName đã đặt lịch tại chi nhánh $branch với $doctor");
+    addAuditLog(
+        "Bệnh nhân $patientName đã đặt lịch tại chi nhánh $branch với $doctor");
     notifyListeners();
   }
 
@@ -458,12 +635,14 @@ class AppState extends ChangeNotifier {
       if (_activeConsultation?.id == apptId) {
         _activeConsultation = _appointments[idx];
       }
-      addAuditLog("Ca khám ${_appointments[idx].id} chuyển sang trạng thái: $status");
+      addAuditLog(
+          "Ca khám ${_appointments[idx].id} chuyển sang trạng thái: $status");
       notifyListeners();
     }
   }
 
-  void saveConsultationNotes(String apptId, String notes, List<String> medications) {
+  void saveConsultationNotes(
+      String apptId, String notes, List<String> medications) {
     final idx = _appointments.indexWhere((appt) => appt.id == apptId);
     if (idx != -1) {
       _appointments[idx] = _appointments[idx].copyWith(
@@ -473,7 +652,8 @@ class AppState extends ChangeNotifier {
       if (_activeConsultation?.id == apptId) {
         _activeConsultation = _appointments[idx];
       }
-      addAuditLog("Bác sĩ cập nhật ghi chú bệnh án cho ${appointments[idx].patientName}");
+      addAuditLog(
+          "Bác sĩ cập nhật ghi chú bệnh án cho ${appointments[idx].patientName}");
       notifyListeners();
     }
   }
@@ -488,7 +668,8 @@ class AppState extends ChangeNotifier {
       if (_activeConsultation?.id == apptId) {
         _activeConsultation = null;
       }
-      addAuditLog("BS đã ký và ban hành đơn thuốc số $apptId của bệnh nhân ${appointments[idx].patientName}");
+      addAuditLog(
+          "BS đã ký và ban hành đơn thuốc số $apptId của bệnh nhân ${appointments[idx].patientName}");
       notifyListeners();
     }
   }
@@ -504,11 +685,13 @@ class AppState extends ChangeNotifier {
           final curVitals = Map<String, double>.from(_appointments[i].vitals);
           // Subtly fluctuate pulse (-2 to +2)
           final pulseDiff = -2 + Random().nextInt(5);
-          curVitals['pulse'] = max(60, min(140, (curVitals['pulse'] ?? 78) + pulseDiff));
-          
+          curVitals['pulse'] =
+              max(60, min(140, (curVitals['pulse'] ?? 78) + pulseDiff));
+
           // Subtly fluctuate systolic
           final sysDiff = -1 + Random().nextInt(3);
-          curVitals['systolic'] = max(90, min(180, (curVitals['systolic'] ?? 120) + sysDiff));
+          curVitals['systolic'] =
+              max(90, min(180, (curVitals['systolic'] ?? 120) + sysDiff));
 
           _appointments[i] = _appointments[i].copyWith(vitals: curVitals);
           if (_activeConsultation?.id == _appointments[i].id) {
