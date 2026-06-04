@@ -3,6 +3,7 @@ import '../../state/app_state.dart';
 import '../../services/database_service.dart';
 import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
+import '../login_screen.dart';
 
 /// Tab-embedded version of the appointment booking screen.
 /// Used as a persistent tab in the patient's bottom navigation.
@@ -349,6 +350,52 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         listenable: appState,
         builder: (context, child) {
           final hasSymptoms = appState.selectedSymptomsText.isNotEmpty;
+
+          if (!appState.isAuthenticated) {
+            return GlassBackground(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.login, size: 64, color: GlassTheme.oceanBlue),
+                        const SizedBox(height: 24),
+                        Text(
+                          "Yêu cầu Đăng Nhập",
+                          style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Bạn cần đăng nhập với tài khoản Bệnh nhân để sử dụng tính năng đặt lịch khám bệnh.",
+                          textAlign: TextAlign.center,
+                          style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: GlassButton(
+                            text: "Đăng Nhập",
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(
+                                    expectedRole: UserRole.patient,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
 
           return GlassBackground(
             child: Column(

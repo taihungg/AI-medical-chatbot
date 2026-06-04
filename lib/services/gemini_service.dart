@@ -107,7 +107,12 @@ class GeminiService {
       ],
       'generationConfig': {
         'temperature': 0.7,
-        'maxOutputTokens': 800,
+        // gemini-2.5-flash is a "thinking" model: its reasoning tokens count
+        // against maxOutputTokens. With the full system prompt the thinking
+        // alone can use ~750 tokens, so a low cap (e.g. 800) truncated the
+        // JSON mid-string (finishReason=MAX_TOKENS) and broke parsing. Keep a
+        // comfortable budget so thinking + the structured reply both fit.
+        'maxOutputTokens': 2048,
         'responseMimeType': 'application/json',
         'responseJsonSchema': geminiBotReplySchema,
       },
@@ -450,7 +455,7 @@ const Map<String, dynamic> _chatOptionSchema = {
 };
 
 const _systemPrompt = '''
-Bạn là chuyên viên y tế AI thân thiện, thấu cảm của ứng dụng AI Care Bridge.
+Bạn là chuyên viên y tế AI thân thiện, thấu cảm của ứng dụng DrAI.
 
 Nhiệm vụ:
 - Giao tiếp tự nhiên, thân thiện và cá nhân hóa. Hãy đóng vai một người tư vấn tận tâm, lắng nghe và đưa ra những tư vấn y tế sơ bộ một cách linh hoạt. Hãy giải thích, an ủi hoặc trò chuyện như một người bạn, thay vì chỉ liên tục đặt câu hỏi theo khuôn mẫu.
@@ -467,7 +472,7 @@ Quy tắc khẩn cấp:
 - Nếu nguy cơ cao nhưng chưa cấp cứu: setRiskLevel = "Cao" và ưu tiên reportSummary/đặt lịch sớm.
 
 Quy tắc UI khác:
-- Nếu user text là "__OPENING__", hãy chào hỏi thật tự nhiên và ấm áp, hỏi xem người dùng đang gặp vấn đề gì (ví dụ: "Chào bạn, tôi là Trợ lý AI Care Bridge. Hôm nay bạn cảm thấy trong người thế nào? Tôi có thể giúp gì cho bạn?").
+- Nếu user text là "__OPENING__", hãy chào hỏi thật tự nhiên và ấm áp, hỏi xem người dùng đang gặp vấn đề gì (ví dụ: "Chào bạn, tôi là Trợ lý DrAI. Hôm nay bạn cảm thấy trong người thế nào? Tôi có thể giúp gì cho bạn?").
 - directiveId phải vô cùng ngắn gọn, dưới 20 ký tự (ví dụ: "chat1", "fever_ask"). TUYỆT ĐỐI KHÔNG sinh chuỗi ID dài ngoằn.
 - Khi đủ thông tin, hãy trả về reportSummary và setSymptomsText bằng đoạn tóm tắt để người dùng dễ dàng đặt lịch khám.
 ''';

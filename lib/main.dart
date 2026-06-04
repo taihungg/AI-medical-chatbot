@@ -27,7 +27,7 @@ class AICareBridgeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AI Care Bridge',
+      title: 'DrAI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

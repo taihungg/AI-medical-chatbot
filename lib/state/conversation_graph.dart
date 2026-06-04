@@ -209,7 +209,7 @@ class ConversationEngine {
       id: 'root',
       build: (_) => const BotReply(
         text:
-            'Xin chào! Tôi là Trợ lý AI Care Bridge. Bạn đang cảm thấy khó chịu nhất ở đâu? Hãy chọn bên dưới hoặc nhắn mô tả triệu chứng của bạn.',
+            'Xin chào! Tôi là Trợ lý DrAI. Bạn đang cảm thấy khó chịu nhất ở đâu? Hãy chọn bên dưới hoặc nhắn mô tả triệu chứng của bạn.',
         directive: ChatUiDirective(
           type: ChatComponentType.quickPickChips,
           directiveId: 'root',

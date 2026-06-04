@@ -1,4 +1,4 @@
-# AI Care Bridge — Mô tả dự án & Định hướng phát triển
+# DrAI — Mô tả dự án & Định hướng phát triển
 
 > Tài liệu tổng quan kiến trúc và lộ trình. Cập nhật lần cuối: 2026-06.
 
@@ -6,7 +6,7 @@
 
 ## 1. Tổng quan
 
-**AI Care Bridge** — ứng dụng **cầu nối y tế thông minh** viết bằng **Flutter** (iOS/Android/web/desktop), giao diện tiếng Việt, phong cách **glassmorphism** (kính mờ, gradient ocean-blue/cyan).
+**DrAI** — ứng dụng **cầu nối y tế thông minh** viết bằng **Flutter** (iOS/Android/web/desktop), giao diện tiếng Việt, phong cách **glassmorphism** (kính mờ, gradient ocean-blue/cyan).
 
 **3 vai trò người dùng** (chọn ở màn splash):
 - **Người dùng & Bệnh nhân** — chat với AI, đặt lịch khám, lịch sử y khoa.

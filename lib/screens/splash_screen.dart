@@ -5,6 +5,7 @@ import 'patient/symptom_flow.dart';
 import 'patient/appointment_booking_tab.dart';
 import 'doctor/specialist_dashboard.dart';
 import 'manager/clinic_management_dashboard.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -83,13 +84,13 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 40),
                 // Titles
                 Text(
-                  "AI Care Bridge",
+                  "DrAI", 
                   style: GlassTheme.h1(color: GlassTheme.oceanBlue),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "HỆ THỐNG CẦU NỐI Y TẾ THÔNG MINH",
+                  "HỆ THỐNG AI CHATBOT Y TẾ", 
                   style: GlassTheme.labelCaps(
                     color: GlassTheme.onSurfaceVariant,
                   ),
@@ -97,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  "BẮT ĐẦU TRẢI NGHIỆM PROTOTYPE (CHỌN VAI TRÒ)",
+                  "BẮT ĐẦU TRẢI NGHIỆM (CHỌN VAI TRÒ)",
                   style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
                       .copyWith(
                     fontSize: 10,
@@ -111,9 +112,9 @@ class _SplashScreenState extends State<SplashScreen>
                 // 1. Patient / Seeker Option
                 _buildRoleCard(
                   context,
-                  title: "Người Dùng & Bệnh Nhân",
+                  title: "Bệnh nhân",
                   subtitle:
-                      "Khám triệu chứng AI, đặt lịch phòng khám, tủ thuốc & tư vấn telehealth trực tuyến.",
+                      "Khám triệu chứng AI, đặt lịch phòng khám và tư vấn trực tuyến.",
                   icon: Icons.person_outline,
                   role: UserRole.patient,
                   color: GlassTheme.oceanBlue,
@@ -123,9 +124,9 @@ class _SplashScreenState extends State<SplashScreen>
                 // 2. Doctor Option
                 _buildRoleCard(
                   context,
-                  title: "Bác Sĩ & Chuyên Gia Lâm Sàng",
+                  title: "Bác sĩ",
                   subtitle:
-                      "Hàng đợi khám lâm sàng, phòng tư vấn video live, ghi chú giọng nói AI & ký số đơn thuốc.",
+                      "Hàng đợi khám lâm sàng, phòng tư vấn video live.",
                   icon: Icons.medical_services_outlined,
                   role: UserRole.doctor,
                   color: Colors.teal,
@@ -135,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                 // 3. Manager Option
                 _buildRoleCard(
                   context,
-                  title: "Ban Điều Hành & Quản Lý",
+                  title: "Quản lý phòng khám",
                   subtitle:
                       "Dashboard chỉ số bento thời gian thực, biểu đồ giờ cao điểm & nhật ký live toàn hệ thống.",
                   icon: Icons.analytics_outlined,
@@ -160,11 +161,23 @@ class _SplashScreenState extends State<SplashScreen>
     required Color color,
   }) {
     return InkWell(
-      onTap: () {
-        AppState.instance.setRole(role);
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainFramework()),
-        );
+      onTap: () async {
+        final appState = AppState.instance;
+
+        // Force login for Doctor and Manager if not authenticated
+        if (role != UserRole.patient && !appState.isAuthenticated) {
+          final success = await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: role)),
+          );
+          if (success != true) return; // Login cancelled or failed
+        }
+
+        appState.setRole(role);
+        if (context.mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const MainFramework()),
+          );
+        }
       },
       borderRadius: BorderRadius.circular(20),
       child: GlassCard(
@@ -408,8 +421,50 @@ class PatientHistoryScreen extends StatelessWidget {
             ],
           ),
           body: GlassBackground(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
+            child: !appState.isAuthenticated
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.login, size: 64, color: GlassTheme.oceanBlue),
+                            const SizedBox(height: 24),
+                            Text(
+                              "Yêu cầu Đăng Nhập",
+                              style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              "Bạn cần đăng nhập với tài khoản Bệnh nhân để xem lịch sử khám bệnh.",
+                              textAlign: TextAlign.center,
+                              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GlassButton(
+                                text: "Đăng Nhập",
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const LoginScreen(
+                                        expectedRole: UserRole.patient,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(16),
               children: [
                 Text(
                   "Hồ Sơ Y Khoa Của Bạn",

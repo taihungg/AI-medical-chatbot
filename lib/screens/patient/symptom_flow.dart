@@ -7,7 +7,6 @@ import '../../widgets/chat_directives.dart';
 import 'emergency_screens.dart';
 import '../../config/env.dart';
 
-
 /// The AI chatbot screen. A thin, pure chat shell: it renders messages and the
 /// interactive components the bot attaches to them, and forwards every user
 /// action (free text or component response) back into [AppState]. All decision
@@ -79,7 +78,6 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     _scrollToBottom();
   }
 
-
   void _onConfirmed(ChatUiDirective d, List<ChatOption> opts) {
     final echo = opts.isEmpty
         ? "Không có triệu chứng kèm theo"
@@ -106,7 +104,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     final appState = AppState.instance;
     appState.triggerBookingFromAI();
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainFramework(initialPatientTab: 1)),
+      MaterialPageRoute(
+          builder: (_) => const MainFramework(initialPatientTab: 1)),
     );
   }
 
@@ -130,7 +129,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("Đã hiểu", style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)),
+              child: Text("Đã hiểu",
+                  style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)),
             ),
           ],
         );
@@ -144,12 +144,12 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: Env.hasGeminiApiKey ? "Trợ Lý AI ✦ Gemini" : "Trợ Lý AI ✦ Demo",
-
+        title: "Tư vấn với DrAI trực tuyến",
         actions: [
           // Quick SOS access for emergencies.
           IconButton(
-            icon: const Icon(Icons.emergency_share, color: GlassTheme.error, size: 26),
+            icon: const Icon(Icons.emergency_share,
+                color: GlassTheme.error, size: 26),
             tooltip: "Cấp cứu 115",
             onPressed: _showEmergencyDialog,
           ),
@@ -172,7 +172,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
             tooltip: "Menu",
             offset: const Offset(0, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             onSelected: (index) {
               appState.setPatientNavIndex(index);
             },
@@ -181,7 +182,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 value: 0,
                 child: Row(
                   children: [
-                    Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue),
+                    Icon(Icons.chat_bubble_outline,
+                        size: 20, color: GlassTheme.oceanBlue),
                     SizedBox(width: 12),
                     Text("Tư vấn AI"),
                   ],
@@ -191,7 +193,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 value: 1,
                 child: Row(
                   children: [
-                    Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue),
+                    Icon(Icons.edit_calendar,
+                        size: 20, color: GlassTheme.oceanBlue),
                     SizedBox(width: 12),
                     Text("Đặt lịch"),
                   ],
@@ -220,7 +223,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 listenable: appState,
                 builder: (context, child) {
                   final messages = appState.chatMessages;
-                  final itemCount = messages.length + (appState.isAiTyping ? 1 : 0);
+                  final itemCount =
+                      messages.length + (appState.isAiTyping ? 1 : 0);
 
                   return ListView.builder(
                     controller: _scrollController,
@@ -235,12 +239,14 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildChatBubble(msg),
-                          if (msg.directive != null && msg.directive!.isInteractive)
+                          if (msg.directive != null &&
+                              msg.directive!.isInteractive)
                             ChatDirectiveView(
                               directive: msg.directive!,
                               enabled: !msg.directiveResolved,
                               onPicked: (opt) => _onPicked(msg.directive!, opt),
-                              onConfirmed: (opts) => _onConfirmed(msg.directive!, opts),
+                              onConfirmed: (opts) =>
+                                  _onConfirmed(msg.directive!, opts),
                               onSlider: (v) => _onSlider(msg.directive!, v),
                               onBook: _onBook,
                             ),
@@ -264,15 +270,18 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMe) ...[
             Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(color: GlassTheme.oceanBlue, shape: BoxShape.circle),
-              child: const Center(child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
+              decoration: const BoxDecoration(
+                  color: GlassTheme.oceanBlue, shape: BoxShape.circle),
+              child: const Center(
+                  child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
             ),
             const SizedBox(width: 8),
           ],
@@ -292,7 +301,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 message.text,
                 style: GlassTheme.bodyMd(
                   color: isMe ? GlassTheme.oceanBlue : GlassTheme.onSurface,
-                ).copyWith(fontWeight: isMe ? FontWeight.w600 : FontWeight.normal),
+                ).copyWith(
+                    fontWeight: isMe ? FontWeight.w600 : FontWeight.normal),
               ),
             ),
           ),
@@ -301,8 +311,10 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(gradient: GlassTheme.accentGradient, shape: BoxShape.circle),
-              child: const Center(child: Icon(Icons.person, color: Colors.white, size: 18)),
+              decoration: BoxDecoration(
+                  gradient: GlassTheme.accentGradient, shape: BoxShape.circle),
+              child: const Center(
+                  child: Icon(Icons.person, color: Colors.white, size: 18)),
             ),
           ],
         ],
@@ -318,8 +330,10 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(color: GlassTheme.oceanBlue, shape: BoxShape.circle),
-            child: const Center(child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
+            decoration: const BoxDecoration(
+                color: GlassTheme.oceanBlue, shape: BoxShape.circle),
+            child: const Center(
+                child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
           ),
           const SizedBox(width: 8),
           const GlassCard(
@@ -363,8 +377,10 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(color: GlassTheme.cyan, shape: BoxShape.circle),
-              child: const Center(child: Icon(Icons.mic, color: Colors.white, size: 22)),
+              decoration: const BoxDecoration(
+                  color: GlassTheme.cyan, shape: BoxShape.circle),
+              child: const Center(
+                  child: Icon(Icons.mic, color: Colors.white, size: 22)),
             ),
             Expanded(
               child: Padding(
@@ -408,14 +424,16 @@ class _TypingDot extends StatefulWidget {
   State<_TypingDot> createState() => _TypingDotState();
 }
 
-class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMixin {
+class _TypingDotState extends State<_TypingDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _animController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
     _anim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
@@ -437,7 +455,8 @@ class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMi
       child: Container(
         width: 8,
         height: 8,
-        decoration: const BoxDecoration(color: GlassTheme.oceanBlue, shape: BoxShape.circle),
+        decoration: const BoxDecoration(
+            color: GlassTheme.oceanBlue, shape: BoxShape.circle),
       ),
     );
   }

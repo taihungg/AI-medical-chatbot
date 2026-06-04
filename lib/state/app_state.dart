@@ -86,9 +86,43 @@ class AppState extends ChangeNotifier {
   UserRole _currentRole = UserRole.patient;
   UserRole get currentRole => _currentRole;
 
+  bool _isAuthenticated = false;
+  bool get isAuthenticated => _isAuthenticated;
+
   void setRole(UserRole role) {
     _currentRole = role;
     addAuditLog("Đã chuyển đổi vai trò sang: ${_getRoleNameVi(role)}");
+    notifyListeners();
+  }
+
+  // Fake Login logic with 3 mock accounts
+  Future<bool> login(String email, String password, UserRole expectedRole) async {
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    bool success = false;
+    if (expectedRole == UserRole.patient && email == 'benhnhan@test.com' && password == '123456') {
+      success = true;
+    } else if (expectedRole == UserRole.doctor && email == 'bacsi@test.com' && password == '123456') {
+      success = true;
+    } else if (expectedRole == UserRole.manager && email == 'quanly@test.com' && password == '123456') {
+      success = true;
+    }
+
+    if (success) {
+      _isAuthenticated = true;
+      _currentRole = expectedRole;
+      addAuditLog("Đăng nhập thành công với vai trò ${_getRoleNameVi(expectedRole)}");
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  void logout() {
+    _isAuthenticated = false;
+    _patientNavIndex = 0;
+    addAuditLog("Đã đăng xuất");
     notifyListeners();
   }
 
@@ -170,7 +204,7 @@ class AppState extends ChangeNotifier {
       time: DateTime.now(),
       directive: opening.directive,
     ));
-    _auditLogs.add("[Hệ thống] Hệ thống AI Care Bridge đã sẵn sàng phục vụ.");
+    _auditLogs.add("[Hệ thống] Hệ thống DrAI đã sẵn sàng phục vụ.");
   }
 
   void sendChatMessage(String text) {

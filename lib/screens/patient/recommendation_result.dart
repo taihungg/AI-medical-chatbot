@@ -557,7 +557,7 @@ class SelfCareScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              "Các bác sĩ AI Care Bridge đề xuất một số biện pháp hỗ trợ giảm nhẹ triệu chứng tại nhà.",
+              "Các bác sĩ DrAI đề xuất một số biện pháp hỗ trợ giảm nhẹ triệu chứng tại nhà.",
               style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
