@@ -261,6 +261,13 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
       appBar: GlassAppBar(
         title: "Tư vấn với DrAI",
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue, size: 24),
+            tooltip: "Làm mới",
+            onPressed: () {
+              appState.resetChat();
+            },
+          ),
           // Quick SOS access for emergencies.
           IconButton(
             icon: const Icon(Icons.emergency_share,
