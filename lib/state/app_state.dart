@@ -200,6 +200,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearBookingData() {
+    _selectedSymptomsText = '';
+    _currentRiskLevel = 'Thấp';
+    notifyListeners();
+  }
+
   void setActiveConsultation(AppAppointment? appt) {
     _activeConsultation = appt;
     notifyListeners();

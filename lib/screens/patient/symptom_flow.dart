@@ -7,6 +7,7 @@ import '../../widgets/glass_widgets.dart';
 import '../../widgets/chat_directives.dart';
 import '../account/account_management_screen.dart';
 import '../splash_screen.dart';
+import '../login_screen.dart';
 import 'emergency_screens.dart';
 import '../../config/env.dart';
 
@@ -281,6 +282,10 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               } else if (value == 'history') {
                 appState.setPatientNavIndex(2);
               } else if (value == 'account') {
+                if (!appState.isAuthenticated) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
                 );

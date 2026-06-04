@@ -30,6 +30,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   // Additional patient info for booking
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
+  late final TextEditingController _symptomsController;
   final TextEditingController _noteController = TextEditingController();
 
   List<String> get _branches {
@@ -49,17 +50,41 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   @override
   void initState() {
     super.initState();
-    final profile = AppState.instance.currentUserProfile;
-    _nameController = TextEditingController(text: profile?.name ?? '');
-    _phoneController = TextEditingController(text: profile?.phone ?? '');
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _symptomsController = TextEditingController();
     
     _autoAssignSpecialtyAndDoctor();
     _prefillFromAI();
+
+    AppState.instance.addListener(_onAppStateChanged);
 
     // Listen for the AI trigger after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAITrigger();
     });
+  }
+
+  @override
+  void dispose() {
+    AppState.instance.removeListener(_onAppStateChanged);
+    _nameController.dispose();
+    _phoneController.dispose();
+    _symptomsController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _onAppStateChanged() {
+    final appState = AppState.instance;
+    if (appState.pendingBookingFromAI) {
+      setState(() {
+        _prefillFromAI();
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        appState.consumeBookingTrigger();
+      });
+    }
   }
 
   void _checkAITrigger() {
@@ -74,7 +99,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   void _prefillFromAI() {
     final appState = AppState.instance;
     if (appState.selectedSymptomsText.isNotEmpty) {
-      _noteController.text = appState.selectedSymptomsText;
+      _symptomsController.text = appState.selectedSymptomsText;
+      _noteController.text = "Cần tư vấn và theo dõi thêm.";
     }
     _autoAssignSpecialtyAndDoctor();
   }
@@ -134,6 +160,22 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   }
 
   void _nextStep() {
+    if (_activeStep == 0) {
+      if (_nameController.text.trim().isEmpty || _phoneController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng điền Họ tên và Số điện thoại (bắt buộc).')),
+        );
+        return;
+      }
+    }
+    if (_activeStep == 2 && AppState.instance.selectedSymptomsText.isEmpty) {
+      if (_symptomsController.text.trim().isEmpty || _noteController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng điền Mô tả tình trạng và Ghi chú (bắt buộc).')),
+        );
+        return;
+      }
+    }
     if (_activeStep < 2) {
       setState(() {
         _activeStep++;
@@ -158,8 +200,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
       _selectedBranch = "Bệnh viện Đa Khoa Trung Ương";
       _selectedDate = DateTime.now().add(const Duration(days: 1));
       _selectedSlot = "09:00 - 09:30";
+      _symptomsController.clear();
       _noteController.clear();
     });
+    AppState.instance.clearBookingData();
     _autoAssignSpecialtyAndDoctor();
   }
 
@@ -180,15 +224,11 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           ? _nameController.text.trim()
           : defaultName,
       branch: finalBranch,
-      doctor: _selectedDoctor,
+      doctor: "Sẽ phân bổ sau",
       specialty: _selectedSpecialty,
       date: _selectedDate,
       slot: _selectedSlot,
-      symptoms: appState.selectedSymptomsText.isNotEmpty
-          ? appState.selectedSymptomsText
-          : _noteController.text.isNotEmpty
-              ? _noteController.text
-              : "Đăng ký tư vấn y tế ban đầu.",
+      symptoms: "${_symptomsController.text.trim()}${_noteController.text.trim().isNotEmpty ? '\n\nGhi chú: ${_noteController.text.trim()}' : ''}",
       risk: appState.currentRiskLevel,
     );
 
@@ -236,8 +276,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               const SizedBox(height: 8),
               Text(
                 _selectedType == "Trực tuyến"
-                    ? "Lịch tư vấn trực tuyến với $_selectedDoctor\nđã được xác nhận."
-                    : "Lịch hẹn tại $_selectedBranch\nvới $_selectedDoctor đã được xác nhận.",
+                    ? "Lịch tư vấn trực tuyến\nđã được xác nhận."
+                    : "Lịch hẹn tại $_selectedBranch\nđã được xác nhận.",
                 style: GlassTheme.bodyMd(),
                 textAlign: TextAlign.center,
               ),
@@ -284,13 +324,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     );
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _noteController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +331,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Đặt Lịch Khám",
+        title: "Đặt lịch khám",
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
@@ -313,6 +346,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               } else if (value == 'history') {
                 appState.setPatientNavIndex(2);
               } else if (value == 'account') {
+                if (!appState.isAuthenticated) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
                 );
@@ -909,7 +946,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Expanded(
               child: _buildInfoField(
                 controller: _nameController,
-                label: "Họ và tên",
+                label: "Họ và tên *",
                 icon: Icons.person,
               ),
             ),
@@ -917,7 +954,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             Expanded(
               child: _buildInfoField(
                 controller: _phoneController,
-                label: "Số điện thoại",
+                label: "Số điện thoại *",
                 icon: Icons.phone,
                 keyboardType: TextInputType.phone,
               ),
@@ -1070,91 +1107,17 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 90,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: dates.length,
-            itemBuilder: (ctx, index) {
-              final d = dates[index];
-              final isSel =
-                  _selectedDate.day == d.day && _selectedDate.month == d.month;
-              final isToday = index == 0;
-
-              return Padding(
-                padding: EdgeInsets.only(
-                  right: 10.0,
-                  left: index == 0 ? 4.0 : 0,
-                ),
-                child: InkWell(
-                  onTap: () => setState(() => _selectedDate = d),
-                  borderRadius: BorderRadius.circular(16),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: isSel
-                          ? GlassTheme.oceanBlue
-                          : Colors.white.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSel
-                            ? GlassTheme.oceanBlue
-                            : Colors.white.withValues(alpha: 0.7),
-                        width: isSel ? 2 : 1,
-                      ),
-                      boxShadow: isSel
-                          ? [
-                              BoxShadow(
-                                  color: GlassTheme.oceanBlue
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3))
-                            ]
-                          : [],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (isToday)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
-                            margin: const EdgeInsets.only(bottom: 4),
-                            decoration: BoxDecoration(
-                              color: isSel
-                                  ? Colors.white.withValues(alpha: 0.2)
-                                  : GlassTheme.cyan.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              "Gần nhất",
-                              style: GlassTheme.labelCaps(
-                                color:
-                                    isSel ? Colors.white : GlassTheme.oceanBlue,
-                              ).copyWith(fontSize: 8),
-                            ),
-                          ),
-                        Text(
-                          _getWeekdayVi(d.weekday),
-                          style: GlassTheme.labelCaps(
-                            color: isSel
-                                ? Colors.white70
-                                : GlassTheme.onSurfaceVariant,
-                          ).copyWith(fontSize: 10),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "${d.day}/${d.month}",
-                          style: GlassTheme.h3(
-                            color: isSel ? Colors.white : GlassTheme.onSurface,
-                          ).copyWith(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
+        GlassCard(
+          padding: const EdgeInsets.all(0),
+          borderColor: GlassTheme.cyan.withValues(alpha: 0.3),
+          child: CalendarDatePicker(
+            initialDate: _selectedDate,
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 365)),
+            onDateChanged: (date) {
+              setState(() {
+                _selectedDate = date;
+              });
             },
           ),
         ),
@@ -1246,53 +1209,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           }).toList(),
         ),
 
-        const SizedBox(height: 28),
-
-        // Doctor & specialty auto-assigned info
-        GlassCard(
-          borderColor: GlassTheme.cyan.withValues(alpha: 0.3),
-          borderWidth: 1,
-          opacity: 0.5,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.auto_awesome,
-                    color: GlassTheme.oceanBlue, size: 20),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Bác sĩ & Chuyên khoa được phân bổ",
-                      style: GlassTheme.labelCaps(
-                              color: GlassTheme.onSurfaceVariant)
-                          .copyWith(fontSize: 9),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _selectedDoctor,
-                      style: GlassTheme.h3()
-                          .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      _selectedSpecialty,
-                      style:
-                          GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
-                              .copyWith(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -1376,13 +1292,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               ),
               const Divider(color: Colors.white30, height: 20),
 
-              // Doctor & Specialty
-              _buildConfirmRow(
-                Icons.medical_services_outlined,
-                "Bác sĩ & Chuyên khoa",
-                "$_selectedDoctor\n$_selectedSpecialty",
-              ),
-              const Divider(color: Colors.white30, height: 20),
 
               // Date & Time
               _buildConfirmRow(
@@ -1397,58 +1306,60 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         const SizedBox(height: 16),
 
         // Symptoms note card
+        // Symptoms note card
         GlassCard(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          opacity: 0.45,
           borderColor: Colors.amber.withValues(alpha: 0.3),
-          borderWidth: 1,
-          opacity: 0.5,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.sick_outlined,
-                      size: 18, color: Colors.amber),
-                  const SizedBox(width: 8),
                   Text(
-                    "Mô tả tình trạng / Triệu chứng",
-                    style: GlassTheme.h3()
-                        .copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                    appState.selectedSymptomsText.isNotEmpty
+                        ? "Mô tả tình trạng / Triệu chứng"
+                        : "Mô tả tình trạng / Triệu chứng *",
+                    style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                   ),
+                  if (appState.selectedSymptomsText.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.psychology, size: 10, color: GlassTheme.oceanBlue),
+                          const SizedBox(width: 4),
+                          Text(
+                            "AI tự điền",
+                            style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                                .copyWith(fontSize: 8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                appState.selectedSymptomsText.isNotEmpty
-                    ? appState.selectedSymptomsText
-                    : _noteController.text.isNotEmpty
-                        ? _noteController.text
-                        : "Khám sức khỏe định kỳ.",
-                style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
-                    .copyWith(fontSize: 13, height: 1.4),
-              ),
-              const SizedBox(height: 8),
-              if (appState.selectedSymptomsText.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.psychology,
-                          size: 12, color: GlassTheme.oceanBlue),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Được điền tự động từ AI Chatbot",
-                        style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
-                            .copyWith(fontSize: 9),
-                      ),
-                    ],
-                  ),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _symptomsController,
+                style: GlassTheme.bodyMd().copyWith(fontSize: 13),
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: "Ví dụ: Sốt cao, đau đầu...",
+                  hintStyle: TextStyle(color: GlassTheme.outline, fontSize: 12),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
                 ),
+              ),
             ],
           ),
         ),
@@ -1463,10 +1374,39 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Ghi chú thêm (tuỳ chọn)",
-                  style:
-                      GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
-                          .copyWith(fontSize: 9)),
+              Row(
+                children: [
+                  Text(
+                    appState.selectedSymptomsText.isNotEmpty
+                        ? "Ghi chú thêm (tuỳ chọn)"
+                        : "Ghi chú thêm *",
+                    style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                  if (appState.selectedSymptomsText.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.psychology, size: 10, color: GlassTheme.oceanBlue),
+                          const SizedBox(width: 4),
+                          Text(
+                            "AI tự điền",
+                            style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                                .copyWith(fontSize: 8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
               const SizedBox(height: 4),
               TextField(
                 controller: _noteController,
@@ -1519,8 +1459,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   // Bottom navigation buttons
   // ═══════════════════════════════════════════════════════════════
   Widget _buildBottomButtons() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       child: Row(
         children: [
           if (_activeStep > 0) ...[
@@ -1543,6 +1484,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
