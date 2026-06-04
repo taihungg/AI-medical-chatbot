@@ -301,6 +301,47 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
               );
             },
           ),
+          PopupMenuButton<int>(
+            icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+            tooltip: "Menu",
+            offset: const Offset(0, 56),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            onSelected: (index) {
+              appState.setPatientNavIndex(index);
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 0,
+                child: Row(
+                  children: [
+                    Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Tư vấn AI"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 1,
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Đặt lịch"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 2,
+                child: Row(
+                  children: [
+                    Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Lịch sử"),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(width: 8),
         ],
       ),

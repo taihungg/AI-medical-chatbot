@@ -168,6 +168,47 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             tooltip: "Trò chuyện mới",
             onPressed: () => appState.resetChat(),
           ),
+          PopupMenuButton<int>(
+            icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+            tooltip: "Menu",
+            offset: const Offset(0, 56),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            onSelected: (index) {
+              appState.setPatientNavIndex(index);
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 0,
+                child: Row(
+                  children: [
+                    Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Tư vấn AI"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 1,
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Đặt lịch"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 2,
+                child: Row(
+                  children: [
+                    Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Lịch sử"),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -310,7 +351,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     // bottom edge sits right at the top of the floating nav bar. Only a small
     // gap is needed to separate the chat bar from the nav bar.
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       child: GlassCard(
         padding: const EdgeInsets.all(8),
         borderRadius: 32,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/glass_widgets.dart';
 import '../state/app_state.dart';
-import '../widgets/role_switcher.dart';
 import 'patient/symptom_flow.dart';
 import 'patient/appointment_booking_tab.dart';
 import 'doctor/specialist_dashboard.dart';
@@ -298,19 +297,15 @@ class _MainFrameworkState extends State<MainFramework> {
       GlassNavItem(icon: Icons.edit_calendar, label: "Đặt lịch"),
       GlassNavItem(icon: Icons.history, label: "Lịch sử"),
     ];
-
-    final activeIndex = _patientNavIndex >= pages.length ? 0 : _patientNavIndex;
-    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    final appState = AppState.instance;
+    final activeIndex = appState.patientNavIndex;
 
     // Auto-switch to booking tab when AI triggers it
-    final appState = AppState.instance;
-    if (appState.pendingBookingFromAI && _patientNavIndex != 1) {
+    if (appState.pendingBookingFromAI && activeIndex != 1) {
       // Schedule the tab switch after the current frame to avoid build-during-build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          setState(() {
-            _patientNavIndex = 1;
-          });
+          appState.setPatientNavIndex(1);
           appState.consumeBookingTrigger();
         }
       });
@@ -322,17 +317,6 @@ class _MainFrameworkState extends State<MainFramework> {
         index: activeIndex,
         children: pages,
       ),
-      bottomNavigationBar: isKeyboardOpen
-          ? null
-          : GlassNavigationBar(
-              selectedIndex: activeIndex,
-              onTap: (index) {
-                setState(() {
-                  _patientNavIndex = index;
-                });
-              },
-              items: items,
-            ),
     );
   }
 }
@@ -372,7 +356,57 @@ class PatientHistoryScreen extends StatelessWidget {
         final doneAppts = appState.appointments;
 
         return Scaffold(
-          appBar: const GlassAppBar(title: "Lịch Sử Khám Bệnh"),
+          appBar: GlassAppBar(
+            title: "Lịch Sử Khám Bệnh",
+            actions: [
+              PopupMenuButton<int>(
+                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+                tooltip: "Menu",
+                offset: const Offset(0, 56),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                onSelected: (index) {
+                  appState.setPatientNavIndex(index);
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 0,
+                    child: Row(
+                      children: [
+                        Icon(Icons.chat_bubble_outline,
+                            size: 20, color: GlassTheme.oceanBlue),
+                        SizedBox(width: 12),
+                        Text("Tư vấn AI"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 1,
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_calendar,
+                            size: 20, color: GlassTheme.oceanBlue),
+                        SizedBox(width: 12),
+                        Text("Đặt lịch"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 2,
+                    child: Row(
+                      children: [
+                        Icon(Icons.history,
+                            size: 20, color: GlassTheme.oceanBlue),
+                        SizedBox(width: 12),
+                        Text("Lịch sử"),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           body: GlassBackground(
             child: ListView(
               padding: const EdgeInsets.all(16),

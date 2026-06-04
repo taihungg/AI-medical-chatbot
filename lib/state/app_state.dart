@@ -103,6 +103,16 @@ class AppState extends ChangeNotifier {
   final List<ChatMessage> _chatMessages = [];
   List<ChatMessage> get chatMessages => _chatMessages;
 
+  int _patientNavIndex = 0;
+  int get patientNavIndex => _patientNavIndex;
+
+  void setPatientNavIndex(int index) {
+    if (_patientNavIndex != index) {
+      _patientNavIndex = index;
+      notifyListeners();
+    }
+  }
+
   bool _isAiTyping = false;
   bool get isAiTyping => _isAiTyping;
 
