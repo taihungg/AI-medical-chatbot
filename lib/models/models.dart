@@ -1,5 +1,44 @@
 import 'dart:convert';
 
+// ---------- User Profile ----------
+class UserProfile {
+  String name;
+  String phone;
+  String email;
+  String address;
+
+  UserProfile({
+    required this.name,
+    required this.phone,
+    required this.email,
+    required this.address,
+  });
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
+        name: json['name'] ?? '',
+        phone: json['phone'] ?? '',
+        email: json['email'] ?? '',
+        address: json['address'] ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'address': address,
+      };
+
+  UserProfile clone() {
+    return UserProfile(
+      name: name,
+      phone: phone,
+      email: email,
+      address: address,
+    );
+  }
+}
+
+
 // ---------- Patient ----------
 class Patient {
   final String id;

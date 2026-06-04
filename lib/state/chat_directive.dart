@@ -1,4 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+
+/// An image the user attached to a chat turn (e.g. a wound, rash, prescription
+/// or lab result). Held in memory as raw bytes so it renders identically on
+/// every platform (incl. web) and can be base64-encoded for Gemini's vision
+/// `inlineData` input without touching the filesystem.
+class ChatAttachment {
+  final Uint8List bytes;
+  final String mimeType;
+
+  const ChatAttachment({required this.bytes, required this.mimeType});
+}
 
 /// ─────────────────────────────────────────────────────────────────────────
 /// Gemini-ready UI directive model.
@@ -286,6 +299,7 @@ class ChatTurnContext {
   final String? selectedValue; // single chip / yesNo / bodyPart / time value
   final List<String>? selectedValues; // multi-select values
   final double? sliderValue; // severity
+  final ChatAttachment? image; // optional image the user attached this turn
 
   const ChatTurnContext({
     this.userText = '',
@@ -293,6 +307,7 @@ class ChatTurnContext {
     this.selectedValue,
     this.selectedValues,
     this.sliderValue,
+    this.image,
   });
 
   bool get isFreeText => directiveId == null;

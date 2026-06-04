@@ -16,6 +16,7 @@ class ChatMessage {
   final DateTime time;
   final ChatUiDirective? directive;
   bool directiveResolved;
+  final ChatAttachment? image;
 
   ChatMessage({
     required this.text,
@@ -23,6 +24,7 @@ class ChatMessage {
     required this.time,
     this.directive,
     this.directiveResolved = false,
+    this.image,
   });
 }
 
@@ -112,6 +114,16 @@ class AppState extends ChangeNotifier {
     if (success) {
       _isAuthenticated = true;
       _currentRole = expectedRole;
+      
+      // Load mock profile based on role
+      if (expectedRole == UserRole.patient) {
+        _currentUserProfile = UserProfile(name: "Nguyễn Văn Bệnh Nhân", phone: "0901234567", email: email, address: "123 Đường Bệnh Nhân, TP.HCM");
+      } else if (expectedRole == UserRole.doctor) {
+        _currentUserProfile = UserProfile(name: "BS. Nguyễn Văn An", phone: "0912345678", email: email, address: "456 Đường Bác Sĩ, Hà Nội");
+      } else {
+        _currentUserProfile = UserProfile(name: "Trần Quản Lý", phone: "0987654321", email: email, address: "789 Đường Quản Lý, Đà Nẵng");
+      }
+
       addAuditLog("Đăng nhập thành công với vai trò ${_getRoleNameVi(expectedRole)}");
       notifyListeners();
       return true;
@@ -122,7 +134,17 @@ class AppState extends ChangeNotifier {
   void logout() {
     _isAuthenticated = false;
     _patientNavIndex = 0;
+    _currentUserProfile = null;
     addAuditLog("Đã đăng xuất");
+    notifyListeners();
+  }
+
+  UserProfile? _currentUserProfile;
+  UserProfile? get currentUserProfile => _currentUserProfile;
+
+  void updateUserProfile(UserProfile profile) {
+    _currentUserProfile = profile;
+    addAuditLog("Đã cập nhật thông tin tài khoản cá nhân");
     notifyListeners();
   }
 
@@ -207,11 +229,16 @@ class AppState extends ChangeNotifier {
     _auditLogs.add("[Hệ thống] Hệ thống DrAI đã sẵn sàng phục vụ.");
   }
 
-  void sendChatMessage(String text) {
-    if (text.trim().isEmpty) return;
-    _appendUser(text);
-    addAuditLog("Bệnh nhân nhắn: $text");
-    _runTurn(ChatTurnContext(userText: text));
+  void sendChatMessage(String text, {ChatAttachment? image}) {
+    if (text.trim().isEmpty && image == null) return;
+    _appendUser(text, image: image);
+    if (image != null) {
+      addAuditLog(
+          "Bệnh nhân gửi ảnh kèm: ${text.isEmpty ? '(không có mô tả)' : text}");
+    } else {
+      addAuditLog("Bệnh nhân nhắn: $text");
+    }
+    _runTurn(ChatTurnContext(userText: text, image: image));
   }
 
   void respondToDirective({
@@ -232,8 +259,13 @@ class AppState extends ChangeNotifier {
     ));
   }
 
-  void _appendUser(String text) {
-    _chatMessages.add(ChatMessage(text: text, isUser: true, time: DateTime.now()));
+  void _appendUser(String text, {ChatAttachment? image}) {
+    _chatMessages.add(ChatMessage(
+      text: text,
+      isUser: true,
+      time: DateTime.now(),
+      image: image,
+    ));
     notifyListeners();
   }
 
@@ -324,6 +356,7 @@ class AppState extends ChangeNotifier {
             text: m.text,
             directive: m.directive?.toJson(),
             directiveResolved: m.directiveResolved,
+            image: m.image,
           ))
         .toList();
   }

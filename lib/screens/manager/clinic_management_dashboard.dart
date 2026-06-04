@@ -5,6 +5,8 @@ import '../../widgets/glass_widgets.dart';
 import 'doctor_management_screen.dart';
 import 'patient_records_screen.dart';
 import 'master_appointment_screen.dart';
+import '../account/account_management_screen.dart';
+import '../splash_screen.dart';
 
 class ClinicManagerDashboard extends StatefulWidget {
   const ClinicManagerDashboard({super.key});
@@ -65,28 +67,86 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
         final apptCount = appState.appointments.length;
 
         return Scaffold(
-          appBar: const GlassAppBar(
+          appBar: GlassAppBar(
             title: "Bảng Điều Hành Phòng Khám",
             actions: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: GlassTheme.oceanBlue,
-                      child: Icon(Icons.admin_panel_settings,
-                          color: Colors.white, size: 20),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+                offset: const Offset(0, 56),
+                tooltip: "Menu Quản lý",
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    appState.logout();
+                  } else if (value == 'account') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
+                    );
+                  } else if (value == 'settings') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
+                    );
+                  } else if (value == 'switch_role') {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const SplashScreen()),
+                    );
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'info',
+                    enabled: false,
+                    child: Text(
+                      appState.currentUserProfile?.name ?? "Trần Quốc Hùng",
+                      style: GlassTheme.bodyLg().copyWith(
+                          fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      "Quản lý: Trần Quốc Hùng",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'account',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Quản lý tài khoản"),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Cài đặt"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red, size: 20),
+                        SizedBox(width: 12),
+                        Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'switch_role',
+                    child: Row(
+                      children: [
+                        Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(width: 8),
             ],
           ),
           body: GlassBackground(

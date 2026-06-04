@@ -5,6 +5,7 @@ import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../models/models.dart';
 import '../splash_screen.dart';
+import '../account/account_management_screen.dart';
 
 import 'doctor_components.dart';
 import 'doctor_timetable_screen.dart';
@@ -67,13 +68,13 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
             title: isMobile ? "Bác Sĩ" : "Cổng Thông Tin Bác Sĩ",
             actions: [
               PopupMenuButton<String>(
-                offset: const Offset(0, 40),
+                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+                offset: const Offset(0, 56),
                 tooltip: "Menu Bác sĩ",
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 onSelected: (value) {
                   if (value == 'logout') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const SplashScreen()),
-                    );
+                    appState.logout();
                   } else if (value == 'toggle_busy') {
                     appState.toggleDoctorBusy();
                   } else if (value == 'dashboard') {
@@ -88,6 +89,18 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       MaterialPageRoute(
                           builder: (_) => const DoctorTimetableScreen()),
                     );
+                  } else if (value == 'account') {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
+                    );
+                  } else if (value == 'settings') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
+                    );
+                  } else if (value == 'switch_role') {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const SplashScreen()),
+                    );
                   }
                 },
                 itemBuilder: (context) => [
@@ -95,7 +108,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                     value: 'info',
                     enabled: false,
                     child: Text(
-                      _doctorName,
+                      appState.currentUserProfile?.name ?? _doctorName,
                       style: GlassTheme.bodyLg().copyWith(
                           fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
@@ -106,7 +119,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                     child: Row(
                       children: [
                         Icon(Icons.dashboard_outlined,
-                            size: 20, color: Colors.black54),
+                            size: 20, color: GlassTheme.oceanBlue),
                         SizedBox(width: 12),
                         Text("Trang Chủ"),
                       ],
@@ -117,7 +130,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                     child: Row(
                       children: [
                         Icon(Icons.calendar_month_outlined,
-                            size: 20, color: Colors.black54),
+                            size: 20, color: GlassTheme.oceanBlue),
                         SizedBox(width: 12),
                         Text("Lịch Làm Việc"),
                       ],
@@ -154,6 +167,27 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                   ),
                   const PopupMenuDivider(),
                   const PopupMenuItem(
+                    value: 'account',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Quản lý tài khoản"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Cài đặt"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
                     value: 'logout',
                     child: Row(
                       children: [
@@ -163,34 +197,19 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       ],
                     ),
                   ),
-                ],
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: appState.isDoctorBusy
-                            ? Colors.red
-                            : GlassTheme.oceanBlue,
-                        child: const Icon(Icons.person_pin,
-                            color: Colors.white, size: 20),
-                      ),
-                      if (!isMobile) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          _doctorName,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: appState.isDoctorBusy ? Colors.red : null,
-                          ),
-                        ),
+                  const PopupMenuItem(
+                    value: 'switch_role',
+                    child: Row(
+                      children: [
+                        Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
                       ],
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
+              const SizedBox(width: 8),
             ],
           ),
           body: GlassBackground(

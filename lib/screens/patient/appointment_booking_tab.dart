@@ -4,6 +4,7 @@ import '../../services/database_service.dart';
 import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
 import '../login_screen.dart';
+import '../account/account_management_screen.dart';
 
 /// Tab-embedded version of the appointment booking screen.
 /// Used as a persistent tab in the patient's bottom navigation.
@@ -292,27 +293,37 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
       appBar: GlassAppBar(
         title: "Đặt Lịch Khám",
         actions: [
-          IconButton(
-            icon: const Icon(Icons.swap_horizontal_circle_outlined,
-                color: GlassTheme.oceanBlue, size: 28),
-            tooltip: "Đổi vai trò",
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const SplashScreen()),
-              );
-            },
-          ),
-          PopupMenuButton<int>(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
             tooltip: "Menu",
             offset: const Offset(0, 56),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (index) {
-              appState.setPatientNavIndex(index);
+            onSelected: (value) {
+              if (value == 'ai_chat') {
+                appState.setPatientNavIndex(0);
+              } else if (value == 'booking') {
+                appState.setPatientNavIndex(1);
+              } else if (value == 'history') {
+                appState.setPatientNavIndex(2);
+              } else if (value == 'account') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
+                );
+              } else if (value == 'settings') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
+                );
+              } else if (value == 'logout') {
+                appState.logout();
+              } else if (value == 'switch_role') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const SplashScreen()),
+                );
+              }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 0,
+                value: 'ai_chat',
                 child: Row(
                   children: [
                     Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue),
@@ -322,7 +333,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 ),
               ),
               const PopupMenuItem(
-                value: 1,
+                value: 'booking',
                 child: Row(
                   children: [
                     Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue),
@@ -332,12 +343,54 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 ),
               ),
               const PopupMenuItem(
-                value: 2,
+                value: 'history',
                 child: Row(
                   children: [
                     Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue),
                     SizedBox(width: 12),
                     Text("Lịch sử"),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'account',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Quản lý tài khoản"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Cài đặt"),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'switch_role',
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
                   ],
                 ),
               ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import '../splash_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../models/models.dart';
 import '../../state/app_state.dart';
 import '../../state/chat_directive.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../widgets/chat_directives.dart';
+import '../account/account_management_screen.dart';
+import '../splash_screen.dart';
 import 'emergency_screens.dart';
 import '../../config/env.dart';
 
@@ -22,6 +25,10 @@ class SymptomFlowScreen extends StatefulWidget {
 class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker();
+
+  // Image selected but not yet sent (shown as a preview above the input).
+  ChatAttachment? _pendingImage;
 
   @override
   void initState() {
@@ -48,10 +55,116 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 
   void _handleSend(String text) {
-    if (text.trim().isEmpty) return;
-    AppState.instance.sendChatMessage(text);
+    final image = _pendingImage;
+    if (text.trim().isEmpty && image == null) return;
+    AppState.instance.sendChatMessage(text, image: image);
     _inputController.clear();
+    setState(() => _pendingImage = null);
     _scrollToBottom();
+  }
+
+  // ── image attachment ───────────────────────────────────────────────────────
+
+  /// Lets the user attach a photo from the camera or gallery. The bytes are
+  /// kept in memory (works on every platform incl. web) and previewed before
+  /// sending. Compressed on pick to keep the base64 payload small.
+  Future<void> _pickFrom(ImageSource source) async {
+    try {
+      final file = await _picker.pickImage(
+        source: source,
+        maxWidth: 1280,
+        imageQuality: 70,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _pendingImage = ChatAttachment(
+          bytes: bytes,
+          mimeType: _mimeTypeFor(file),
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không thể truy cập ảnh. Vui lòng kiểm tra quyền truy cập.")),
+      );
+    }
+  }
+
+  String _mimeTypeFor(XFile file) {
+    final mime = file.mimeType;
+    if (mime != null && mime.startsWith('image/')) return mime;
+    final name = file.name.toLowerCase();
+    if (name.endsWith('.png')) return 'image/png';
+    if (name.endsWith('.webp')) return 'image/webp';
+    if (name.endsWith('.heic') || name.endsWith('.heif')) return 'image/heic';
+    if (name.endsWith('.gif')) return 'image/gif';
+    return 'image/jpeg';
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: GlassTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined,
+                    color: GlassTheme.oceanBlue),
+                title: Text("Chụp ảnh", style: GlassTheme.bodyMd()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _pickFrom(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined,
+                    color: GlassTheme.oceanBlue),
+                title: Text("Chọn từ thư viện", style: GlassTheme.bodyMd()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _pickFrom(ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFullImage(ChatAttachment image) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(12),
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: Center(child: Image.memory(image.bytes)),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── component response handlers → AppState.respondToDirective ──────────────
@@ -64,8 +177,9 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
         (m) => m.isUser,
         orElse: () => ChatMessage(text: '', isUser: true, time: DateTime.now()),
       );
-      if (lastUserMsg.text.isNotEmpty) {
-        AppState.instance.sendChatMessage(lastUserMsg.text);
+      if (lastUserMsg.text.isNotEmpty || lastUserMsg.image != null) {
+        AppState.instance
+            .sendChatMessage(lastUserMsg.text, image: lastUserMsg.image);
       }
       _scrollToBottom();
       return;
@@ -153,33 +267,38 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             tooltip: "Cấp cứu 115",
             onPressed: _showEmergencyDialog,
           ),
-          IconButton(
-            icon: const Icon(Icons.swap_horizontal_circle_outlined,
-                color: GlassTheme.oceanBlue, size: 28),
-            tooltip: "Đổi vai trò",
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const SplashScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue),
-            tooltip: "Trò chuyện mới",
-            onPressed: () => appState.resetChat(),
-          ),
-          PopupMenuButton<int>(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
             tooltip: "Menu",
             offset: const Offset(0, 56),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (index) {
-              appState.setPatientNavIndex(index);
+            onSelected: (value) {
+              if (value == 'ai_chat') {
+                appState.setPatientNavIndex(0);
+              } else if (value == 'booking') {
+                appState.setPatientNavIndex(1);
+              } else if (value == 'history') {
+                appState.setPatientNavIndex(2);
+              } else if (value == 'account') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
+                );
+              } else if (value == 'settings') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
+                );
+              } else if (value == 'logout') {
+                appState.logout();
+              } else if (value == 'switch_role') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const SplashScreen()),
+                );
+              }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 0,
+                value: 'ai_chat',
                 child: Row(
                   children: [
                     Icon(Icons.chat_bubble_outline,
@@ -190,7 +309,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 ),
               ),
               const PopupMenuItem(
-                value: 1,
+                value: 'booking',
                 child: Row(
                   children: [
                     Icon(Icons.edit_calendar,
@@ -201,12 +320,55 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
                 ),
               ),
               const PopupMenuItem(
-                value: 2,
+                value: 'history',
                 child: Row(
                   children: [
-                    Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue),
+                    Icon(Icons.history,
+                        size: 20, color: GlassTheme.oceanBlue),
                     SizedBox(width: 12),
                     Text("Lịch sử"),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'account',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Quản lý tài khoản"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Cài đặt"),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'switch_role',
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
                   ],
                 ),
               ),
@@ -297,12 +459,40 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               opacity: isMe ? 0.8 : 0.6,
               borderColor: isMe ? GlassTheme.oceanBlue : Colors.white,
               borderWidth: 1.0,
-              child: Text(
-                message.text,
-                style: GlassTheme.bodyMd(
-                  color: isMe ? GlassTheme.oceanBlue : GlassTheme.onSurface,
-                ).copyWith(
-                    fontWeight: isMe ? FontWeight.w600 : FontWeight.normal),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (message.image != null) ...[
+                    GestureDetector(
+                      onTap: () => _showFullImage(message.image!),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: 200,
+                            maxWidth: 240,
+                          ),
+                          child: Image.memory(
+                            message.image!.bytes,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (message.text.isNotEmpty) const SizedBox(height: 8),
+                  ],
+                  if (message.text.isNotEmpty)
+                    Text(
+                      message.text,
+                      style: GlassTheme.bodyMd(
+                        color:
+                            isMe ? GlassTheme.oceanBlue : GlassTheme.onSurface,
+                      ).copyWith(
+                          fontWeight:
+                              isMe ? FontWeight.w600 : FontWeight.normal),
+                    ),
+                ],
               ),
             ),
           ),
@@ -360,6 +550,44 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     );
   }
 
+  Widget _buildPendingImagePreview() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.memory(
+                _pendingImage!.bytes,
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned(
+              top: -8,
+              right: -8,
+              child: GestureDetector(
+                onTap: () => setState(() => _pendingImage = null),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: GlassTheme.error,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildChatBar() {
     // GlassBackground already wraps the body in a SafeArea, so the Column's
     // bottom edge sits right at the top of the floating nav bar. Only a small
@@ -371,42 +599,47 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
         borderRadius: 32,
         opacity: 0.8,
         borderColor: GlassTheme.oceanBlue,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                  color: GlassTheme.cyan, shape: BoxShape.circle),
-              child: const Center(
-                  child: Icon(Icons.mic, color: Colors.white, size: 22)),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: TextField(
-                  controller: _inputController,
-                  style: GlassTheme.bodyMd(),
-                  maxLines: 5,
-                  minLines: 1,
-                  keyboardType: TextInputType.multiline,
-                  textCapitalization: TextCapitalization.sentences,
-                  // No textInputAction.send — keeps Vietnamese Telex typing intact.
-                  decoration: InputDecoration(
-                    hintText: "Mô tả triệu chứng của bạn...",
-                    hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  onSubmitted: _handleSend,
+            if (_pendingImage != null) _buildPendingImagePreview(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.add_photo_alternate_outlined,
+                      color: GlassTheme.oceanBlue, size: 26),
+                  tooltip: "Đính kèm ảnh",
+                  onPressed: _showImageSourceSheet,
                 ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.send, color: GlassTheme.oceanBlue),
-              onPressed: () => _handleSend(_inputController.text),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: TextField(
+                      controller: _inputController,
+                      style: GlassTheme.bodyMd(),
+                      maxLines: 5,
+                      minLines: 1,
+                      keyboardType: TextInputType.multiline,
+                      textCapitalization: TextCapitalization.sentences,
+                      // No textInputAction.send — keeps Vietnamese Telex typing intact.
+                      decoration: InputDecoration(
+                        hintText: "Mô tả triệu chứng của bạn...",
+                        hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onSubmitted: _handleSend,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send, color: GlassTheme.oceanBlue),
+                  onPressed: () => _handleSend(_inputController.text),
+                ),
+              ],
             ),
           ],
         ),

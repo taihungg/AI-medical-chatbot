@@ -10,12 +10,14 @@ class GeminiChatMessage {
   final String text;
   final Map<String, dynamic>? directive;
   final bool directiveResolved;
+  final ChatAttachment? image;
 
   const GeminiChatMessage({
     required this.role,
     required this.text,
     this.directive,
     this.directiveResolved = false,
+    this.image,
   });
 
   Map<String, dynamic> toJson() => {
@@ -23,6 +25,9 @@ class GeminiChatMessage {
         'text': text,
         if (directive != null) 'directive': directive,
         if (directiveResolved) 'directiveResolved': true,
+        // Marks that this turn carried an image; the actual bytes are sent as
+        // separate inlineData parts so the model can correlate them by order.
+        if (image != null) 'hasImage': true,
       };
 }
 
@@ -39,6 +44,11 @@ class GeminiService {
 
   static const _endpointBase =
       'https://generativelanguage.googleapis.com/v1beta/models';
+
+  // Cap on how many of the conversation's images we resend each turn. Lets the
+  // model still "see" a recently-shared photo for follow-up questions without
+  // letting a long thread of images inflate the request.
+  static const _maxImages = 3;
 
   Future<BotReply> generateReply({
     required ChatTurnContext turn,
@@ -84,6 +94,40 @@ class GeminiService {
     required String currentRiskLevel,
     required String selectedSymptomsText,
   }) {
+    // Collect the images carried by this conversation, keeping only the most
+    // recent few so a long thread of photos can't bloat the request. Each
+    // becomes an inlineData part appended after the text. The latest turn's
+    // image is usually already in `history` (the user message is appended
+    // before the turn runs), so dedupe by identity to avoid sending it twice.
+    final images = <ChatAttachment>[
+      for (final m in history)
+        if (m.image != null) m.image!,
+    ];
+    if (turn.image != null && !images.any((i) => identical(i, turn.image))) {
+      images.add(turn.image!);
+    }
+    final recentImages = images.length > _maxImages
+        ? images.sublist(images.length - _maxImages)
+        : images;
+
+    final userParts = <Map<String, dynamic>>[
+      {
+        'text': jsonEncode({
+          'currentRiskLevel': currentRiskLevel,
+          'selectedSymptomsText': selectedSymptomsText,
+          'latestTurn': _turnToJson(turn),
+          'history': _historyToJson(history),
+        }),
+      },
+      for (final img in recentImages)
+        {
+          'inlineData': {
+            'mimeType': img.mimeType,
+            'data': base64Encode(img.bytes),
+          },
+        },
+    ];
+
     return {
       'systemInstruction': {
         'parts': [
@@ -93,16 +137,7 @@ class GeminiService {
       'contents': [
         {
           'role': 'user',
-          'parts': [
-            {
-              'text': jsonEncode({
-                'currentRiskLevel': currentRiskLevel,
-                'selectedSymptomsText': selectedSymptomsText,
-                'latestTurn': _turnToJson(turn),
-                'history': _historyToJson(history),
-              }),
-            },
-          ],
+          'parts': userParts,
         },
       ],
       'generationConfig': {
@@ -259,6 +294,7 @@ class GeminiService {
         if (turn.selectedValue != null) 'selectedValue': turn.selectedValue,
         if (turn.selectedValues != null) 'selectedValues': turn.selectedValues,
         if (turn.sliderValue != null) 'sliderValue': turn.sliderValue,
+        if (turn.image != null) 'hasImage': true,
         'isFreeText': turn.isFreeText,
       };
 }
@@ -463,6 +499,12 @@ Nhiệm vụ:
 - TRONG TRƯỜNG "text", CHỈ ĐƯỢC VIẾT VĂN BẢN THÔNG THƯỜNG (TEXT). TUYỆT ĐỐI KHÔNG LỒNG THÊM JSON VÀO TRONG TRƯỜNG "text".
 - Không chẩn đoán chắc chắn, không kê đơn chắc chắn, không thay thế bác sĩ.
 - Luôn khuyến nghị gọi cấp cứu hoặc mở SOS khi có dấu hiệu khẩn cấp.
+
+Xử lý hình ảnh:
+- Người dùng có thể GỬI ẢNH (vết thương, phát ban, tổn thương da, đơn thuốc, kết quả xét nghiệm...). Ảnh được đính kèm dưới dạng phần inlineData; các lượt có ảnh được đánh dấu "hasImage": true trong dữ liệu ngữ cảnh.
+- Khi có ảnh: hãy MÔ TẢ KHÁCH QUAN những gì bạn quan sát được (vị trí, màu sắc, kích thước, đặc điểm) và đưa nhận định đó vào đánh giá triệu chứng tổng thể.
+- TUYỆT ĐỐI KHÔNG chẩn đoán chắc chắn chỉ dựa trên ảnh. Nếu ảnh mờ/thiếu sáng/không rõ, hãy lịch sự yêu cầu người dùng chụp lại rõ hơn.
+- Nếu ảnh cho thấy dấu hiệu đáng ngại (vết thương sâu/chảy máu nhiều, nhiễm trùng lan rộng, tổn thương nghi ngờ ác tính...), nâng mức nguy cơ phù hợp và khuyến nghị khám trực tiếp hoặc cấp cứu.
 
 Sử dụng UI components (directives):
 - Bạn CÓ THỂ thêm "directive" vào JSON nếu nó giúp người dùng trả lời nhanh (quickPickChips, multiSelectChips, vv.), nhưng KHÔNG BẮT BUỘC. Nếu không cần, chỉ trả về JSON có trường "text", bỏ qua "directive".
