@@ -259,8 +259,11 @@ class AppState extends ChangeNotifier {
       );
     } catch (e) {
       addAuditLog("Gemini error: $e");
+      final isRateLimit = e.toString().contains('HTTP 429');
       return BotReply(
-        text: 'Đã có lỗi xảy ra khi kết nối tới AI. Vui lòng kiểm tra mạng hoặc thử lại.',
+        text: isRateLimit
+            ? 'Hệ thống AI đang nhận quá nhiều yêu cầu. Vui lòng đợi 30 giây rồi thử lại.'
+            : 'Đã có lỗi xảy ra khi kết nối tới AI. Vui lòng kiểm tra mạng hoặc thử lại.',
         directive: const ChatUiDirective(
           type: ChatComponentType.retryButton,
           directiveId: 'gemini_retry',

@@ -29,7 +29,7 @@ class GeminiChatMessage {
 class GeminiService {
   GeminiService({
     required this.apiKey,
-    this.model = 'gemini-3.5-flash',
+    this.model = 'gemini-2.5-flash',
     http.Client? client,
   }) : _client = client ?? http.Client();
 
@@ -106,7 +106,8 @@ class GeminiService {
         },
       ],
       'generationConfig': {
-        'temperature': 0.35,
+        'temperature': 0.7,
+        'maxOutputTokens': 800,
         'responseMimeType': 'application/json',
         'responseJsonSchema': geminiBotReplySchema,
       },
@@ -217,7 +218,14 @@ class GeminiService {
             final text = _extractTextSafe(parsed);
             if (text.isNotEmpty) {
               buffer.write(text);
-              onPartialText?.call(buffer.toString());
+              if (onPartialText != null) {
+                final match = RegExp(r'"text"\s*:\s*"((?:[^"\\]|\\.)*)').firstMatch(buffer.toString());
+                if (match != null) {
+                  String extracted = match.group(1) ?? '';
+                  extracted = extracted.replaceAll('\\n', '\n').replaceAll('\\"', '"').replaceAll('\\\\', '\\');
+                  onPartialText(extracted);
+                }
+              }
             }
           } catch (_) {
             // Skip non-JSON lines
@@ -446,13 +454,13 @@ Bạn là chuyên viên y tế AI thân thiện, thấu cảm của ứng dụng
 
 Nhiệm vụ:
 - Giao tiếp tự nhiên, thân thiện và cá nhân hóa. Hãy đóng vai một người tư vấn tận tâm, lắng nghe và đưa ra những tư vấn y tế sơ bộ một cách linh hoạt. Hãy giải thích, an ủi hoặc trò chuyện như một người bạn, thay vì chỉ liên tục đặt câu hỏi theo khuôn mẫu.
-- Trả về JSON duy nhất đúng schema. Không bọc markdown. Không thêm text ngoài JSON.
+- LUÔN TRẢ VỀ ĐÚNG MỘT OBJECT JSON theo schema yêu cầu. KHÔNG bọc bằng markdown (```json).
+- TRONG TRƯỜNG "text", CHỈ ĐƯỢC VIẾT VĂN BẢN THÔNG THƯỜNG (TEXT). TUYỆT ĐỐI KHÔNG LỒNG THÊM JSON VÀO TRONG TRƯỜNG "text".
 - Không chẩn đoán chắc chắn, không kê đơn chắc chắn, không thay thế bác sĩ.
 - Luôn khuyến nghị gọi cấp cứu hoặc mở SOS khi có dấu hiệu khẩn cấp.
 
 Sử dụng UI components (directives):
-- Bạn CÓ THỂ sử dụng các component nếu nó giúp người dùng trả lời nhanh (quickPickChips, multiSelectChips, severitySlider, timeRangePicker, yesNo, bodyPartPicker), nhưng KHÔNG BẮT BUỘC phải dùng ở mọi câu.
-- Hãy ưu tiên dùng type = "none" nếu bạn chỉ muốn phản hồi bằng văn bản tự do, trò chuyện, hoặc đưa ra lời khuyên mà không cần người dùng phải bấm nút chọn.
+- Bạn CÓ THỂ thêm "directive" vào JSON nếu nó giúp người dùng trả lời nhanh (quickPickChips, multiSelectChips, vv.), nhưng KHÔNG BẮT BUỘC. Nếu không cần, chỉ trả về JSON có trường "text", bỏ qua "directive".
 
 Quy tắc khẩn cấp:
 - Nếu có triệu chứng nguy kịch (đau ngực kèm khó thở, ngất, vã mồ hôi lạnh, yếu liệt đột ngột, chảy máu nặng, sốc phản vệ...): trả về type = "emergencyAlert", kèm theo lời khuyên rõ ràng yêu cầu bệnh nhân đến ngay bệnh viện hoặc gọi cấp cứu 115. Đặt setRiskLevel = "Khẩn cấp".
@@ -460,7 +468,7 @@ Quy tắc khẩn cấp:
 
 Quy tắc UI khác:
 - Nếu user text là "__OPENING__", hãy chào hỏi thật tự nhiên và ấm áp, hỏi xem người dùng đang gặp vấn đề gì (ví dụ: "Chào bạn, tôi là Trợ lý AI Care Bridge. Hôm nay bạn cảm thấy trong người thế nào? Tôi có thể giúp gì cho bạn?").
-- directiveId phải ngắn gọn, không dấu (ví dụ: "chat_free", "symptom_detail").
+- directiveId phải vô cùng ngắn gọn, dưới 20 ký tự (ví dụ: "chat1", "fever_ask"). TUYỆT ĐỐI KHÔNG sinh chuỗi ID dài ngoằn.
 - Khi đủ thông tin, hãy trả về reportSummary và setSymptomsText bằng đoạn tóm tắt để người dùng dễ dàng đặt lịch khám.
 ''';
 

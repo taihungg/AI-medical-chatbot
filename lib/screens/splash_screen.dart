@@ -263,31 +263,7 @@ class _MainFrameworkState extends State<MainFramework> {
           canPop: false,
           child: Material(
             color: Colors.transparent,
-            child: Stack(
-              children: [
-                // Dynamic view based on Active Role
-                _buildRoleScreen(appState.currentRole),
-
-                // Always visible floating debugger Role Console.
-                // Positioned.fill gives the RoleSwitcher's internal Stack a
-                // bounded size (it positions its own children via bottom/right).
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: Stack(
-                      children: const [
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            ignoring: false,
-                            child: RoleSwitcher(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: _buildRoleScreen(appState.currentRole),
           ),
         );
       },
