@@ -23,6 +23,7 @@ enum ChatComponentType {
   yesNo, // friendly yes/no buttons (triage, confirmations)
   bodyPartPicker, // body-region picker
   reportSummary, // structured report card + "Đặt lịch" CTA
+  retryButton, // Retry button shown when Gemini API fails
 }
 
 /// Maps a stable icon name (what Gemini emits as a string) to an [IconData].

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import '../config/env.dart';
+import '../services/gemini_service.dart';
 import 'chat_directive.dart';
 import 'conversation_graph.dart';
 
@@ -11,7 +13,7 @@ enum UserRole {
 }
 
 class ChatMessage {
-  final String text;
+  String text;
   final bool isUser;
   final DateTime time;
 
@@ -108,9 +110,9 @@ class AppAppointment {
 }
 
 class AppState extends ChangeNotifier {
-  // Singleton Pattern
-  static final AppState _instance = AppState._internal();
-  static AppState get instance => _instance;
+  // Singleton Pattern — lazy so dotenv is loaded before first access
+  static AppState? _instance;
+  static AppState get instance => _instance ??= AppState._internal();
   AppState._internal() {
     _initDefaults();
   }
@@ -199,6 +201,9 @@ class AppState extends ChangeNotifier {
   /// The scripted bot brain. This is the MVP seam — swapping in Gemini means
   /// replacing what [_generateBotReply] delegates to, not touching the UI.
   final ConversationEngine _engine = ConversationEngine();
+  final GeminiService? _geminiService = Env.hasGeminiApiKey
+      ? GeminiService(apiKey: Env.geminiApiKey, model: Env.geminiModel)
+      : null;
 
   /// Set true for one notify cycle when the bot decides to route the patient
   /// to the SOS emergency screen. The chat UI consumes it and navigates.
@@ -533,7 +538,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     Timer(const Duration(milliseconds: 900), () async {
-      final reply = await _generateBotReply(ctx);
+      ChatMessage? streamingMsg;
+      if (_geminiService != null) {
+        _isAiTyping = false;
+        streamingMsg = ChatMessage(text: '', isUser: false, time: DateTime.now());
+        _chatMessages.add(streamingMsg);
+        notifyListeners();
+      }
+
+      final reply = await _generateBotReply(ctx, onPartialText: (text) {
+        if (streamingMsg != null) {
+          streamingMsg.text = text;
+          notifyListeners();
+        }
+      });
       _isAiTyping = false;
 
       if (reply.setSymptomsText != null) {
@@ -541,6 +559,10 @@ class AppState extends ChangeNotifier {
       }
       if (reply.setRiskLevel != null) _currentRiskLevel = reply.setRiskLevel!;
 
+      if (streamingMsg != null) {
+        // Replace the placeholder with the final message containing the directive
+        _chatMessages.removeLast();
+      }
       _chatMessages.add(ChatMessage(
         text: reply.text,
         isUser: false,
@@ -556,9 +578,46 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  /// THE SEAM. MVP: scripted engine. Later: `return GeminiService.reply(ctx)`.
-  Future<BotReply> _generateBotReply(ChatTurnContext ctx) async {
-    return _engine.next(ctx);
+  /// THE SEAM. Uses Gemini when configured, otherwise falls back to the
+  /// scripted engine so the MVP remains runnable without an API key.
+  Future<BotReply> _generateBotReply(ChatTurnContext ctx, {void Function(String)? onPartialText}) async {
+    final gemini = _geminiService;
+    if (gemini == null) {
+      return _engine.next(ctx);
+    }
+
+    try {
+      return await gemini.generateReplyStreamed(
+        turn: ctx,
+        history: _geminiHistorySnapshot(),
+        currentRiskLevel: _currentRiskLevel,
+        selectedSymptomsText: _selectedSymptomsText,
+        onPartialText: onPartialText,
+      );
+    } catch (e) {
+      addAuditLog("Gemini error: $e");
+      return BotReply(
+        text: 'Đã có lỗi xảy ra khi kết nối tới AI. Vui lòng kiểm tra mạng hoặc thử lại.',
+        directive: const ChatUiDirective(
+          type: ChatComponentType.retryButton,
+          directiveId: 'gemini_retry',
+          allowFreeText: false,
+        ),
+      );
+    }
+  }
+
+  List<GeminiChatMessage> _geminiHistorySnapshot() {
+    return _chatMessages
+        .map(
+          (m) => GeminiChatMessage(
+            role: m.isUser ? 'user' : 'assistant',
+            text: m.text,
+            directive: m.directive?.toJson(),
+            directiveResolved: m.directiveResolved,
+          ),
+        )
+        .toList();
   }
 
   void resetChat() {
@@ -566,6 +625,16 @@ class AppState extends ChangeNotifier {
     _currentRiskLevel = 'Thấp';
     _selectedSymptomsText = '';
     _isAiTyping = false;
+    _engine.reset();
+    
+    if (_geminiService != null) {
+      // Use Gemini to generate the opening message
+      addAuditLog("Người dùng đặt lại cuộc trò chuyện AI (Gemini).");
+      _runTurn(const ChatTurnContext(userText: '__OPENING__'));
+      return;
+    }
+
+    // Fallback: use scripted opening
     final opening = _engine.opening();
     _chatMessages.add(ChatMessage(
       text: opening.text,
@@ -573,7 +642,7 @@ class AppState extends ChangeNotifier {
       time: DateTime.now(),
       directive: opening.directive,
     ));
-    addAuditLog("Người dùng đặt lại cuộc trò chuyện AI.");
+    addAuditLog("Người dùng đặt lại cuộc trò chuyện AI (Demo).");
     notifyListeners();
   }
 

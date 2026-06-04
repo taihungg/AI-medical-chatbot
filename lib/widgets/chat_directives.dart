@@ -60,6 +60,41 @@ class ChatDirectiveView extends StatelessWidget {
             directive: directive, enabled: enabled, onPicked: onPicked);
       case ChatComponentType.reportSummary:
         return _ReportSummaryCard(report: directive.report!, onBook: onBook);
+      case ChatComponentType.retryButton:
+        return _DirectiveShell(
+          enabled: enabled,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.error_outline, color: GlassTheme.error, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      directive.prompt ?? 'Không thể kết nối AI. Vui lòng thử lại.',
+                      style: GlassTheme.bodyMd(color: GlassTheme.error).copyWith(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (enabled)
+                Row(
+                  children: [
+                    Expanded(
+                      child: GlassButton(
+                        text: 'Thử lại',
+                        onPressed: () => onPicked(
+                          const ChatOption(label: 'Thử lại', value: '__retry__'),
+                        ),
+                        icon: Icons.refresh,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        );
     }
   }
 }

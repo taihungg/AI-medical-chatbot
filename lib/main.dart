@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'state/app_state.dart';
 import 'screens/splash_screen.dart';
 
-void main() {
+void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load .env file (contains GEMINI_API_KEY)
+  await dotenv.load(fileName: ".env");
 
   // Pre-initialize and start any simulation background loops if needed
   AppState.instance.startVitalsSimulation();

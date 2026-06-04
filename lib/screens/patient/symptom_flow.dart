@@ -5,6 +5,8 @@ import '../../state/chat_directive.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../widgets/chat_directives.dart';
 import 'emergency_screens.dart';
+import '../../config/env.dart';
+
 
 /// The AI chatbot screen. A thin, pure chat shell: it renders messages and the
 /// interactive components the bot attaches to them, and forwards every user
@@ -59,6 +61,19 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   // ── component response handlers → AppState.respondToDirective ──────────────
 
   void _onPicked(ChatUiDirective d, ChatOption opt) {
+    if (opt.value == '__retry__') {
+      // Retry: find the last user message and resend it
+      final messages = AppState.instance.chatMessages;
+      final lastUserMsg = messages.lastWhere(
+        (m) => m.isUser,
+        orElse: () => ChatMessage(text: '', isUser: true, time: DateTime.now()),
+      );
+      if (lastUserMsg.text.isNotEmpty) {
+        AppState.instance.sendChatMessage(lastUserMsg.text);
+      }
+      _scrollToBottom();
+      return;
+    }
     AppState.instance.respondToDirective(
       directiveId: d.directiveId,
       selectedValue: opt.value,
@@ -66,6 +81,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     );
     _scrollToBottom();
   }
+
 
   void _onConfirmed(ChatUiDirective d, List<ChatOption> opts) {
     final echo = opts.isEmpty
@@ -118,7 +134,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Trợ Lý Y Tế AI",
+        title: Env.hasGeminiApiKey ? "Trợ Lý AI ✦ Gemini" : "Trợ Lý AI ✦ Demo",
+
         actions: [
           // Quick SOS access for emergencies.
           IconButton(
