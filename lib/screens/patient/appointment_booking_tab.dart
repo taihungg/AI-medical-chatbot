@@ -28,10 +28,8 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   String _selectedSlot = "09:00 - 09:30";
 
   // Additional patient info for booking
-  final TextEditingController _nameController =
-      TextEditingController(text: "Nguyễn Minh Anh");
-  final TextEditingController _phoneController =
-      TextEditingController(text: "0912 345 678");
+  late final TextEditingController _nameController;
+  late final TextEditingController _phoneController;
   final TextEditingController _noteController = TextEditingController();
 
   List<String> get _branches {
@@ -51,6 +49,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   @override
   void initState() {
     super.initState();
+    final profile = AppState.instance.currentUserProfile;
+    _nameController = TextEditingController(text: profile?.name ?? '');
+    _phoneController = TextEditingController(text: profile?.phone ?? '');
+    
     _autoAssignSpecialtyAndDoctor();
     _prefillFromAI();
 
@@ -163,15 +165,20 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
   void _finalizeBooking() {
     final appState = AppState.instance;
+    final profile = appState.currentUserProfile;
 
     final finalBranch = _selectedType == "Trực tuyến"
         ? "Phòng khám A - Trực tuyến"
         : _selectedBranch;
 
+    final defaultName = (profile != null && profile.name.isNotEmpty) 
+        ? profile.name 
+        : "Bệnh nhân";
+
     appState.bookAppointment(
       patientName: _nameController.text.trim().isNotEmpty
           ? _nameController.text.trim()
-          : "Nguyễn Minh Anh",
+          : defaultName,
       branch: finalBranch,
       doctor: _selectedDoctor,
       specialty: _selectedSpecialty,

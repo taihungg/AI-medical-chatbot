@@ -258,7 +258,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Tư vấn với DrAI trực tuyến",
+        title: "Tư vấn với DrAI",
         actions: [
           // Quick SOS access for emergencies.
           IconButton(
