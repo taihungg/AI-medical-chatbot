@@ -337,9 +337,12 @@ class ConversationEngine {
       id: 'emergency_sos',
       build: (_) => const BotReply(
         text:
-            'Đây có thể là tình huống cấp cứu. Tôi đang mở màn hình gọi cấp cứu 115 cho bạn. Nếu đây là nhầm lẫn, bạn có thể huỷ ngay.',
+            'Đây có thể là tình huống cấp cứu. Vui lòng làm theo hướng dẫn khẩn cấp.',
         setRiskLevel: 'Khẩn cấp',
-        triggerEmergencySos: true,
+        directive: ChatUiDirective(
+          type: ChatComponentType.emergencyAlert,
+          directiveId: 'emergency_alert',
+        ),
       ),
     ),
     'severity': ScriptedNode(

@@ -273,7 +273,6 @@ BotReply parseBotReplyJson(String rawJson) {
     setSymptomsText: decoded['setSymptomsText'] as String?,
     setRiskLevel: risk as String?,
     triggerBooking: decoded['triggerBooking'] as bool? ?? false,
-    triggerEmergencySos: decoded['triggerEmergencySos'] as bool? ?? false,
   );
 }
 
@@ -296,6 +295,7 @@ void _validateDirective(ChatUiDirective directive) {
   switch (directive.type) {
     case ChatComponentType.none:
     case ChatComponentType.retryButton:
+    case ChatComponentType.emergencyAlert:
       return;
     case ChatComponentType.quickPickChips:
     case ChatComponentType.multiSelectChips:
@@ -351,6 +351,7 @@ const Map<String, dynamic> geminiBotReplySchema = {
             'yesNo',
             'bodyPartPicker',
             'reportSummary',
+            'emergencyAlert',
           ],
         },
         'prompt': {'type': 'string'},
@@ -403,7 +404,6 @@ const Map<String, dynamic> geminiBotReplySchema = {
       'enum': ['Thấp', 'Trung bình', 'Cao', 'Khẩn cấp'],
     },
     'triggerBooking': {'type': 'boolean'},
-    'triggerEmergencySos': {'type': 'boolean'},
   },
   'required': ['text'],
 };
@@ -458,10 +458,11 @@ Các component được phép:
 - yesNo: câu hỏi có/không.
 - bodyPartPicker: chọn vùng cơ thể.
 - reportSummary: báo cáo cuối cùng có CTA đặt lịch.
+- emergencyAlert: thẻ cảnh báo nguy kịch, khuyên đi cấp cứu hoặc gọi 115.
 - none: chỉ trả lời text, không component.
 
 Quy tắc khẩn cấp:
-- Nếu có đau ngực kèm khó thở, ngất, vã mồ hôi lạnh, đau lan tay/hàm; co giật; yếu liệt/nói khó đột ngột; chảy máu nặng; sốc phản vệ; khó thở nặng: setRiskLevel = "Khẩn cấp", triggerEmergencySos = true, không cần trả directive.
+- Nếu có đau ngực kèm khó thở, ngất, vã mồ hôi lạnh, đau lan tay/hàm; co giật; yếu liệt/nói khó đột ngột; chảy máu nặng; sốc phản vệ; khó thở nặng: trả về type = "emergencyAlert", kèm theo lời khuyên rõ ràng yêu cầu bệnh nhân đến ngay bệnh viện hoặc gọi cấp cứu 115. Đặt setRiskLevel = "Khẩn cấp".
 - Nếu nguy cơ cao nhưng chưa cấp cứu: setRiskLevel = "Cao" và ưu tiên reportSummary/đặt lịch sớm.
 
 Quy tắc UI:

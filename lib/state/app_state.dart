@@ -205,12 +205,6 @@ class AppState extends ChangeNotifier {
       ? GeminiService(apiKey: Env.geminiApiKey, model: Env.geminiModel)
       : null;
 
-  /// Set true for one notify cycle when the bot decides to route the patient
-  /// to the SOS emergency screen. The chat UI consumes it and navigates.
-  bool _pendingEmergencySos = false;
-  bool get pendingEmergencySos => _pendingEmergencySos;
-  void consumeEmergencySos() => _pendingEmergencySos = false;
-
   // Appointments
   final List<AppAppointment> _appointments = [];
   List<AppAppointment> get appointments => _appointments;
@@ -570,7 +564,6 @@ class AppState extends ChangeNotifier {
         directive: reply.directive,
       ));
 
-      if (reply.triggerEmergencySos) _pendingEmergencySos = true;
       if (reply.triggerBooking) triggerBookingFromAI();
 
       addAuditLog("AI phản hồi (${reply.directive?.type.name ?? 'text'}).");

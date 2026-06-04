@@ -24,6 +24,7 @@ enum ChatComponentType {
   bodyPartPicker, // body-region picker
   reportSummary, // structured report card + "Đặt lịch" CTA
   retryButton, // Retry button shown when Gemini API fails
+  emergencyAlert, // Prominent inline warning to call 115 or go to hospital
 }
 
 /// Maps a stable icon name (what Gemini emits as a string) to an [IconData].
@@ -266,7 +267,6 @@ class BotReply {
   final String? setSymptomsText; // structured report string for booking prefill
   final String? setRiskLevel; // 'Thấp' | 'Trung bình' | 'Cao' | 'Khẩn cấp'
   final bool triggerBooking; // fire AppState.triggerBookingFromAI()
-  final bool triggerEmergencySos; // route to the SOS screen
 
   const BotReply({
     required this.text,
@@ -274,7 +274,6 @@ class BotReply {
     this.setSymptomsText,
     this.setRiskLevel,
     this.triggerBooking = false,
-    this.triggerEmergencySos = false,
   });
 }
 

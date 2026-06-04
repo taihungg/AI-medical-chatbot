@@ -60,6 +60,8 @@ class ChatDirectiveView extends StatelessWidget {
             directive: directive, enabled: enabled, onPicked: onPicked);
       case ChatComponentType.reportSummary:
         return _ReportSummaryCard(report: directive.report!, onBook: onBook);
+      case ChatComponentType.emergencyAlert:
+        return const _EmergencyAlertCard();
       case ChatComponentType.retryButton:
         return _DirectiveShell(
           enabled: enabled,
@@ -577,3 +579,89 @@ class _ReportSummaryCard extends StatelessWidget {
     );
   }
 }
+
+// ── 8. emergency alert card ─────────────────────────────────────────────────
+class _EmergencyAlertCard extends StatelessWidget {
+  const _EmergencyAlertCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 4, left: 40, right: 4),
+      child: GlassCard(
+        borderColor: GlassTheme.error,
+        borderWidth: 1.5,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.error.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.emergency_share,
+                      color: GlassTheme.error, size: 24),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "CẢNH BÁO KHẨN CẤP",
+                    style: GlassTheme.h3(color: GlassTheme.error)
+                        .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Text(
+              "Tình trạng của bạn có dấu hiệu nguy hiểm. Vui lòng làm theo hướng dẫn sau:",
+              style: GlassTheme.bodyMd(color: GlassTheme.onSurface)
+                  .copyWith(height: 1.4, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            _reportRow("1.", "Gọi ngay cấp cứu 115 hoặc nhờ người nhà đưa đến cơ sở y tế gần nhất."),
+            _reportRow("2.", "Không tự ý dùng thuốc hoặc vận động mạnh."),
+            _reportRow("3.", "Mở cửa sẵn sàng để đội cấp cứu có thể vào dễ dàng."),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: GlassButton(
+                    text: "Đã hiểu",
+                    icon: Icons.check,
+                    isPrimary: false,
+                    onPressed: () {},
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _reportRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 20,
+            child: Text(label,
+                style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.bold, color: GlassTheme.error)),
+          ),
+          Expanded(
+            child: Text(value,
+                style: GlassTheme.bodyMd()),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

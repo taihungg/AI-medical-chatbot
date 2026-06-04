@@ -27,13 +27,10 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   @override
   void initState() {
     super.initState();
-    // React to the emergency SOS flag outside of build().
-    AppState.instance.addListener(_maybeHandleEmergency);
   }
 
   @override
   void dispose() {
-    AppState.instance.removeListener(_maybeHandleEmergency);
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -113,19 +110,32 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     );
   }
 
-  /// Bot routed to emergency — open the SOS screen once.
-  void _maybeHandleEmergency() {
-    final appState = AppState.instance;
-    if (appState.pendingEmergencySos) {
-      appState.consumeEmergencySos();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const SOSEmergencyAlertScreen()),
-          );
-        }
-      });
-    }
+  void _showEmergencyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: GlassTheme.surface.withValues(alpha: 0.9),
+          title: Row(
+            children: [
+              const Icon(Icons.emergency_share, color: GlassTheme.error),
+              const SizedBox(width: 10),
+              Text("CẢNH BÁO", style: GlassTheme.h3(color: GlassTheme.error)),
+            ],
+          ),
+          content: Text(
+            "Nếu bạn hoặc người thân đang gặp tình trạng nguy hiểm, vui lòng gọi ngay 115 hoặc đến cơ sở y tế gần nhất.",
+            style: GlassTheme.bodyMd(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Đã hiểu", style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -141,11 +151,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
           IconButton(
             icon: const Icon(Icons.emergency_share, color: GlassTheme.error, size: 26),
             tooltip: "Cấp cứu 115",
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SOSEmergencyAlertScreen()),
-              );
-            },
+            onPressed: _showEmergencyDialog,
           ),
           IconButton(
             icon: const Icon(Icons.swap_horizontal_circle_outlined,
