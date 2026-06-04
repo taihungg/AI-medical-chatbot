@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'state/app_state.dart';
 import 'screens/splash_screen.dart';
+import 'services/database_service.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -10,6 +11,9 @@ void main() async {
 
   // Load .env file (contains GEMINI_API_KEY)
   await dotenv.load(fileName: ".env");
+
+  // Initialize the local database
+  await DatabaseService.instance.init();
 
   // Pre-initialize and start any simulation background loops if needed
   AppState.instance.startVitalsSimulation();

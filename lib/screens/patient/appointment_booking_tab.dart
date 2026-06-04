@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
+import '../../services/database_service.dart';
 import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
 
@@ -18,9 +19,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
   // Selected data
   String _selectedType = "Trực tiếp";
-  String _selectedBranch = "Phòng khám A - Quận 1, TP. HCM";
-  String _selectedSpecialty = "Khoa Nội tổng quát";
-  String _selectedDoctor = "BS. Lê Thị Bình";
+  String _selectedBranch = "Bệnh viện Đa Khoa Trung Ương";
+  String _selectedSpecialty = "Khoa Tim mạch";
+  String _selectedDoctor = "BS. Nguyễn Văn An";
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   String _selectedSlot = "09:00 - 09:30";
 
@@ -31,12 +32,9 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
       TextEditingController(text: "0912 345 678");
   final TextEditingController _noteController = TextEditingController();
 
-  final List<String> _branches = [
-    "Phòng khám A - Quận 1, TP. HCM",
-    "Phòng khám B - Hoàn Kiếm, Hà Nội",
-    "Phòng khám C - Hải Châu, Đà Nẵng",
-    "Phòng khám D - Ninh Kiều, Cần Thơ"
-  ];
+  List<String> get _branches {
+    return DatabaseService.instance.doctors.map((e) => e.branch).toSet().toList();
+  }
 
   final List<String> _timeSlots = [
     "08:00 - 08:30",
@@ -153,7 +151,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     setState(() {
       _activeStep = 0;
       _selectedType = "Trực tiếp";
-      _selectedBranch = "Phòng khám A - Quận 1, TP. HCM";
+      _selectedBranch = "Bệnh viện Đa Khoa Trung Ương";
       _selectedDate = DateTime.now().add(const Duration(days: 1));
       _selectedSlot = "09:00 - 09:30";
       _noteController.clear();
@@ -594,7 +592,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 isSelected: _selectedType == "Trực tiếp",
                 onTap: () => setState(() {
                   _selectedType = "Trực tiếp";
-                  _selectedBranch = "Phòng khám A - Quận 1, TP. HCM";
+                  _selectedBranch = "Bệnh viện Đa Khoa Trung Ương";
                 }),
               ),
             ),

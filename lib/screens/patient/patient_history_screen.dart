@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
+import '../../models/models.dart';
 import '../splash_screen.dart';
 
 class PatientHistoryScreen extends StatelessWidget {

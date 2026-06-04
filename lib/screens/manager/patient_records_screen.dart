@@ -1,29 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/glass_widgets.dart';
-
-class Patient {
-  final String id;
-  final String name;
-  final String phone;
-  final int age;
-  final String gender;
-  final String lastVisit;
-  final String category;
-  final String healthStatus; // 'Ổn định', 'Khẩn cấp'
-  final String aiSymptomSummary;
-
-  Patient({
-    required this.id,
-    required this.name,
-    required this.phone,
-    required this.age,
-    required this.gender,
-    required this.lastVisit,
-    required this.category,
-    required this.healthStatus,
-    required this.aiSymptomSummary,
-  });
-}
+import '../../services/database_service.dart';
+import '../../models/models.dart';
 
 class PatientRecordsScreen extends StatefulWidget {
   const PatientRecordsScreen({super.key});
@@ -37,57 +15,6 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'Tất cả';
 
-  // Mock data mô phỏng dữ liệu kết hợp Symptom Flow
-  final List<Patient> _allPatients = [
-    Patient(
-      id: 'BN-8801',
-      name: 'Trần Thế Bảo',
-      phone: '0901234567',
-      age: 45,
-      gender: 'Nam',
-      lastVisit: 'Hôm nay',
-      category: 'Khách mới',
-      healthStatus: 'Khẩn cấp',
-      aiSymptomSummary:
-          'Bệnh nhân báo cáo đau đầu dữ dội vùng thái dương kéo dài 3 ngày, kèm buồn nôn nhẹ. Huyết áp đo tại nhà (theo lời khai) là 150/95. AI phân loại nguy cơ cao (Red Flag), đề xuất khám chuyên khoa Thần Kinh ngay lập tức.',
-    ),
-    Patient(
-      id: 'BN-8802',
-      name: 'Lê Thị Thu Thảo',
-      phone: '0987654321',
-      age: 32,
-      gender: 'Nữ',
-      lastVisit: '12/05/2026',
-      category: 'Tái khám',
-      healthStatus: 'Ổn định',
-      aiSymptomSummary:
-          'Bệnh nhân tái khám định kỳ trào ngược dạ dày. Các triệu chứng ợ chua đã giảm 80% sau 2 tuần dùng thuốc theo toa cũ. Không có triệu chứng mới phát sinh. AI đánh giá tiến triển tốt.',
-    ),
-    Patient(
-      id: 'BN-8803',
-      name: 'Vũ Hoàng Minh',
-      phone: '0911223344',
-      age: 50,
-      gender: 'Nam',
-      lastVisit: '01/05/2026',
-      category: 'Cần theo dõi',
-      healthStatus: 'Khẩn cấp',
-      aiSymptomSummary:
-          'Chỉ số đường huyết (tự đo) tăng đột biến lên 12 mmol/L trong 2 ngày qua. Bệnh nhân có biểu hiện mệt mỏi, khát nước nhiều. AI cảnh báo rủi ro biến chứng tiểu đường, yêu cầu liên hệ bệnh nhân gấp.',
-    ),
-    Patient(
-      id: 'BN-8804',
-      name: 'Nguyễn Ngọc Anh',
-      phone: '0933445566',
-      age: 28,
-      gender: 'Nữ',
-      lastVisit: 'Hôm qua',
-      category: 'Khách mới',
-      healthStatus: 'Ổn định',
-      aiSymptomSummary:
-          'Triệu chứng cảm cúm thông thường: Sốt nhẹ 37.8, sổ mũi, ho khan. Đã test nhanh Covid-19 âm tính. AI dự đoán viêm hô hấp trên do virus, đề xuất tư vấn Telehealth để cấp thuốc giảm triệu chứng.',
-    ),
-  ];
 
   late List<Patient> _filteredPatients;
 
@@ -101,12 +28,12 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
   @override
   void initState() {
     super.initState();
-    _filteredPatients = _allPatients;
+    _filteredPatients = DatabaseService.instance.patients;
   }
 
   void _filterPatients() {
     setState(() {
-      _filteredPatients = _allPatients.where((p) {
+      _filteredPatients = DatabaseService.instance.patients.where((p) {
         // Shneiderman: Tìm kiếm thông minh qua Tên HOẶC Số điện thoại
         final searchLower = _searchQuery.toLowerCase();
         final matchSearch = p.name.toLowerCase().contains(searchLower) ||

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../widgets/role_switcher.dart';
+import '../../models/models.dart';
 import 'clinical_workspace.dart';
 
 class DoctorTimetableScreen extends StatefulWidget {

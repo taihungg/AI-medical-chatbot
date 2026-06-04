@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
+import '../../services/database_service.dart';
+import '../../models/models.dart';
 import '../../widgets/glass_widgets.dart';
 
 class MedicationCatalogScreen extends StatefulWidget {
@@ -23,54 +25,6 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
     "Giảm đau"
   ];
 
-  final List<Map<String, String>> _medications = [
-    {
-      "name": "Paracetamol (Panadol) 500mg",
-      "cat": "Giảm đau",
-      "use": "Hạ sốt nhanh, giảm các cơn đau đầu từ nhẹ đến trung bình.",
-      "dose": "Uống 1-2 viên mỗi 4-6 giờ khi có triệu chứng đau sốt.",
-      "pack": "Vỉ 10 viên"
-    },
-    {
-      "name": "Decolgen Forte",
-      "cat": "Hô hấp",
-      "use": "Điều trị nghẹt mũi, sổ mũi, cảm cúm, hắt hơi kèm sốt nhẹ.",
-      "dose": "Uống ngày 3 lần, mỗi lần 1 viên sau ăn.",
-      "pack": "Vỉ 4 viên"
-    },
-    {
-      "name": "Siro Ho Thảo Dược Prospan",
-      "cat": "Hô hấp",
-      "use":
-          "Giảm ho khan, ho có đờm, làm sạch phế quản và chống viêm phế quản.",
-      "dose": "Uống ngày 3 lần, mỗi lần 5ml sau ăn.",
-      "pack": "Chai 100ml"
-    },
-    {
-      "name": "Oresol (Điện giải bù nước)",
-      "cat": "Tiêu hóa",
-      "use":
-          "Bù nước và muối điện giải do sốt cao, tiêu chảy hoặc vận động mạnh.",
-      "dose": "Hòa tan 1 gói với 1 lít nước đun sôi để nguội. Uống rải rác.",
-      "pack": "Gói bột sủi"
-    },
-    {
-      "name": "Smecta 3g",
-      "cat": "Tiêu hóa",
-      "use":
-          "Hỗ trợ bao niêm mạc ruột trong điều trị tiêu chảy cấp và trào ngược dạ dày.",
-      "dose": "Hòa tan ngày 2-3 gói với nước ấm, uống trước ăn.",
-      "pack": "Hộp 30 gói"
-    },
-    {
-      "name": "Amlodipine 5mg",
-      "cat": "Tim mạch",
-      "use":
-          "Kiểm soát tăng huyết áp mãn tính và ngăn ngừa cơn đau thắt ngực ổn định.",
-      "dose": "Uống duy nhất 1 viên vào khung giờ cố định buổi sáng.",
-      "pack": "Vỉ 10 viên"
-    },
-  ];
 
   @override
   void dispose() {
@@ -78,13 +32,13 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
     super.dispose();
   }
 
-  List<Map<String, String>> _getFilteredMeds() {
-    return _medications.where((med) {
+  List<Medication> _getFilteredMeds() {
+    return DatabaseService.instance.medications.where((med) {
       final matchCat =
-          _activeCategory == "Tất cả" || med["cat"] == _activeCategory;
+          _activeCategory == "Tất cả" || med.category == _activeCategory;
       final matchQuery =
-          med["name"]!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              med["use"]!.toLowerCase().contains(_searchQuery.toLowerCase());
+          med.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              med.usage.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchCat && matchQuery;
     }).toList();
   }
@@ -343,7 +297,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  med["name"]!,
+                                  med.name,
                                   style: GlassTheme.h3().copyWith(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold),
@@ -357,7 +311,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    med["cat"]!,
+                                    med.category,
                                     style: GlassTheme.labelCaps(
                                             color: GlassTheme.oceanBlue)
                                         .copyWith(fontSize: 8),
@@ -367,12 +321,12 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              "Chỉ định: ${med["use"]!}",
+                              "Chỉ định: ${med.usage}",
                               style: GlassTheme.bodyMd().copyWith(fontSize: 12),
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              "Liều lượng: ${med["dose"]!}",
+                              "Liều lượng: ${med.usage}",
                               style: GlassTheme.bodyMd(
                                       color: GlassTheme.onSurfaceVariant)
                                   .copyWith(fontSize: 11),
@@ -383,7 +337,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Quy cách: ${med["pack"]!}",
+                                  "Quy cách: ${med.type}",
                                   style: GlassTheme.labelCaps(
                                           color: GlassTheme.outline)
                                       .copyWith(fontSize: 9),

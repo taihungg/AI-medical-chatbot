@@ -1,30 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/glass_widgets.dart';
-
-class Doctor {
-  final String id;
-  String name;
-  String specialty;
-  String branch;
-  String status; // 'Hoạt động', 'Nghỉ phép', 'Đã khóa'
-  String phone;
-  String email;
-  int pendingPrescriptions;
-  int finalizedPrescriptions;
-
-  Doctor({
-    required this.id,
-    required this.name,
-    required this.specialty,
-    required this.branch,
-    required this.status,
-    required this.phone,
-    this.email = '',
-    this.pendingPrescriptions = 0,
-    this.finalizedPrescriptions = 0,
-  });
-}
-
+import '../../services/database_service.dart';
+import '../../models/models.dart';
 class DoctorManagementScreen extends StatefulWidget {
   const DoctorManagementScreen({super.key});
 
@@ -37,49 +14,6 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
   String _searchQuery = '';
   String _selectedSpecialty = 'Tất cả';
 
-  // Mock data mô phỏng từ AppState
-  final List<Doctor> _allDoctors = [
-    Doctor(
-        id: 'BS01',
-        name: 'Nguyễn Văn An',
-        specialty: 'Khoa Tim mạch',
-        branch: 'Chi nhánh Quận 1',
-        status: 'Hoạt động',
-        phone: '0901234567',
-        email: 'an.nguyen@aicare.vn',
-        pendingPrescriptions: 5,
-        finalizedPrescriptions: 12),
-    Doctor(
-        id: 'BS02',
-        name: 'Lê Thị Bình',
-        specialty: 'Khoa Nội tổng quát',
-        branch: 'Chi nhánh Hoàn Kiếm',
-        status: 'Nghỉ phép',
-        phone: '0912345678',
-        email: 'binh.le@aicare.vn',
-        pendingPrescriptions: 0,
-        finalizedPrescriptions: 8),
-    Doctor(
-        id: 'BS03',
-        name: 'Trần Quốc Đạt',
-        specialty: 'Khoa Thần kinh',
-        branch: 'Chi nhánh Hải Châu',
-        status: 'Đã khóa',
-        phone: '0987654321',
-        email: 'dat.tran@aicare.vn',
-        pendingPrescriptions: 0,
-        finalizedPrescriptions: 0),
-    Doctor(
-        id: 'BS04',
-        name: 'Phạm Minh Tâm',
-        specialty: 'Khoa Tim mạch',
-        branch: 'Chi nhánh Quận 1',
-        status: 'Hoạt động',
-        phone: '0909998887',
-        email: 'tam.pham@aicare.vn',
-        pendingPrescriptions: 12,
-        finalizedPrescriptions: 45),
-  ];
 
   late List<Doctor> _filteredDoctors;
 
@@ -94,12 +28,12 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
   @override
   void initState() {
     super.initState();
-    _filteredDoctors = _allDoctors;
+    _filteredDoctors = DatabaseService.instance.doctors;
   }
 
   void _filterDoctors() {
     setState(() {
-      _filteredDoctors = _allDoctors.where((doc) {
+      _filteredDoctors = DatabaseService.instance.doctors.where((doc) {
         final matchSearch =
             doc.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                 doc.id.toLowerCase().contains(_searchQuery.toLowerCase());
@@ -134,6 +68,7 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
       // Mở khóa luôn không cần cảnh báo gắt gao
       setState(() {
         doctor.status = 'Hoạt động';
+        DatabaseService.instance.updateDoctor(doctor);
         _filterDoctors();
       });
       _showFeedback('Đã mở khóa tài khoản bác sĩ ${doctor.name}');
@@ -162,6 +97,7 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
               Navigator.of(ctx).pop();
               setState(() {
                 doctor.status = 'Đã khóa';
+                DatabaseService.instance.updateDoctor(doctor);
                 _filterDoctors();
               });
               _showFeedback(
@@ -203,14 +139,13 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                     existingDoctor.phone = phone;
                     existingDoctor.email = email;
                     existingDoctor.specialty = specialty;
+                    DatabaseService.instance.updateDoctor(existingDoctor);
                     _showFeedback(
                         'Đã cập nhật thông tin bác sĩ $name thành công!');
                   } else {
                     final newId =
-                        'BS${(_allDoctors.length + 1).toString().padLeft(2, '0')}';
-                    _allDoctors.insert(
-                      0,
-                      Doctor(
+                        'BS${(DatabaseService.instance.doctors.length + 1).toString().padLeft(2, '0')}';
+                    final newDoctor = Doctor(
                         id: newId,
                         name: name,
                         specialty: specialty,
@@ -218,8 +153,10 @@ class _DoctorManagementScreenState extends State<DoctorManagementScreen> {
                         status: 'Hoạt động',
                         phone: phone,
                         email: email,
-                      ),
-                    );
+                        pendingPrescriptions: 0,
+                        finalizedPrescriptions: 0,
+                      );
+                    DatabaseService.instance.addDoctor(newDoctor);
                     _showFeedback('Đã thêm bác sĩ $name thành công!');
                   }
                   _filterDoctors();

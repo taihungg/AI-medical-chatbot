@@ -1,28 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/glass_widgets.dart';
+import '../../models/models.dart';
+import '../../services/database_service.dart';
 
-class Appointment {
-  final String id;
-  final String patientName;
-  final String doctorName;
-  final String specialty;
-  final String time;
-  final String
-      serviceType; // 'Khám trực tuyến (Telehealth)', 'Khám tại phòng khám (Clinic Visit)'
-  String status; // 'Chờ duyệt', 'Đã xác nhận', 'Đã hủy'
-  String? cancelReason;
-
-  Appointment({
-    required this.id,
-    required this.patientName,
-    required this.doctorName,
-    required this.specialty,
-    required this.time,
-    required this.serviceType,
-    required this.status,
-    this.cancelReason,
-  });
-}
 
 class MasterAppointmentScreen extends StatefulWidget {
   const MasterAppointmentScreen({super.key});
@@ -34,49 +14,11 @@ class MasterAppointmentScreen extends StatefulWidget {
 
 class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
   // Mock data tích hợp luồng appointment_booking và clinic_visit_recommended
-  final List<Appointment> _appointments = [
-    Appointment(
-      id: 'APT-001',
-      patientName: 'Trần Thế Bảo',
-      doctorName: 'BS. Nguyễn Văn An',
-      specialty: 'Khoa Tim mạch',
-      time: '08:30 - Hôm nay',
-      serviceType: 'Khám trực tuyến (Telehealth)',
-      status: 'Chờ duyệt',
-    ),
-    Appointment(
-      id: 'APT-002',
-      patientName: 'Lê Thị Thu Thảo',
-      doctorName: 'BS. Lê Thị Bình',
-      specialty: 'Khoa Nội',
-      time: '09:15 - Hôm nay',
-      serviceType: 'Khám tại phòng khám (Clinic Visit)',
-      status: 'Chờ duyệt',
-    ),
-    Appointment(
-      id: 'APT-003',
-      patientName: 'Vũ Hoàng Minh',
-      doctorName: 'BS. Trần Quốc Đạt',
-      specialty: 'Khoa Thần kinh',
-      time: '14:00 - Hôm qua',
-      serviceType: 'Khám trực tuyến (Telehealth)',
-      status: 'Đã xác nhận',
-    ),
-    Appointment(
-      id: 'APT-004',
-      patientName: 'Nguyễn Ngọc Anh',
-      doctorName: 'BS. Phạm Minh Tâm',
-      specialty: 'Khoa Tim mạch',
-      time: '10:00 - 29/05',
-      serviceType: 'Khám tại phòng khám (Clinic Visit)',
-      status: 'Đã hủy',
-      cancelReason: 'Bệnh nhân bận việc đột xuất',
-    ),
-  ];
 
-  void _approveAppointment(Appointment apt) {
+  void _approveAppointment(AppAppointment apt) {
     setState(() {
       apt.status = 'Đã xác nhận';
+      DatabaseService.instance.updateAppointment(apt);
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -95,7 +37,7 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
     );
   }
 
-  void _showCancelDialog(Appointment apt) {
+  void _showCancelDialog(AppAppointment apt) {
     final TextEditingController reasonController = TextEditingController();
 
     // Shneiderman: Cho phép đảo ngược hành động (AlertDialog)
@@ -120,7 +62,7 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Bạn có chắc chắn muốn hủy lịch hẹn của bệnh nhân ${apt.patientName} vào lúc ${apt.time}?',
+                'Bạn có chắc chắn muốn hủy lịch hẹn của bệnh nhân ${apt.patientName} vào lúc ${apt.timeSlot}?',
                 style: GlassTheme.bodyMd(),
               ),
               const SizedBox(height: 16),
@@ -160,12 +102,13 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
     );
   }
 
-  void _cancelAppointment(Appointment apt, String reason) {
+  void _cancelAppointment(AppAppointment apt, String reason) {
     setState(() {
       apt.status = 'Đã hủy';
       if (reason.isNotEmpty) {
         apt.cancelReason = reason;
       }
+      DatabaseService.instance.updateAppointment(apt);
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -183,35 +126,42 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
   }
 
   Widget _buildAppointmentList(String filterStatus) {
-    final list = _appointments.where((a) {
-      if (filterStatus == 'Lịch sử') {
-        return a.status == 'Đã hủy' || a.status == 'Hoàn thành';
-      }
-      return a.status == filterStatus;
-    }).toList();
+    return ListenableBuilder(
+      listenable: DatabaseService.instance,
+      builder: (context, _) {
+        final appointments = DatabaseService.instance.appointments;
+        final list = appointments.where((a) {
+          if (filterStatus == 'Lịch sử') {
+            return a.status == 'Đã hủy' || a.status == 'Đã khám';
+          }
+          return a.status == filterStatus;
+        }).toList();
 
-    if (list.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.event_busy,
-                size: 64, color: GlassTheme.outline.withValues(alpha: 0.5)),
-            const SizedBox(height: 16),
-            Text('Không có lịch hẹn nào.',
-                style: GlassTheme.h3(color: GlassTheme.onSurfaceVariant)),
-          ],
-        ),
-      );
-    }
+        if (list.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.event_busy,
+                    size: 64, color: GlassTheme.outline.withValues(alpha: 0.5)),
+                const SizedBox(height: 16),
+                Text('Không có lịch hẹn nào.',
+                    style: GlassTheme.h3(color: GlassTheme.onSurfaceVariant)),
+              ],
+            ),
+          );
+        }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: list.length,
-      itemBuilder: (context, index) {
-        final apt = list[index];
-        final isPending = apt.status == 'Chờ duyệt';
-        final isTelehealth = apt.serviceType.contains('Telehealth');
+        return ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            final apt = list[index];
+            final isPending = apt.status == 'Chờ duyệt';
+            final isTelehealth = apt.branchName.contains('Trực tuyến');
+            final serviceTypeLabel = isTelehealth
+                ? 'Khám trực tuyến (Telehealth)'
+                : 'Khám tại phòng khám (Clinic Visit)';
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
@@ -284,7 +234,7 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                               const Icon(Icons.access_time,
                                   size: 14, color: GlassTheme.outline),
                               const SizedBox(width: 4),
-                              Text(apt.time,
+                              Text('${apt.dateTime.day}/${apt.dateTime.month} - ${apt.timeSlot}',
                                   style: GlassTheme.bodyMd(
                                           color: GlassTheme.outline)
                                       .copyWith(fontWeight: FontWeight.bold)),
@@ -321,7 +271,7 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
                           color:
                               isTelehealth ? Colors.blueAccent : Colors.teal),
                       const SizedBox(width: 8),
-                      Text(apt.serviceType,
+                      Text(serviceTypeLabel,
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -402,7 +352,9 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
         );
       },
     );
-  }
+  },
+);
+}
 
   @override
   Widget build(BuildContext context) {

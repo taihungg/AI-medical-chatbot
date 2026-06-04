@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
+import '../../models/models.dart';
+import '../../services/database_service.dart';
 import '../patient/doctor_consultation.dart';
 
 import 'recording_visualizer.dart';
@@ -54,14 +56,19 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
       (a) => a.id == widget.appointmentId,
       orElse: () => AppAppointment(
         id: '',
+        patientId: '',
         patientName: 'Lỗi Dữ Liệu',
-        branchName: '',
+        doctorId: '',
         doctorName: '',
+        branchName: '',
         specialty: '',
         dateTime: DateTime.now(),
         timeSlot: '',
         symptomSummary: '',
         riskLevel: 'Thấp',
+        isOnline: false,
+        status: '',
+        aiSummary: '',
       ),
     );
     _parseSoapNotes(appt.clinicalNotes);
@@ -155,14 +162,19 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
           (a) => a.id == widget.appointmentId,
           orElse: () => AppAppointment(
             id: '',
+            patientId: '',
             patientName: '',
-            branchName: '',
+            doctorId: '',
             doctorName: '',
+            branchName: '',
             specialty: '',
             dateTime: DateTime.now(),
             timeSlot: '',
             symptomSummary: '',
             riskLevel: 'Thấp',
+            isOnline: false,
+            status: '',
+            aiSummary: '',
           ),
         );
 
@@ -950,13 +962,10 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: [
-                              "Amlodipine 5mg (ngày 1v)",
-                              "Panadol Extra 500mg (ngày 2v)",
-                              "Nitroglycerin 0.5mg (uống khi đau thắt)",
-                              "Siro ho Prospan (uống ngày 3 lần)",
-                              "Amoxicillin 500mg (ngày 2v)"
-                            ]
+                            children: DatabaseService.instance.medications
+                                .take(5)
+                                .map((m) => "${m.name} (${m.usage})")
+                                .toList()
                                 .map((preset) => Padding(
                                       padding:
                                           const EdgeInsets.only(right: 6.0),

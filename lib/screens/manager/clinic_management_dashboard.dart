@@ -17,8 +17,8 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
   int _selectedBranchIndex =
       0; // 0: Chi nhánh A, 1: Chi nhánh B, 2: Chi nhánh C, 3: Chi nhánh D
   final List<String> _branches = [
-    "Cơ sở A - Quận 1, TP. HCM",
-    "Cơ sở B - Hoàn Kiếm, Hà Nội",
+    "Bệnh viện Đa Khoa Trung Ương",
+    "Phòng khám Đa khoa Quốc tế",
     "Cơ sở C - Hải Châu, Đà Nẵng",
     "Cơ sở D - Ninh Kiều, Cần Thơ"
   ];

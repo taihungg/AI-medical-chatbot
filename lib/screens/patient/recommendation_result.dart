@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../splash_screen.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
+import '../../models/models.dart';
 import 'appointment_booking_tab.dart';
 import 'doctor_consultation.dart';
 
@@ -269,15 +271,19 @@ class RecommendationResultScreen extends StatelessWidget {
     final appState = AppState.instance;
     final simulatedAppt = AppAppointment(
       id: "APT-TELE-${DateTime.now().millisecond}",
+      patientId: "PAT-001",
       patientName: "Nguyễn Minh Anh",
-      branchName: "Phòng khám A - Trực tuyến",
+      doctorId: "DOC-001",
       doctorName: "BS. Nguyễn Văn An",
+      branchName: "Phòng khám A - Trực tuyến",
       specialty: "Khoa Nội tim mạch",
       dateTime: DateTime.now(),
-      timeSlot: "Ngay bây giờ",
+      timeSlot: "14:30 - Hôm nay",
+      status: "Chờ khám",
       symptomSummary: symptoms.isEmpty ? "Đăng ký tư vấn trực tuyến" : symptoms,
       riskLevel: risk,
-      status: "Đang khám",
+      isOnline: true,
+      aiSummary: "",
     );
 
     appState.setActiveConsultation(simulatedAppt);
