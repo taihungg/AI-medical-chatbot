@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../models/models.dart';
+import '../../services/database_service.dart';
 import '../splash_screen.dart';
 import '../account/account_management_screen.dart';
 
@@ -36,15 +37,27 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
 
         // Filter appointments for today only
         final now = DateTime.now();
+        final currentDoctorName = appState.currentUserProfile?.name ?? '';
+        
         final todayAppointments = appState.appointments.where((appt) {
-          return appt.dateTime.year == now.year &&
+          bool isToday = appt.dateTime.year == now.year &&
               appt.dateTime.month == now.month &&
               appt.dateTime.day == now.day;
+              
+          bool isAssignedToMe = appt.doctorName == currentDoctorName;
+          bool isValidStatus = appt.status != 'Chờ duyệt' && appt.status != 'Đã hủy';
+
+          return isToday && isAssignedToMe && isValidStatus;
         }).toList();
 
         final filteredAppointments = todayAppointments.where((appt) {
-          bool statusMatch =
-              _selectedFilter == 'Tất cả' || appt.status == _selectedFilter;
+          bool statusMatch = true;
+          if (_selectedFilter == 'Chờ khám') {
+             statusMatch = appt.status == 'Chưa khám' || appt.status == 'Đang khám' || appt.status == 'Đã xác nhận';
+          } else if (_selectedFilter == 'Hoàn thành') {
+             statusMatch = appt.status == 'Đã khám';
+          }
+          
           bool nameMatch = _searchQuery.isEmpty ||
               appt.patientName
                   .toLowerCase()
@@ -57,7 +70,7 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
 
         // Counts for badges
         final countPending =
-            todayAppointments.where((a) => a.status == 'Chưa khám').length;
+            todayAppointments.where((a) => a.status == 'Chưa khám' || a.status == 'Đã xác nhận').length;
         final countExamining =
             todayAppointments.where((a) => a.status == 'Đang khám').length;
         final countDone =
@@ -598,11 +611,9 @@ class ClinicalWorkspace extends StatefulWidget {
 
 class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
   final TextEditingController _notesController = TextEditingController();
-  final List<String> _medications = [];
-  final TextEditingController _customMedController = TextEditingController();
   bool _isRecording = false;
-  Timer? _recordingTimer;
   double _recordingSeconds = 0.0;
+  Timer? _recordingTimer;
   final List<Offset?> _sigPoints = []; // Digital signature points
 
   @override
@@ -624,8 +635,6 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     final appt =
         appState.appointments.firstWhere((a) => a.id == widget.appointmentId);
     _notesController.text = appt.clinicalNotes;
-    _medications.clear();
-    _medications.addAll(appt.prescriptionList);
     _sigPoints.clear();
     _stopRecordingSim();
   }
@@ -633,7 +642,6 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
   @override
   void dispose() {
     _notesController.dispose();
-    _customMedController.dispose();
     _recordingTimer?.cancel();
     super.dispose();
   }
@@ -687,24 +695,10 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     }
   }
 
-  void _addMedication(String med) {
-    if (med.trim().isEmpty) return;
-    setState(() {
-      _medications.add(med);
-      _customMedController.clear();
-    });
-  }
-
-  void _removeMedication(int index) {
-    setState(() {
-      _medications.removeAt(index);
-    });
-  }
-
   void _saveSession() {
     final appState = AppState.instance;
     appState.saveConsultationNotes(
-        widget.appointmentId, _notesController.text, _medications);
+        widget.appointmentId, _notesController.text);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Bản nháp bệnh án đã được lưu thành công!"),
@@ -739,7 +733,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
 
     // First save
     appState.saveConsultationNotes(
-        widget.appointmentId, _notesController.text, _medications);
+        widget.appointmentId, _notesController.text);
     // Then sign
     appState.signPrescription(widget.appointmentId);
 
@@ -789,48 +783,99 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      appBar: GlassAppBar(
+        title: "WORKSPACE LÂM SÀNG: ${appt.patientName} (${appt.id})",
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: GlassTheme.oceanBlue),
+          onPressed: widget.onClosed,
+        ),
+      ),
       body: Column(
         children: [
-          // Workspace Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.5),
-              border: Border(
-                  bottom:
-                      BorderSide(color: Colors.white.withValues(alpha: 0.4))),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "WORKSPACE LÂM SÀNG",
-                      style: GlassTheme.labelCaps(color: GlassTheme.outline),
-                    ),
-                    Text(
-                      "${appt.patientName} (${appt.id})",
-                      style:
-                          GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close,
-                      color: GlassTheme.onSurfaceVariant),
-                  onPressed: widget.onClosed,
-                ),
-              ],
-            ),
-          ),
-
           // Core workspace scroll area
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                // 0. Patient & Appointment Info
+                Builder(
+                  builder: (context) {
+                    final patient = DatabaseService.instance.patients.firstWhere(
+                      (p) => p.id == appt.patientId,
+                      orElse: () => Patient(
+                        id: appt.patientId,
+                        name: appt.patientName,
+                        phone: '',
+                        age: 0,
+                        gender: 'Không rõ',
+                        lastVisit: '',
+                        category: '',
+                        healthStatus: '',
+                        aiSymptomSummary: '',
+                      ),
+                    );
+
+                    return GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Thông Tin Đăng Ký Khám",
+                              style: GlassTheme.h3()
+                                  .copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(Icons.person, size: 20, color: GlassTheme.oceanBlue),
+                              const SizedBox(width: 8),
+                              Text("Bệnh nhân: ${appt.patientName} • ${patient.gender} • ${patient.age > 0 ? '${patient.age} tuổi' : 'N/A'}",
+                                  style: const TextStyle(fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.description, size: 20, color: GlassTheme.oceanBlue),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Triệu chứng / Ghi chú: ${appt.symptomSummary.isNotEmpty ? appt.symptomSummary : 'Không có'}",
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (appt.aiSummary.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: GlassTheme.oceanBlue.withValues(alpha: 0.3)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.auto_awesome, size: 16, color: GlassTheme.oceanBlue),
+                                      const SizedBox(width: 8),
+                                      Text("AI Phân Tích (Lúc đặt lịch)", style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(appt.aiSummary, style: const TextStyle(fontSize: 13, height: 1.4)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }
+                ),
+                const SizedBox(height: 16),
                 // 1. Live Consultation & Telehealth Card
                 GlassCard(
                   padding: const EdgeInsets.all(16),
@@ -886,24 +931,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                 ),
                 const SizedBox(height: 16),
 
-                // 2. Real-time dynamic patient vitals indicator
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Chỉ Số Sinh Hiệu (Vitals)",
-                              style: GlassTheme.h3()),
-                          const SizedBox(height: 8),
-                          _buildVitalsGrid(appt),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+
 
                 // 3. Diagnosis & Speech dictation area
                 GlassCard(
@@ -938,127 +966,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                 ),
                 const SizedBox(height: 16),
 
-                // 4. Smart Electronic Prescription Kê Đơn Thuốc
-                GlassCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Kê Đơn Thuốc Điện Tử",
-                          style: GlassTheme.h3()
-                              .copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Thêm danh mục thuốc điều trị cùng liều lượng hướng dẫn.",
-                        style: TextStyle(
-                            fontSize: 11, color: GlassTheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 12),
 
-                      // Quick medicine selector presets chips
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            "Amlodipine 5mg (ngày 1v)",
-                            "Panadol Extra 500mg (ngày 2v)",
-                            "Nitroglycerin 0.5mg (uống khi đau thắt)",
-                            "Siro ho Prospan (uống ngày 3 lần)",
-                            "Amoxicillin 500mg (ngày 2v)"
-                          ]
-                              .map((preset) => Padding(
-                                    padding: const EdgeInsets.only(right: 6.0),
-                                    child: ActionChip(
-                                      label: Text("${preset.split(" ")[0]}...",
-                                          style: const TextStyle(fontSize: 10)),
-                                      backgroundColor: Colors.white60,
-                                      onPressed: () => _addMedication(preset),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Custom medicine text field
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GlassTextField(
-                              controller: _customMedController,
-                              label: "",
-                              hint: "Tên thuốc, hàm lượng, cách uống...",
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () =>
-                                _addMedication(_customMedController.text),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                gradient: GlassTheme.primaryGradient,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.add,
-                                  color: Colors.white, size: 24),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Medicine list output
-                      if (_medications.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0),
-                          child: Center(
-                            child: Text(
-                              "Chưa có thuốc nào được kê.",
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                  color: GlassTheme.outline),
-                            ),
-                          ),
-                        )
-                      else
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _medications.length,
-                          itemBuilder: (ctx, idx) => Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white54,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.white),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.medication,
-                                    color: GlassTheme.oceanBlue, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(_medications[idx],
-                                      style: const TextStyle(fontSize: 12)),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: GlassTheme.error, size: 16),
-                                  onPressed: () => _removeMedication(idx),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
 
                 // 5. Digital Signature Chữ ký số điện tử
                 if (appt.status != 'Hoàn thành')
@@ -1169,49 +1077,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     );
   }
 
-  Widget _buildVitalsGrid(AppAppointment appt) {
-    final vitals = appt.vitals;
-    return Row(
-      children: [
-        _buildVitalCard(
-            "Huyết áp",
-            "${vitals['systolic']?.toInt()}/${vitals['diastolic']?.toInt()} mmHg",
-            Icons.monitor_heart,
-            Colors.purple),
-        const SizedBox(width: 8),
-        _buildVitalCard("Nhịp tim", "${vitals['pulse']?.toInt()} bpm",
-            Icons.favorite, Colors.pink),
-        const SizedBox(width: 8),
-        _buildVitalCard("Oxy máu", "${vitals['spO2']?.toInt()}%", Icons.water,
-            GlassTheme.oceanBlue),
-        const SizedBox(width: 8),
-        _buildVitalCard("Nhiệt độ", "${vitals['temp']?.toStringAsFixed(1)} °C",
-            Icons.thermostat, Colors.orange),
-      ],
-    );
-  }
 
-  Widget _buildVitalCard(
-      String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: GlassCard(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        borderRadius: 16,
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(height: 6),
-            Text(value,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            const SizedBox(height: 4),
-            Text(label,
-                style: const TextStyle(fontSize: 9, color: GlassTheme.outline)),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildDictateButton() {
     return InkWell(

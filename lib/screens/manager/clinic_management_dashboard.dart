@@ -342,9 +342,10 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                   ),
 
                                   const SizedBox(height: 16),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
+                                  Wrap(
+                                    alignment: WrapAlignment.spaceAround,
+                                    spacing: 8.0,
+                                    runSpacing: 4.0,
                                     children: [
                                       _buildLegendItem(
                                           "08h-10h", GlassTheme.oceanBlue),

@@ -50,24 +50,40 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
   // Helper to check if a day has appointments
   bool _hasAppointmentsOnDay(DateTime date) {
     final appState = AppState.instance;
-    return appState.appointments.any((appt) => _isSameDay(appt.dateTime, date));
+    final currentDoctorName = appState.currentUserProfile?.name ?? '';
+    return appState.appointments.any((appt) => 
+        _isSameDay(appt.dateTime, date) && 
+        appt.doctorName == currentDoctorName &&
+        appt.status != 'Chờ duyệt' && 
+        appt.status != 'Đã hủy'
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = AppState.instance;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 800;
 
-    // Filter appointments for the selected date
-    final selectedAppointments = appState.appointments
-        .where((appt) => _isSameDay(appt.dateTime, _selectedDate))
-        .toList();
+    return ListenableBuilder(
+      listenable: appState,
+      builder: (context, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isMobile = screenWidth < 800;
+        final currentDoctorName = appState.currentUserProfile?.name ?? '';
 
-    // Sắp xếp ca khám theo thời gian (dựa vào timeSlot, vd: "08:30 - 09:00")
-    selectedAppointments.sort((a, b) => a.timeSlot.compareTo(b.timeSlot));
+        // Filter appointments for the selected date
+        final selectedAppointments = appState.appointments
+            .where((appt) => 
+                _isSameDay(appt.dateTime, _selectedDate) &&
+                appt.doctorName == currentDoctorName &&
+                appt.status != 'Chờ duyệt' && 
+                appt.status != 'Đã hủy'
+            )
+            .toList();
 
-    return Scaffold(
+        // Sắp xếp ca khám theo thời gian (dựa vào timeSlot, vd: "08:30 - 09:00")
+        selectedAppointments.sort((a, b) => a.timeSlot.compareTo(b.timeSlot));
+
+        return Scaffold(
       appBar: GlassAppBar(
         title: "Lịch Làm Việc",
         automaticallyImplyLeading: false,
@@ -177,6 +193,8 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
           ),
         ),
       ),
+    );
+    },
     );
   }
 

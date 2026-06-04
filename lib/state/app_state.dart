@@ -459,12 +459,11 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  void saveConsultationNotes(String apptId, String notes, List<String> medications) {
+  void saveConsultationNotes(String apptId, String notes) {
     final db = DatabaseService.instance;
     final idx = db.appointments.indexWhere((appt) => appt.id == apptId);
     if (idx != -1) {
       db.appointments[idx].clinicalNotes = notes;
-      db.appointments[idx].prescriptionList = medications;
       db.updateAppointment(db.appointments[idx]);
       
       if (_activeConsultation?.id == apptId) {

@@ -28,8 +28,6 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
   final TextEditingController _oController = TextEditingController();
   final TextEditingController _aController = TextEditingController();
   final TextEditingController _pController = TextEditingController();
-  final List<String> _medications = [];
-  final TextEditingController _customMedController = TextEditingController();
   bool _isRecording = false;
 
   // Timer đếm giờ khám
@@ -72,8 +70,6 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
       ),
     );
     _parseSoapNotes(appt.clinicalNotes);
-    _medications.clear();
-    _medications.addAll(appt.prescriptionList);
     _stopRecordingSim();
 
     // Start/stop exam timer based on status
@@ -141,7 +137,6 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     _oController.dispose();
     _aController.dispose();
     _pController.dispose();
-    _customMedController.dispose();
     _examTimer?.cancel();
     super.dispose();
   }
@@ -271,133 +266,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     }
   }
 
-  void _addMedication(String med) {
-    if (med.trim().isEmpty) return;
-    setState(() {
-      _medications.add(med);
-      _customMedController.clear();
-    });
-  }
 
-  void _showDosageDialog(String medName) {
-    final TextEditingController dosageController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final screenWidth = MediaQuery.of(ctx).size.width;
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          contentPadding: EdgeInsets.zero,
-          content: ConstrainedBox(
-            constraints: BoxConstraints(
-                maxWidth: screenWidth > 600 ? 400 : screenWidth * 0.9),
-            child: GlassCard(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Chỉnh sửa liều lượng",
-                      style: GlassTheme.h3()
-                          .copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(medName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: GlassTheme.oceanBlue)),
-                  const SizedBox(height: 16),
-                  GlassTextField(
-                    controller: dosageController,
-                    label: "",
-                    hint: "VD: Uống sau ăn, ngày 2 lần...",
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GlassButton(
-                          text: "Hủy",
-                          isPrimary: false,
-                          onPressed: () => Navigator.of(ctx).pop(),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GlassButton(
-                          text: "Thêm",
-                          onPressed: () {
-                            final dosage = dosageController.text.trim();
-                            _addMedication(dosage.isNotEmpty
-                                ? "$medName ($dosage)"
-                                : medName);
-                            Navigator.of(ctx).pop();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _confirmRemoveMedication(int index) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.transparent,
-        contentPadding: EdgeInsets.zero,
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: GlassCard(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.warning_amber_rounded,
-                    color: Colors.orange, size: 40),
-                const SizedBox(height: 12),
-                const Text("Xác nhận xóa thuốc?",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 8),
-                Text(
-                  _medications[index],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 12, color: GlassTheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GlassButton(
-                          text: "Hủy",
-                          isPrimary: false,
-                          onPressed: () => Navigator.of(ctx).pop()),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GlassButton(
-                        text: "Xóa",
-                        onPressed: () {
-                          setState(() => _medications.removeAt(index));
-                          Navigator.of(ctx).pop();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   String _buildCombinedNotes() {
     return "S: ${_sController.text}\nO: ${_oController.text}\nA: ${_aController.text}\nP: ${_pController.text}";
@@ -406,7 +275,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
   void _saveSession() {
     final appState = AppState.instance;
     appState.saveConsultationNotes(
-        widget.appointmentId, _buildCombinedNotes(), _medications);
+        widget.appointmentId, _buildCombinedNotes());
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Bản nháp bệnh án đã được lưu thành công!"),
@@ -468,7 +337,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                         onPressed: () {
                           final appState = AppState.instance;
                           appState.saveConsultationNotes(widget.appointmentId,
-                              _buildCombinedNotes(), _medications);
+                              _buildCombinedNotes());
                           appState.signPrescription(widget.appointmentId);
                           Navigator.of(ctx).pop();
                           widget.onClosed();
@@ -745,76 +614,15 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      appBar: GlassAppBar(
+        title: "WORKSPACE LÂM SÀNG: ${appt.patientName} (${appt.id})",
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: GlassTheme.oceanBlue),
+          onPressed: widget.onClosed,
+        ),
+      ),
       body: Column(
         children: [
-          // Workspace Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isCompleted
-                  ? Colors.green.withValues(alpha: 0.15)
-                  : isExamining
-                      ? Colors.orange.withValues(alpha: 0.1)
-                      : Colors.white.withValues(alpha: 0.5),
-              border: Border(
-                  bottom:
-                      BorderSide(color: Colors.white.withValues(alpha: 0.4))),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (isCompleted) ...[
-                            const Icon(Icons.lock_outline,
-                                size: 12, color: Colors.green),
-                            const SizedBox(width: 4),
-                            Text("CHẾ ĐỘ XEM HỒ SƠ",
-                                style:
-                                    GlassTheme.labelCaps(color: Colors.green)),
-                          ] else if (isExamining) ...[
-                            const Icon(Icons.medical_services,
-                                size: 12, color: Colors.orange),
-                            const SizedBox(width: 4),
-                            Text("ĐANG KHÁM • ${_formatExamTime()}",
-                                style:
-                                    GlassTheme.labelCaps(color: Colors.orange)),
-                          ] else
-                            Text("WORKSPACE LÂM SÀNG",
-                                style: GlassTheme.labelCaps(
-                                    color: GlassTheme.outline)),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              "${appt.patientName} (${appt.id})",
-                              style: GlassTheme.h3().copyWith(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          StatusBadge(status: appt.status),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close,
-                      color: GlassTheme.onSurfaceVariant),
-                  onPressed: widget.onClosed,
-                ),
-              ],
-            ),
-          ),
-
           // Core workspace scroll area
           Expanded(
             child: ListView(
@@ -938,131 +746,7 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
 
-                // 3. Prescription
-                GlassCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Kê Đơn Thuốc Điện Tử",
-                          style: GlassTheme.h3().copyWith(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 8),
-
-                      if (!isCompleted) ...[
-                        const Text(
-                            "Thêm danh mục thuốc điều trị cùng liều lượng hướng dẫn.",
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: GlassTheme.onSurfaceVariant)),
-                        const SizedBox(height: 12),
-                        // Quick medicine chips
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: DatabaseService.instance.medications
-                                .take(5)
-                                .map((m) => "${m.name} (${m.usage})")
-                                .toList()
-                                .map((preset) => Padding(
-                                      padding:
-                                          const EdgeInsets.only(right: 6.0),
-                                      child: Tooltip(
-                                        message: preset,
-                                        child: ActionChip(
-                                          label: Text(
-                                              preset.split("(")[0].trim(),
-                                              style: const TextStyle(
-                                                  fontSize: 10)),
-                                          backgroundColor: Colors.white60,
-                                          onPressed: () => _showDosageDialog(
-                                              preset.split("(")[0].trim()),
-                                        ),
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Custom input
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GlassTextField(
-                                  controller: _customMedController,
-                                  label: "",
-                                  hint: "Tên thuốc, hàm lượng, cách uống..."),
-                            ),
-                            const SizedBox(width: 8),
-                            InkWell(
-                              onTap: () =>
-                                  _addMedication(_customMedController.text),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  gradient: GlassTheme.primaryGradient,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.add,
-                                    color: Colors.white, size: 24),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-
-                      // Medicine list
-                      if (_medications.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0),
-                          child: Center(
-                            child: Text("Chưa có thuốc nào được kê.",
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                    color: GlassTheme.outline)),
-                          ),
-                        )
-                      else
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _medications.length,
-                          itemBuilder: (ctx, idx) => Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white54,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.white),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.medication,
-                                    color: GlassTheme.oceanBlue, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                    child: Text(_medications[idx],
-                                        style: const TextStyle(fontSize: 12))),
-                                if (!isCompleted)
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        color: GlassTheme.error, size: 16),
-                                    onPressed: () =>
-                                        _confirmRemoveMedication(idx),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 16),
 
                 // 4. Action Row buttons
