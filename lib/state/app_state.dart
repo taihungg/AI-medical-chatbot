@@ -38,24 +38,7 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  bool _isDoctorBusy = false;
-  bool get isDoctorBusy => _isDoctorBusy;
-
   List<AppAppointment> get appointments => DatabaseService.instance.appointments;
-
-  void toggleDoctorBusy() {
-    _isDoctorBusy = !_isDoctorBusy;
-    if (!_isDoctorBusy) {
-      if (_activeConsultation != null) {
-        final currentId = _activeConsultation!.id;
-        updateAppointmentStatus(currentId, 'Chưa khám');
-        _activeConsultation = null;
-        addAuditLog("Bác sĩ tự động chuyển ca $currentId sang CHƯA KHÁM do tắt trạng thái BẬN");
-      }
-    }
-    addAuditLog(_isDoctorBusy ? "Bác sĩ chuyển trạng thái sang ĐANG BẬN" : "Bác sĩ chuyển trạng thái sang ĐANG RẢNH");
-    notifyListeners();
-  }
 
   String? get currentlyExaminingId => _activeConsultation?.id;
 
@@ -69,7 +52,6 @@ class AppState extends ChangeNotifier {
       db.appointments[idx].status = 'Đang khám';
       db.updateAppointment(db.appointments[idx]);
       _activeConsultation = db.appointments[idx];
-      _isDoctorBusy = true;
       addAuditLog("Bác sĩ bắt đầu khám ca $id");
       notifyListeners();
       return true;
@@ -134,6 +116,7 @@ class AppState extends ChangeNotifier {
   void logout() {
     _isAuthenticated = false;
     _patientNavIndex = 0;
+    _doctorNavIndex = 0;
     _currentUserProfile = null;
     addAuditLog("Đã đăng xuất");
     notifyListeners();
@@ -165,6 +148,16 @@ class AppState extends ChangeNotifier {
   void setPatientNavIndex(int index) {
     if (_patientNavIndex != index) {
       _patientNavIndex = index;
+      notifyListeners();
+    }
+  }
+
+  int _doctorNavIndex = 0;
+  int get doctorNavIndex => _doctorNavIndex;
+
+  void setDoctorNavIndex(int index) {
+    if (_doctorNavIndex != index) {
+      _doctorNavIndex = index;
       notifyListeners();
     }
   }

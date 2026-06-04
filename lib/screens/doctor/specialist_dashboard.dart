@@ -75,20 +75,6 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                 onSelected: (value) {
                   if (value == 'logout') {
                     appState.logout();
-                  } else if (value == 'toggle_busy') {
-                    appState.toggleDoctorBusy();
-                  } else if (value == 'dashboard') {
-                    setState(() {
-                      _selectedAppointment = null;
-                      _selectedFilter = 'Tất cả';
-                      _searchQuery = '';
-                    });
-                  } else if (value == 'appointments') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const DoctorTimetableScreen()),
-                    );
                   } else if (value == 'account') {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
@@ -112,58 +98,6 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
                       style: GlassTheme.bodyLg().copyWith(
                           fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'dashboard',
-                    child: Row(
-                      children: [
-                        Icon(Icons.dashboard_outlined,
-                            size: 20, color: GlassTheme.oceanBlue),
-                        SizedBox(width: 12),
-                        Text("Trang Chủ"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'appointments',
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_month_outlined,
-                            size: 20, color: GlassTheme.oceanBlue),
-                        SizedBox(width: 12),
-                        Text("Lịch Làm Việc"),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'toggle_busy',
-                    child: StatefulBuilder(builder: (context, setPopupState) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.do_not_disturb_on_outlined,
-                                  size: 20, color: Colors.black54),
-                              SizedBox(width: 12),
-                              Text("Đang bận"),
-                            ],
-                          ),
-                          Switch(
-                            value: appState.isDoctorBusy,
-                            onChanged: (val) {
-                              appState.toggleDoctorBusy();
-                              setPopupState(() {});
-                            },
-                            activeTrackColor: Colors.red.withValues(alpha: 0.5),
-                            activeThumbColor: Colors.red,
-                            inactiveTrackColor:
-                                Colors.grey.withValues(alpha: 0.3),
-                          ),
-                        ],
-                      );
-                    }),
                   ),
                   const PopupMenuDivider(),
                   const PopupMenuItem(

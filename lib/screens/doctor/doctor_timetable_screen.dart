@@ -4,6 +4,8 @@ import '../../widgets/glass_widgets.dart';
 import '../../widgets/role_switcher.dart';
 import '../../models/models.dart';
 import 'clinical_workspace.dart';
+import '../account/account_management_screen.dart';
+import '../splash_screen.dart';
 
 class DoctorTimetableScreen extends StatefulWidget {
   const DoctorTimetableScreen({super.key});
@@ -71,62 +73,53 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
         automaticallyImplyLeading: false,
         actions: [
           PopupMenuButton<String>(
+            icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
             offset: const Offset(0, 56),
-            color: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            tooltip: "Menu",
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             onSelected: (value) {
-              if (value == 'switch_role') {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => const RoleSwitcher(),
+              if (value == 'logout') {
+                appState.logout();
+              } else if (value == 'account') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
                 );
-              } else if (value == 'dashboard') {
-                Navigator.pop(context);
-              } else if (value == 'logout') {
-                // handle logout
+              } else if (value == 'switch_role') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const SplashScreen()),
+                );
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'dashboard',
-                child: Row(
-                  children: [
-                    Icon(Icons.dashboard_outlined,
-                        size: 20, color: Colors.black54),
-                    SizedBox(width: 12),
-                    Text("Bảng điều khiển"),
-                  ],
+              PopupMenuItem(
+                value: 'info',
+                enabled: false,
+                child: Text(
+                  appState.currentUserProfile?.name ?? "Bác sĩ",
+                  style: GlassTheme.bodyLg().copyWith(
+                      fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
               const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'toggle_busy',
-                child: StatefulBuilder(builder: (context, setPopupState) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.do_not_disturb_on_outlined,
-                              size: 20, color: Colors.black54),
-                          SizedBox(width: 12),
-                          Text("Đang bận"),
-                        ],
-                      ),
-                      Switch(
-                        value: appState.isDoctorBusy,
-                        onChanged: (val) {
-                          appState.toggleDoctorBusy();
-                          setPopupState(() {});
-                        },
-                        activeTrackColor: Colors.red.withValues(alpha: 0.5),
-                        activeThumbColor: Colors.red,
-                        inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
-                      ),
-                    ],
-                  );
-                }),
+              const PopupMenuItem(
+                value: 'account',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Quản lý tài khoản"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'switch_role',
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_horiz, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Đổi vai trò (Demo)"),
+                  ],
+                ),
               ),
               const PopupMenuDivider(),
               const PopupMenuItem(
@@ -140,21 +133,6 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
                 ),
               ),
             ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: appState.isDoctorBusy
-                        ? Colors.red
-                        : GlassTheme.oceanBlue,
-                    child: const Icon(Icons.person_pin,
-                        color: Colors.white, size: 20),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

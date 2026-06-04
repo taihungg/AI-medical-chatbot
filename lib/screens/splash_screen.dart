@@ -5,6 +5,7 @@ import 'account/account_management_screen.dart';
 import 'patient/symptom_flow.dart';
 import 'patient/appointment_booking_tab.dart';
 import 'doctor/specialist_dashboard.dart';
+import 'doctor/doctor_timetable_screen.dart';
 import 'manager/clinic_management_dashboard.dart';
 import 'login_screen.dart';
 
@@ -346,8 +347,39 @@ class DoctorShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We will render Doctor Dashboard
-    return const DoctorSpecialistDashboard();
+    final appState = AppState.instance;
+
+    return ListenableBuilder(
+      listenable: appState,
+      builder: (context, child) {
+        final activeIndex = appState.doctorNavIndex;
+
+        final pages = [
+          const DoctorSpecialistDashboard(),
+          const DoctorTimetableScreen(),
+        ];
+
+        final items = [
+          GlassNavItem(icon: Icons.dashboard, label: "Tổng quan"),
+          GlassNavItem(icon: Icons.calendar_month, label: "Lịch làm việc"),
+        ];
+
+        return Scaffold(
+          extendBody: true,
+          body: IndexedStack(
+            index: activeIndex,
+            children: pages,
+          ),
+          bottomNavigationBar: GlassNavigationBar(
+            selectedIndex: activeIndex,
+            onTap: (index) {
+              appState.setDoctorNavIndex(index);
+            },
+            items: items,
+          ),
+        );
+      },
+    );
   }
 }
 

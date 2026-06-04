@@ -486,6 +486,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             centerTitle: false,
             automaticallyImplyLeading: automaticallyImplyLeading,
+            iconTheme: const IconThemeData(color: GlassTheme.oceanBlue),
             leading: leading,
             actions: actions,
             bottom: PreferredSize(
