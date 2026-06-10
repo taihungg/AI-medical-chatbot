@@ -379,10 +379,12 @@ class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          "Nhật Ký Hệ Thống Live",
-                                          style: GlassTheme.h3().copyWith(
-                                              fontWeight: FontWeight.bold),
+                                        Expanded(
+                                          child: Text(
+                                            "Nhật Ký Hệ Thống Live",
+                                            style: GlassTheme.h3().copyWith(
+                                                fontWeight: FontWeight.bold),
+                                          ),
                                         ),
                                         Container(
                                           width: 8,
