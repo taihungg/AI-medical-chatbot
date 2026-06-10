@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/env.dart';
 import '../services/gemini_service.dart';
 import '../services/database_service.dart';
@@ -91,6 +93,39 @@ class AppState extends ChangeNotifier {
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
+  bool get isPatientSession =>
+      _isAuthenticated && _currentRole == UserRole.patient;
+
+  static const _kSessionRole = 'session_role';
+  static const _kSessionProfile = 'session_profile';
+
+  Future<void> restoreSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final roleStr = prefs.getString(_kSessionRole);
+    final profileStr = prefs.getString(_kSessionProfile);
+    if (roleStr == null || profileStr == null) return;
+
+    _isAuthenticated = true;
+    _currentRole = UserRole.values.firstWhere((r) => r.name == roleStr);
+    _currentUserProfile =
+        UserProfile.fromJson(jsonDecode(profileStr) as Map<String, dynamic>);
+    notifyListeners();
+  }
+
+  Future<void> _persistSession() async {
+    if (!_isAuthenticated || _currentUserProfile == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kSessionRole, _currentRole.name);
+    await prefs.setString(
+        _kSessionProfile, jsonEncode(_currentUserProfile!.toJson()));
+  }
+
+  Future<void> _clearSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kSessionRole);
+    await prefs.remove(_kSessionProfile);
+  }
+
   void setRole(UserRole role) {
     _currentRole = role;
     addAuditLog("Đã chuyển đổi vai trò sang: ${_getRoleNameVi(role)}");
@@ -125,16 +160,18 @@ class AppState extends ChangeNotifier {
       }
 
       addAuditLog("Đăng nhập thành công với vai trò ${_getRoleNameVi(expectedRole)}");
+      await _persistSession();
       notifyListeners();
       return true;
     }
     return false;
   }
 
-  void logout() {
+  Future<void> logout() async {
     _isAuthenticated = false;
     _patientNavIndex = 0;
     _currentUserProfile = null;
+    await _clearSession();
     addAuditLog("Đã đăng xuất");
     notifyListeners();
   }
@@ -145,6 +182,7 @@ class AppState extends ChangeNotifier {
   void updateUserProfile(UserProfile profile) {
     _currentUserProfile = profile;
     addAuditLog("Đã cập nhật thông tin tài khoản cá nhân");
+    _persistSession();
     notifyListeners();
   }
 
