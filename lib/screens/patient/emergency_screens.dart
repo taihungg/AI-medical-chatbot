@@ -13,7 +13,7 @@ class SelfCareScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const GlassAppBar(title: "Cẩm Nang Tự Chăm Sóc"),
+      appBar: const GlassAppBar(title: "Cẩm Nang Tự Chăm Sóc", showBrandMark: false),
       body: GlassBackground(
         child: ListView(
           padding: const EdgeInsets.all(24),

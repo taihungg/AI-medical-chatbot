@@ -62,6 +62,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     return Scaffold(
       appBar: const GlassAppBar(
         title: "Quản lý Tài khoản",
+        showBrandMark: false,
       ),
       body: GlassBackground(
         child: Center(

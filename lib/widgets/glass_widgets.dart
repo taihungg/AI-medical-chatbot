@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'brand_mark.dart';
 
 class GlassTheme {
   // Brand Color Palette
@@ -453,6 +454,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final List<Widget>? actions;
   final bool automaticallyImplyLeading;
+  final bool showBrandMark;
 
   const GlassAppBar({
     super.key,
@@ -460,7 +462,30 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.actions,
     this.automaticallyImplyLeading = true,
+    this.showBrandMark = true,
   });
+
+  Widget _buildTitle() {
+    if (!showBrandMark) {
+      return Text(
+        title,
+        style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+      );
+    }
+    return Row(
+      children: [
+        BrandMark(size: 28),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -480,10 +505,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: AppBar(
             backgroundColor: Colors.white.withValues(alpha: 0.7),
             elevation: 0,
-            title: Text(
-              title,
-              style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-            ),
+            title: _buildTitle(),
             centerTitle: false,
             automaticallyImplyLeading: automaticallyImplyLeading,
             leading: leading,

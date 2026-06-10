@@ -48,7 +48,7 @@ class _MedicationCatalogScreenState extends State<MedicationCatalogScreen> {
     final appState = AppState.instance;
 
     return Scaffold(
-      appBar: const GlassAppBar(title: "Nhà Thuốc & Đơn Thuốc"),
+      appBar: const GlassAppBar(title: "Nhà Thuốc & Đơn Thuốc", showBrandMark: false),
       body: GlassBackground(
         child: Scrollbar(
           child: ListView(

@@ -1,17 +1,32 @@
-# ai_care_bridge
+# DrAI (ai_care_bridge)
 
-A new Flutter project.
+Flutter medical chatbot app with AI symptom consultation, appointment booking, and patient history.
 
-## Getting Started
+## Setup
 
-This project is a starting point for a Flutter application.
+1. Install [Flutter](https://docs.flutter.dev/get-started/install) (SDK `>=3.0.0`).
 
-A few resources to get you started if this is your first Flutter project:
+2. Copy environment config and add your Gemini API key:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+cp .env.example .env
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Edit `.env` and set `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey).  
+Do not commit `.env` — it is listed in `.gitignore`.
+
+3. Install dependencies and run:
+
+```bash
+flutter pub get
+flutter run
+```
+
+## Tests
+
+```bash
+flutter analyze
+flutter test
+```
+
+Requires a local `.env` file (copy from `.env.example`) because tests load dotenv at startup.
