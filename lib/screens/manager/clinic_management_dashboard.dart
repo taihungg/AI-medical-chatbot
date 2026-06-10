@@ -1,11 +1,20 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
-import '../../widgets/glass_widgets.dart';
 import '../splash_screen.dart';
 import 'doctor_management_screen.dart';
 import 'patient_records_screen.dart';
 import 'master_appointment_screen.dart';
+
+// MÀU SẮC GIAO DIỆN PHẲNG (FLAT DESIGN)
+const Color primaryColor = Color(0xFF1E88E5);
+const Color successColor = Color(0xFF43A047);
+const Color alertColor = Color(0xFFE53935);
+const Color disabledColor = Color(0xFF9E9E9E);
+const Color backgroundColor = Color(0xFFF4F6F8);
+const Color surfaceColor = Colors.white;
+const Color textColor = Color(0xFF212121);
+const Color subtitleColor = Color(0xFF757575);
 
 class ClinicManagerDashboard extends StatefulWidget {
   const ClinicManagerDashboard({super.key});
@@ -15,559 +24,645 @@ class ClinicManagerDashboard extends StatefulWidget {
 }
 
 class _ClinicManagerDashboardState extends State<ClinicManagerDashboard> {
-  int _selectedBranchIndex = 0; // 0: Chi nhánh A, 1: Chi nhánh B, 2: Chi nhánh C, 3: Chi nhánh D
-  final List<String> _branches = [
-    "Cơ sở A - Quận 1, TP. HCM",
-    "Cơ sở B - Hoàn Kiếm, Hà Nội",
-    "Cơ sở C - Hải Châu, Đà Nẵng",
-    "Cơ sở D - Ninh Kiều, Cần Thơ"
+  int _selectedMenuIndex = 0;
+  bool _isLoading = false;
+  String _timeFilter = "Hôm nay";
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<Map<String, dynamic>> _menuItems = [
+    {'icon': Icons.dashboard, 'title': 'Tổng quan'},
+    {'icon': Icons.medical_services, 'title': 'Bác sĩ'},
+    {'icon': Icons.people, 'title': 'Bệnh nhân'},
+    {'icon': Icons.event, 'title': 'Lịch hẹn'},
   ];
 
-  // Simulated metrics per branch
-  final List<Map<String, double>> _branchMetrics = [
-    {
-      'patients': 148,
-      'doctors': 12,
-      'occupancy': 85.0,
-      'wait': 14.5,
-    },
-    {
-      'patients': 98,
-      'doctors': 8,
-      'occupancy': 70.0,
-      'wait': 18.0,
-    },
-    {
-      'patients': 64,
-      'doctors': 5,
-      'occupancy': 60.0,
-      'wait': 11.2,
-    },
-    {
-      'patients': 45,
-      'doctors': 4,
-      'occupancy': 50.0,
-      'wait': 8.5,
+  void _onMenuTapped(int index) {
+    // Nếu đang mở drawer trên mobile thì đóng lại
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.pop(context);
     }
-  ];
+    
+    // Đổi tab nội dung thay vì chuyển trang hoàn toàn (Navigator.push)
+    setState(() {
+      _selectedMenuIndex = index;
+    });
+  }
+
+  Future<void> _handleFilterChange(String? newValue) async {
+    if (newValue == null) return;
+    setState(() {
+      _isLoading = true;
+      _timeFilter = newValue;
+    });
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) {
+      setState(() { _isLoading = false; });
+    }
+  }
+
+  void _showResetConfirmation() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Xác nhận thiết lập lại"),
+        content: const Text("Bạn có chắc chắn muốn xóa bộ lọc và tải lại dữ liệu mặc định không?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Hủy", style: TextStyle(color: subtitleColor)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: alertColor),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _handleFilterChange("Hôm nay");
+            },
+            child: const Text("Xác nhận", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appState = AppState.instance;
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isTablet = MediaQuery.of(context).size.width >= 600 && !isDesktop;
 
-    return ListenableBuilder(
-      listenable: appState,
-      builder: (context, child) {
-        // Fetch current active branch metrics
-        final metrics = _branchMetrics[_selectedBranchIndex];
-        
-        // Count total appointments in app state
-        final apptCount = appState.appointments.length;
-        
-        return Scaffold(
-          appBar: GlassAppBar(
-            title: "Bảng Điều Hành Phòng Khám",
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.swap_horizontal_circle_outlined, color: GlassTheme.oceanBlue, size: 28),
-                tooltip: "Đổi vai trò",
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  );
-                },
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: GlassTheme.oceanBlue,
-                      child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      "Quản lý: Trần Quốc Hùng",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  ],
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: backgroundColor,
+      drawer: isDesktop ? null : Drawer(child: _buildSidebarContent()),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hiển thị Sidebar cố định trên Desktop
+          if (isDesktop) 
+            SizedBox(
+              width: 260,
+              child: _buildSidebarContent(),
+            ),
+          
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildTopHeader(isDesktop),
+                
+                Expanded(
+                  child: _isLoading 
+                    ? const Center(child: CircularProgressIndicator(color: primaryColor))
+                    : _buildBodyContent(isDesktop, isTablet),
                 ),
-              ),
-            ],
-          ),
-          body: GlassBackground(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Branch Tab Selector Drawer (Glass Row)
-                  GlassCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    borderRadius: 20,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(_branches.length, (idx) {
-                          final isSelected = _selectedBranchIndex == idx;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _selectedBranchIndex = idx;
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                decoration: BoxDecoration(
-                                  gradient: isSelected ? GlassTheme.primaryGradient : null,
-                                  color: isSelected ? null : Colors.white24,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected ? Colors.transparent : Colors.white30,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.local_hospital_outlined,
-                                      color: isSelected ? Colors.white : GlassTheme.oceanBlue,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _branches[idx].split(" - ")[0],
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                        color: isSelected ? Colors.white : GlassTheme.onSurface,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Branch description
-                  Text(
-                    _branches[_selectedBranchIndex],
-                    style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Theo dõi thời gian thực các chỉ số hoạt động, hiệu suất và hoạt động lâm sàng.",
-                    style: TextStyle(fontSize: 12, color: GlassTheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 2. Metrics Bento Grid
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
-                    childAspectRatio: 1.5,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    children: [
-                      // Metric 1: Total Patients
-                      _buildMetricCard(
-                        "TỔNG BỆNH NHÂN",
-                        "${(metrics['patients']! + apptCount).toInt()}",
-                        Icons.people,
-                        Colors.blue,
-                        "+14% hôm nay",
-                      ),
-                      // Metric 2: Online Doctors
-                      _buildMetricCard(
-                        "BÁC SĨ TRỰC TUYẾN",
-                        "${metrics['doctors']!.toInt()} / 15",
-                        Icons.medical_services,
-                        Colors.teal,
-                        "Hỗ trợ HD Live",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
-                          );
-                        },
-                      ),
-                      // Metric 3: Occupancy Rate
-                      _buildMetricCard(
-                        "LẤP ĐẦY PHÒNG KHÁM",
-                        "${metrics['occupancy']!.toInt()}%",
-                        Icons.door_sliding,
-                        Colors.orange,
-                        "Mức tối ưu: 80%",
-                      ),
-                      // Metric 4: Avg Waiting Time
-                      _buildMetricCard(
-                        "CHỜ TRUNG BÌNH",
-                        "${metrics['wait']!.toStringAsFixed(1)} phút",
-                        Icons.hourglass_empty,
-                        GlassTheme.error,
-                        "Giảm 2.4 phút",
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 3. Middle Section: Chart & Live Auditing Logs (Double column layout if wide)
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth > 700;
-                      
-                      final chartWidget = GlassCard(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Biểu Đồ Hiệu Suất Giờ Cao Điểm",
-                                  style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const Icon(Icons.bar_chart, color: GlassTheme.cyan),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Số lượng bệnh nhân phân bổ theo khung giờ khám hôm nay.",
-                              style: TextStyle(fontSize: 11, color: GlassTheme.outline),
-                            ),
-                            const SizedBox(height: 24),
-                            
-                            // Beautiful Custom Painted Chart
-                            SizedBox(
-                              height: 180,
-                              width: double.infinity,
-                              child: CustomPaint(
-                                painter: OperationsChartPainter(
-                                  branchIndex: _selectedBranchIndex,
-                                  appointmentsAdded: apptCount,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildLegendItem("08h-10h", GlassTheme.oceanBlue),
-                                _buildLegendItem("10h-12h", GlassTheme.cyan),
-                                _buildLegendItem("14h-16h", Colors.purple),
-                                _buildLegendItem("16h-18h", Colors.teal),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-
-                      final logsWidget = Padding(
-                        padding: EdgeInsets.only(top: isWide ? 0.0 : 16.0),
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Nhật Ký Hệ Thống Live",
-                                    style: GlassTheme.h3().copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                "Luồng dữ liệu hoạt động thời gian thực từ ứng dụng.",
-                                style: TextStyle(fontSize: 11, color: GlassTheme.outline),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Log terminal listing
-                              Container(
-                                height: 212,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.white24),
-                                ),
-                                child: ListView.builder(
-                                  itemCount: appState.auditLogs.length,
-                                  itemBuilder: (ctx, idx) {
-                                    final log = appState.auditLogs[idx];
-                                    // Stylize specific logs
-                                    Color logColor = Colors.white70;
-                                    if (log.contains("BS đã ký")) {
-                                      logColor = Colors.green;
-                                    } else if (log.contains("đã đặt lịch")) {
-                                      logColor = GlassTheme.cyan;
-                                    } else if (log.contains("[Hệ thống]")) {
-                                      logColor = Colors.amber;
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 6.0),
-                                      child: Text(
-                                        log,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 10,
-                                          color: logColor,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      if (isWide) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 6,
-                              child: chartWidget,
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 4,
-                              child: logsWidget,
-                            ),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            chartWidget,
-                            logsWidget,
-                          ],
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 80),
-                ],
-              ),
+              ],
             ),
           ),
-          bottomNavigationBar: GlassNavigationBar(
-            selectedIndex: 0,
-            onTap: (idx) {
-              if (idx == 1) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DoctorManagementScreen()),
-                );
-              } else if (idx == 2) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PatientRecordsScreen()),
-                );
-              } else if (idx == 3) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MasterAppointmentScreen()),
-                );
-              }
-            },
-            items: [
-              GlassNavItem(icon: Icons.dashboard, label: 'Tổng quan'),
-              GlassNavItem(icon: Icons.medical_services, label: 'Bác sĩ'),
-              GlassNavItem(icon: Icons.people, label: 'Bệnh nhân'),
-              GlassNavItem(icon: Icons.event, label: 'Lịch hẹn'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBodyContent(bool isDesktop, bool isTablet) {
+    switch (_selectedMenuIndex) {
+      case 1:
+        return const DoctorManagementScreen();
+      case 2:
+        return const PatientRecordsScreen();
+      case 3:
+        return const MasterAppointmentScreen();
+      case 0:
+      default:
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isDesktop ? 24.0 : 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildKPISection(isDesktop, isTablet),
+              const SizedBox(height: 24),
+              _buildChartsSection(isDesktop),
+              const SizedBox(height: 24),
+              _buildDataTable(),
             ],
           ),
         );
-      },
-    );
+    }
   }
 
-  Widget _buildMetricCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-    String subtitle, {
-    VoidCallback? onTap,
-  }) {
-    Widget content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 9),
-            ),
-            Icon(icon, color: color, size: 20),
-          ],
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: GlassTheme.h1(color: color).copyWith(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(fontSize: 9, color: GlassTheme.onSurfaceVariant),
-        ),
-      ],
-    );
-
-    if (onTap != null) {
-      return GlassCard(
-        padding: EdgeInsets.zero,
-        borderRadius: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: content,
+  Widget _buildSidebarContent() {
+    return Container(
+      color: surfaceColor,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.local_hospital, color: primaryColor, size: 32),
+                SizedBox(width: 12),
+                Text("MedAdmin", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor)),
+              ],
             ),
           ),
-        ),
-      );
-    }
-
-    return GlassCard(
-      padding: const EdgeInsets.all(12),
-      borderRadius: 20,
-      child: content,
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              itemCount: _menuItems.length,
+              itemBuilder: (context, index) {
+                final isSelected = _selectedMenuIndex == index;
+                final item = _menuItems[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: InkWell(
+                    onTap: () => _onMenuTapped(index),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      child: Row(
+                        children: [
+                          Icon(item['icon'], color: isSelected ? primaryColor : subtitleColor, size: 22),
+                          const SizedBox(width: 16),
+                          Text(
+                            item['title'],
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                              color: isSelected ? primaryColor : subtitleColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app, color: alertColor),
+            title: const Text("Đăng xuất", style: TextStyle(color: alertColor)),
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const SplashScreen()),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildTopHeader(bool isDesktop) {
+    return Container(
+      height: 70,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        color: surfaceColor,
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Nút mở menu trên Mobile
+          if (!isDesktop)
+            IconButton(
+              icon: const Icon(Icons.menu, color: textColor),
+              onPressed: () {
+                _scaffoldKey.currentState?.openDrawer();
+              },
+            ),
+          if (!isDesktop) const SizedBox(width: 8),
+
+          Expanded(
+            flex: isDesktop ? 2 : 1,
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: isDesktop ? "Tìm kiếm thông minh..." : "Tìm...",
+                prefixIcon: const Icon(Icons.search, color: subtitleColor),
+                filled: true,
+                fillColor: backgroundColor,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onSubmitted: (val) {
+                setState(() { _isLoading = true; });
+                Future.delayed(const Duration(milliseconds: 600), () {
+                  if (mounted) setState(() => _isLoading = false);
+                });
+              },
+            ),
+          ),
+          const Spacer(),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: textColor),
+                onPressed: () {},
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(color: alertColor, shape: BoxShape.circle),
+                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  child: const Text(
+                    "3",
+                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            ],
+          ),
+          const SizedBox(width: 16),
+          const CircleAvatar(
+            backgroundColor: primaryColor,
+            child: Text("HQ", style: TextStyle(color: Colors.white)),
+          ),
+          if (isDesktop) ...[
+            const SizedBox(width: 8),
+            const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Trần Quốc Hùng", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text("Quản trị viên", style: TextStyle(color: subtitleColor, fontSize: 12)),
+              ],
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.keyboard_arrow_down, color: subtitleColor),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKPISection(bool isDesktop, bool isTablet) {
+    if (isDesktop) {
+      return Row(
+        children: [
+          Expanded(child: _buildKPICard("Tổng Doanh Thu", "450.2M", Icons.attach_money, successColor, "+12.5%")),
+          const SizedBox(width: 16),
+          Expanded(child: _buildKPICard("Số Người Dùng", "1,245", Icons.people, primaryColor, "+4.2%")),
+          const SizedBox(width: 16),
+          Expanded(child: _buildKPICard("Tỷ Lệ Chuyển Đổi", "68%", Icons.trending_up, successColor, "+2.1%")),
+          const SizedBox(width: 16),
+          Expanded(child: _buildKPICard("Lỗi Giao Dịch", "12", Icons.error_outline, alertColor, "-1.5%")),
+        ],
+      );
+    } else if (isTablet) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildKPICard("Tổng Doanh Thu", "450.2M", Icons.attach_money, successColor, "+12.5%")),
+              const SizedBox(width: 16),
+              Expanded(child: _buildKPICard("Số Người Dùng", "1,245", Icons.people, primaryColor, "+4.2%")),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildKPICard("Tỷ Lệ Chuyển Đổi", "68%", Icons.trending_up, successColor, "+2.1%")),
+              const SizedBox(width: 16),
+              Expanded(child: _buildKPICard("Lỗi Giao Dịch", "12", Icons.error_outline, alertColor, "-1.5%")),
+            ],
+          ),
+        ],
+      );
+    } else {
+      // Mobile
+      return Column(
+        children: [
+          _buildKPICard("Tổng Doanh Thu", "450.2M", Icons.attach_money, successColor, "+12.5%"),
+          const SizedBox(height: 12),
+          _buildKPICard("Số Người Dùng", "1,245", Icons.people, primaryColor, "+4.2%"),
+          const SizedBox(height: 12),
+          _buildKPICard("Tỷ Lệ Chuyển Đổi", "68%", Icons.trending_up, successColor, "+2.1%"),
+          const SizedBox(height: 12),
+          _buildKPICard("Lỗi Giao Dịch", "12", Icons.error_outline, alertColor, "-1.5%"),
+        ],
+      );
+    }
+  }
+
+  Widget _buildKPICard(String title, String value, IconData icon, Color trendColor, String trendValue) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(color: subtitleColor, fontSize: 14, fontWeight: FontWeight.w500)),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: trendColor.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: trendColor, size: 20),
+              )
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textColor)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(trendValue.startsWith("+") ? Icons.arrow_upward : Icons.arrow_downward, color: trendColor, size: 14),
+              const SizedBox(width: 4),
+              Text(trendValue, style: TextStyle(color: trendColor, fontWeight: FontWeight.bold, fontSize: 12)),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text("so với tuần trước", style: TextStyle(color: subtitleColor, fontSize: 12), overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartsSection(bool isDesktop) {
+    final lineChart = Container(
+      height: 250,
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: CustomPaint(
+        size: const Size(double.infinity, 250),
+        painter: FlatLineChartPainter(),
+      ),
+    );
+
+    final barChart = Container(
+      height: 250,
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: CustomPaint(
+        size: const Size(double.infinity, 250),
+        painter: FlatBarChartPainter(),
+      ),
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      padding: EdgeInsets.all(isDesktop ? 20 : 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isDesktop)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Phân Tích Tăng Trưởng", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                _buildChartFilters(),
+              ],
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Phân Tích Tăng Trưởng", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                _buildChartFilters(),
+              ],
+            ),
+          const SizedBox(height: 24),
+          if (isDesktop)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 2, child: lineChart),
+                const SizedBox(width: 24),
+                Expanded(flex: 1, child: barChart),
+              ],
+            )
+          else
+            Column(
+              children: [
+                lineChart,
+                const SizedBox(height: 16),
+                barChart,
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartFilters() {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButton<String>(
+            value: _timeFilter,
+            underline: const SizedBox(),
+            items: ["Hôm nay", "Tuần này", "Tháng này", "Năm nay"]
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+            onChanged: _handleFilterChange,
+          ),
         ),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 10, color: GlassTheme.onSurfaceVariant)),
+        const SizedBox(width: 12),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(backgroundColor: disabledColor, elevation: 0),
+          onPressed: _showResetConfirmation,
+          icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
+          label: const Text("Reset", style: TextStyle(color: Colors.white)),
+        ),
       ],
+    );
+  }
+
+  Widget _buildDataTable() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Hoạt Động Gần Đây", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          // Sử dụng LayoutBuilder để ép bảng chiếm trọn chiều ngang (Full width)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: DataTable(
+                    headingRowColor: WidgetStateProperty.all(backgroundColor),
+                    columnSpacing: 24,
+                    columns: const [
+                      DataColumn(label: Text("ID", style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text("Tên Khách Hàng", style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text("Dịch Vụ", style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text("Ngày Tạo", style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text("Trạng Thái", style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text("Hành Động", style: TextStyle(fontWeight: FontWeight.bold))),
+                    ],
+                    rows: List.generate(5, (index) {
+                      final isSuccess = index % 2 == 0;
+                      return DataRow(cells: [
+                        DataCell(Text("#${1000 + index}")),
+                        DataCell(Text("Bệnh nhân ${index + 1}")),
+                        const DataCell(Text("Khám tổng quát")),
+                        DataCell(Text("10/06/2026 10:0${index}")),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSuccess ? successColor.withOpacity(0.1) : alertColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              isSuccess ? "Thành công" : "Lỗi",
+                              style: TextStyle(color: isSuccess ? successColor : alertColor, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: alertColor, size: 18),
+                            tooltip: "Xóa bản ghi",
+                            onPressed: _showResetConfirmation,
+                          ),
+                        ),
+                      ]);
+                    }),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(icon: const Icon(Icons.chevron_left, color: disabledColor), onPressed: () {}),
+              const Text("1 / 5", style: TextStyle(fontWeight: FontWeight.bold)),
+              IconButton(icon: const Icon(Icons.chevron_right, color: primaryColor), onPressed: () {}),
+            ],
+          )
+        ],
+      ),
     );
   }
 }
 
-// Custom Painter to render glowing 3D-styled glass column charts
-class OperationsChartPainter extends CustomPainter {
-  final int branchIndex;
-  final int appointmentsAdded;
+// =======================
+// CUSTOM PAINTERS CHO BIỂU ĐỒ PHẲNG
+// =======================
 
-  OperationsChartPainter({required this.branchIndex, required this.appointmentsAdded});
-
+class FlatLineChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Generate heights dynamically based on branch and added appointments
-    final baseHeights = [
-      [0.65, 0.85, 0.45, 0.55], // Branch A
-      [0.45, 0.60, 0.50, 0.35], // Branch B
-      [0.35, 0.45, 0.55, 0.25], // Branch C
-      [0.25, 0.35, 0.40, 0.20]  // Branch D
-    ];
+    final paint = Paint()
+      ..color = primaryColor
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke;
 
-    final heights = List<double>.from(baseHeights[branchIndex]);
-    
-    // Add dynamically based on appointments booked (increments bars)
-    if (appointmentsAdded > 0) {
-      heights[1] = min(1.0, heights[1] + (appointmentsAdded * 0.05));
-      heights[2] = min(1.0, heights[2] + (appointmentsAdded * 0.03));
-    }
+    final path = Path();
+    path.moveTo(0, size.height * 0.8);
+    path.quadraticBezierTo(size.width * 0.2, size.height * 0.9, size.width * 0.4, size.height * 0.5);
+    path.quadraticBezierTo(size.width * 0.6, size.height * 0.1, size.width * 0.8, size.height * 0.3);
+    path.quadraticBezierTo(size.width * 0.9, size.height * 0.4, size.width, size.height * 0.2);
 
-    final barColors = [
-      GlassTheme.oceanBlue,
-      GlassTheme.cyan,
-      Colors.purple,
-      Colors.teal,
-    ];
-
-    // Paint axis line grid
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.black12
       ..strokeWidth = 1.0;
-
-    // Draw horizontal grids
-    for (int i = 0; i < 4; i++) {
-      final double y = size.height - (i * size.height / 3);
+    
+    for (int i = 1; i < 5; i++) {
+      double y = size.height * (i / 5);
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
+    
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [primaryColor.withOpacity(0.3), primaryColor.withOpacity(0.0)],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
+    
+    final fillPath = Path.from(path)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+      
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(path, paint);
+  }
 
-    final double barWidth = 32.0;
-    final double spacing = (size.width - (heights.length * barWidth)) / (heights.length + 1);
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
+class FlatBarChartPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final heights = [0.4, 0.7, 0.5, 0.9, 0.6];
+    final colors = [primaryColor, successColor, Colors.orange, alertColor, Colors.purple];
+    
+    final double barWidth = size.width / (heights.length * 2);
+    final double spacing = barWidth;
+    
     for (int i = 0; i < heights.length; i++) {
-      final double x = spacing + i * (barWidth + spacing);
-      final double h = heights[i] * (size.height - 20); // leave 20px padding at top
+      final double h = heights[i] * size.height * 0.8;
+      final double x = (i * (barWidth + spacing)) + spacing / 2;
       final double y = size.height - h;
-
-      final barRect = RRect.fromRectAndRadius(
+      
+      final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(x, y, barWidth, h),
-        const Radius.circular(8),
+        const Radius.circular(4),
       );
-
-      // Create neon glass glow effect
-      final glowPaint = Paint()
-        ..color = barColors[i].withOpacity(0.4)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       
-      canvas.drawRRect(barRect, glowPaint);
-
-      // Draw solid column
-      final columnPaint = Paint()
-        ..shader = LinearGradient(
-          colors: [barColors[i], barColors[i].withOpacity(0.7)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ).createShader(Rect.fromLTWH(x, y, barWidth, h));
-
-      canvas.drawRRect(barRect, columnPaint);
-
-      // Draw top glowing highlight line
-      final highlightPaint = Paint()
-        ..color = Colors.white.withOpacity(0.8)
-        ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke;
-      
-      canvas.drawRRect(barRect, highlightPaint);
+      final paint = Paint()..color = colors[i];
+      canvas.drawRRect(rect, paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant OperationsChartPainter oldDelegate) {
-    return oldDelegate.branchIndex != branchIndex || oldDelegate.appointmentsAdded != appointmentsAdded;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

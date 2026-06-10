@@ -1,5 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../widgets/glass_widgets.dart';
+
+// MÀU SẮC GIAO DIỆN PHẲNG (Chuẩn Y Tế)
+const Color medicalBlue = Color(0xFF2563EB); // bg-blue-600
+const Color backgroundLight = Color(0xFFF8FAFC); // bg-slate-50
+const Color surfaceWhite = Colors.white;
+const Color textPrimary = Color(0xFF0F172A); // slate-900
+const Color textSecondary = Color(0xFF64748B); // slate-500
+const Color textMuted = Color(0xFF94A3B8); // slate-400
+const Color borderLight = Color(0xFFE2E8F0); // slate-200
+const Color hoverRowColor = Color(0xFFF8FAFC); // hover
+
+// Màu cho Badge Loại hình khám
+const Color telehealthBg = Color(0xFFDBEAFE); // blue-100
+const Color telehealthText = Color(0xFF1E40AF); // blue-800
+const Color clinicBg = Color(0xFFD1FAE5); // emerald-100
+const Color clinicText = Color(0xFF059669); // emerald-600
+
+const Color errorRed = Color(0xFFDC2626); // red-600
 
 class Appointment {
   final String id;
@@ -8,7 +25,7 @@ class Appointment {
   final String specialty;
   final String time;
   final String serviceType; // 'Khám trực tuyến (Telehealth)', 'Khám tại phòng khám (Clinic Visit)'
-  String status; // 'Chờ duyệt', 'Đã xác nhận', 'Đã hủy'
+  String status; // 'Chờ duyệt', 'Đã xác nhận', 'Đã hủy', 'Hoàn thành'
   String? cancelReason;
 
   Appointment({
@@ -31,8 +48,11 @@ class MasterAppointmentScreen extends StatefulWidget {
 }
 
 class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
-  // Mock data tích hợp luồng appointment_booking và clinic_visit_recommended
-  final List<Appointment> _appointments = [
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  int _selectedTabIndex = 0; // 0: Chờ duyệt, 1: Đã xác nhận, 2: Lịch sử/Đã hủy
+
+  final List<Appointment> _allAppointments = [
     Appointment(
       id: 'APT-001', 
       patientName: 'Trần Thế Bảo', 
@@ -48,7 +68,7 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
       doctorName: 'BS. Lê Thị Bình', 
       specialty: 'Khoa Nội', 
       time: '09:15 - Hôm nay', 
-      serviceType: 'Khám tại phòng khám (Clinic Visit)',
+      serviceType: 'Khám tại phòng khám',
       status: 'Chờ duyệt',
     ),
     Appointment(
@@ -66,46 +86,66 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
       doctorName: 'BS. Phạm Minh Tâm', 
       specialty: 'Khoa Tim mạch', 
       time: '10:00 - 29/05', 
-      serviceType: 'Khám tại phòng khám (Clinic Visit)',
+      serviceType: 'Khám tại phòng khám',
       status: 'Đã hủy',
       cancelReason: 'Bệnh nhân bận việc đột xuất',
     ),
   ];
 
+  late List<Appointment> _filteredAppointments;
+
+  @override
+  void initState() {
+    super.initState();
+    _filterAppointments();
+  }
+
+  void _filterAppointments() {
+    setState(() {
+      _filteredAppointments = _allAppointments.where((apt) {
+        // Lọc theo Search Query
+        final searchLower = _searchQuery.toLowerCase();
+        final matchSearch = apt.patientName.toLowerCase().contains(searchLower) ||
+            apt.id.toLowerCase().contains(searchLower) ||
+            apt.doctorName.toLowerCase().contains(searchLower);
+
+        // Lọc theo Tab (0: Chờ duyệt, 1: Đã xác nhận, 2: Lịch sử)
+        bool matchTab = false;
+        if (_selectedTabIndex == 0) {
+          matchTab = apt.status == 'Chờ duyệt';
+        } else if (_selectedTabIndex == 1) {
+          matchTab = apt.status == 'Đã xác nhận';
+        } else if (_selectedTabIndex == 2) {
+          matchTab = apt.status == 'Đã hủy' || apt.status == 'Hoàn thành';
+        }
+
+        return matchSearch && matchTab;
+      }).toList();
+    });
+  }
+
   void _approveAppointment(Appointment apt) {
     setState(() {
       apt.status = 'Đã xác nhận';
+      _filterAppointments();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Đã phê duyệt lịch hẹn cho bệnh nhân ${apt.patientName}.')),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    _showFeedback('Đã phê duyệt lịch hẹn cho bệnh nhân ${apt.patientName}.', false);
   }
 
   void _showCancelDialog(Appointment apt) {
     final TextEditingController reasonController = TextEditingController();
 
-    // Shneiderman: Cho phép đảo ngược hành động (AlertDialog)
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: GlassTheme.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          backgroundColor: surfaceWhite,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
-            children: [
-              const Icon(Icons.warning_rounded, color: GlassTheme.error),
-              const SizedBox(width: 8),
-              Text('Xác nhận Hủy Lịch', style: GlassTheme.h2(color: GlassTheme.error).copyWith(fontSize: 18)),
+            children: const [
+              Icon(Icons.warning_rounded, color: errorRed),
+              SizedBox(width: 8),
+              Text('Xác nhận Hủy Lịch', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: errorRed)),
             ],
           ),
           content: Column(
@@ -114,32 +154,43 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
             children: [
               Text(
                 'Bạn có chắc chắn muốn hủy lịch hẹn của bệnh nhân ${apt.patientName} vào lúc ${apt.time}?',
-                style: GlassTheme.bodyMd(),
+                style: const TextStyle(color: textPrimary),
               ),
               const SizedBox(height: 16),
-              GlassTextField(
+              TextField(
                 controller: reasonController,
-                label: 'Lý do hủy (Tùy chọn)',
-                hint: 'Nhập lý do...',
-                prefixIcon: Icons.edit_note,
+                decoration: InputDecoration(
+                  labelText: 'Lý do hủy (Tùy chọn)',
+                  hintText: 'Nhập lý do...',
+                  prefixIcon: const Icon(Icons.edit_note, color: textSecondary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
               )
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Lối thoát an toàn (Reversal)
-              child: Text('Đóng', style: TextStyle(color: GlassTheme.outline, fontWeight: FontWeight.bold)),
+              onPressed: () => Navigator.of(context).pop(), 
+              child: const Text('Đóng', style: TextStyle(color: textSecondary, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _cancelAppointment(apt, reasonController.text);
+                setState(() {
+                  apt.status = 'Đã hủy';
+                  if (reasonController.text.isNotEmpty) {
+                    apt.cancelReason = reasonController.text;
+                  }
+                  _filterAppointments();
+                });
+                _showFeedback('Đã hủy lịch hẹn của ${apt.patientName}.', true);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: GlassTheme.error,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: errorRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text('Xác nhận Hủy', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text('Xác nhận Hủy', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -147,255 +198,353 @@ class _MasterAppointmentScreenState extends State<MasterAppointmentScreen> {
     );
   }
 
-  void _cancelAppointment(Appointment apt, String reason) {
-    setState(() {
-      apt.status = 'Đã hủy';
-      if (reason.isNotEmpty) {
-        apt.cancelReason = reason;
-      }
-    });
+  void _showFeedback(String message, bool isError) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.cancel, color: Colors.white),
+            Icon(isError ? Icons.cancel : Icons.check_circle, color: Colors.white),
             const SizedBox(width: 8),
-            Expanded(child: Text('Đã hủy lịch hẹn của ${apt.patientName}.')),
+            Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: GlassTheme.error,
+        backgroundColor: isError ? errorRed : const Color(0xFF059669),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  Widget _buildAppointmentList(String filterStatus) {
-    final list = _appointments.where((a) {
-      if (filterStatus == 'Lịch sử') {
-        return a.status == 'Đã hủy' || a.status == 'Hoàn thành';
-      }
-      return a.status == filterStatus;
-    }).toList();
-
-    if (list.isEmpty) {
-      return Center(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundLight,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.event_busy, size: 64, color: GlassTheme.outline.withOpacity(0.5)),
-            const SizedBox(height: 16),
-            Text('Không có lịch hẹn nào.', style: GlassTheme.h3(color: GlassTheme.onSurfaceVariant)),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: list.length,
-      itemBuilder: (context, index) {
-        final apt = list[index];
-        final isPending = apt.status == 'Chờ duyệt';
-        final isTelehealth = apt.serviceType.contains('Telehealth');
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: GlassCard(
-            padding: const EdgeInsets.all(16.0),
-            borderRadius: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // 1. TOP CONTROLS (Row 1)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Header (Mã lịch hẹn & Badge Trạng thái)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(apt.id, style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isPending 
-                            ? Colors.orange.withOpacity(0.2) 
-                            : (apt.status == 'Đã hủy' ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        apt.status,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isPending 
-                              ? Colors.orange[800] 
-                              : (apt.status == 'Đã hủy' ? Colors.red[800] : Colors.green[800]),
-                        ),
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'Điều phối Lịch hẹn',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textPrimary),
                 ),
-                const SizedBox(height: 16),
-                
-                // Body (Avatar & Thông tin cơ bản)
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: GlassTheme.oceanBlue.withOpacity(0.15),
-                      child: const Icon(Icons.person, color: GlassTheme.oceanBlue),
+                    // Thanh Tìm kiếm
+                    Container(
+                      width: 320,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: surfaceWhite,
+                        border: Border.all(color: borderLight),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Tìm mã lịch, tên bệnh nhân...',
+                          hintStyle: const TextStyle(color: textSecondary, fontSize: 14),
+                          prefixIcon: const Icon(Icons.search, color: textSecondary, size: 20),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.close, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                      _filterAppointments();
+                                    });
+                                  },
+                                )
+                              : null,
+                        ),
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                            _filterAppointments();
+                          });
+                        },
+                      ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(apt.patientName, style: GlassTheme.h3()),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${apt.doctorName} • ${apt.specialty}',
-                            style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.access_time, size: 14, color: GlassTheme.outline),
-                              const SizedBox(width: 4),
-                              Text(apt.time, style: GlassTheme.bodyMd(color: GlassTheme.outline).copyWith(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
+                    // Date Picker giả lập
+                    Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: surfaceWhite,
+                        border: Border.all(color: borderLight),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.calendar_today_outlined, size: 18, color: textSecondary),
+                          SizedBox(width: 8),
+                          Text('Hôm nay', style: TextStyle(color: textPrimary, fontWeight: FontWeight.w500)),
+                          SizedBox(width: 8),
+                          Icon(Icons.keyboard_arrow_down, size: 18, color: textSecondary),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                
-                // Service Type Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isTelehealth ? Colors.blueAccent.withOpacity(0.1) : Colors.teal.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isTelehealth ? Colors.blueAccent.withOpacity(0.3) : Colors.teal.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(isTelehealth ? Icons.video_camera_front : Icons.local_hospital, size: 16, color: isTelehealth ? Colors.blueAccent : Colors.teal),
-                      const SizedBox(width: 8),
-                      Text(
-                        apt.serviceType, 
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isTelehealth ? Colors.blueAccent : Colors.teal)
-                      ),
-                    ],
-                  ),
-                ),
-                
-                if (apt.cancelReason != null) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.info_outline, size: 14, color: Colors.red),
-                        const SizedBox(width: 4),
-                        Expanded(child: Text('Lý do hủy: ${apt.cancelReason}', style: const TextStyle(fontSize: 12, color: Colors.red, fontStyle: FontStyle.italic))),
-                      ],
-                    ),
-                  )
-                ],
-
-                // Norman Constraints: Nút hành động bị ẩn hoàn toàn nếu không ở trạng thái "Chờ duyệt"
-                if (isPending) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Divider(color: Colors.black12, height: 1),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () => _showCancelDialog(apt),
-                        icon: const Icon(Icons.close, color: GlassTheme.error, size: 18),
-                        label: const Text('Từ chối', style: TextStyle(color: GlassTheme.error, fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: () => _approveAppointment(apt),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GlassTheme.oceanBlue,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 4,
-                          shadowColor: GlassTheme.oceanBlue.withOpacity(0.4),
-                        ),
-                        icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                        label: const Text('Phê duyệt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ]
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
+            const SizedBox(height: 24),
 
-  @override
-  Widget build(BuildContext context) {
-    return GlassBackground(
-      child: DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: Text('Điều phối Lịch hẹn', style: GlassTheme.h2(color: GlassTheme.primary)),
-            iconTheme: const IconThemeData(color: GlassTheme.primary),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(60),
+            // 1. TOP CONTROLS (Row 2 - Tabs Điều hướng)
+            Row(
+              children: [
+                _buildTab(0, 'Chờ duyệt'),
+                const SizedBox(width: 32),
+                _buildTab(1, 'Đã xác nhận'),
+                const SizedBox(width: 32),
+                _buildTab(2, 'Lịch sử/Đã hủy'),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 2. DATA TABLE
+            Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
+                  color: surfaceWhite,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 4, offset: Offset(0, 1))],
+                  border: Border.all(color: borderLight),
                 ),
-                child: TabBar(
-                  indicator: BoxDecoration(
-                    color: GlassTheme.oceanBlue,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(color: GlassTheme.oceanBlue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2)),
-                    ],
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: GlassTheme.onSurfaceVariant,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  tabs: const [
-                    Tab(text: 'Chờ duyệt'),
-                    Tab(text: 'Đã xác nhận'),
-                    Tab(text: 'Lịch sử/Đã hủy'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _filteredAppointments.isEmpty
+                          ? _buildEmptyState()
+                          : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 48),
+                                child: DataTable(
+                                  headingRowColor: WidgetStateProperty.all(surfaceWhite),
+                                  dataRowMaxHeight: 80,
+                                  dataRowMinHeight: 80,
+                                  columnSpacing: 32,
+                                  horizontalMargin: 24,
+                                  border: const TableBorder(bottom: BorderSide(color: borderLight)),
+                                  columns: [
+                                    const DataColumn(label: Text('Mã lịch', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    const DataColumn(label: Text('Bệnh nhân & Bác sĩ', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    const DataColumn(label: Text('Thời gian', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    const DataColumn(label: Text('Loại hình khám', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    DataColumn(
+                                      // Chỉ hiển thị cột Hành động nếu đang ở Tab Chờ duyệt, nếu không thì để trống hoặc Hành động xem
+                                      label: Container(
+                                        alignment: Alignment.centerRight,
+                                        width: 200,
+                                        child: Text(_selectedTabIndex == 0 ? 'Hành động' : '', style: const TextStyle(fontWeight: FontWeight.w600, color: textSecondary)),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: _filteredAppointments.map((apt) {
+                                    final isTelehealth = apt.serviceType.contains('Telehealth');
+                                    
+                                    return DataRow(
+                                      color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+                                        if (states.contains(WidgetState.hovered)) return hoverRowColor;
+                                        return null; 
+                                      }),
+                                      cells: [
+                                        // Mã lịch
+                                        DataCell(Text(apt.id, style: const TextStyle(color: textMuted, fontWeight: FontWeight.w500))),
+                                        // Bệnh nhân & Bác sĩ
+                                        DataCell(
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(apt.patientName, style: const TextStyle(fontWeight: FontWeight.bold, color: textPrimary, fontSize: 15)),
+                                              const SizedBox(height: 4),
+                                              Text('${apt.doctorName} - ${apt.specialty}', style: const TextStyle(color: textSecondary, fontSize: 13)),
+                                            ],
+                                          ),
+                                        ),
+                                        // Thời gian
+                                        DataCell(
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.access_time, size: 16, color: textSecondary),
+                                              const SizedBox(width: 6),
+                                              Text(apt.time, style: const TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+                                            ],
+                                          ),
+                                        ),
+                                        // Loại hình khám
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: isTelehealth ? telehealthBg : clinicBg,
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            child: Text(
+                                              apt.serviceType.split('(').first.trim(), // Lấy tên ngắn gọn
+                                              style: TextStyle(
+                                                color: isTelehealth ? telehealthText : clinicText, 
+                                                fontSize: 13, 
+                                                fontWeight: FontWeight.w600
+                                              )
+                                            ),
+                                          ),
+                                        ),
+                                        // Hành động (Căn phải có Margin an toàn - Fat-finger prevention)
+                                        DataCell(
+                                          Container(
+                                            alignment: Alignment.centerRight,
+                                            child: _selectedTabIndex == 0 
+                                              ? Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    // Nút Từ chối
+                                                    OutlinedButton(
+                                                      onPressed: () => _showCancelDialog(apt),
+                                                      style: OutlinedButton.styleFrom(
+                                                        foregroundColor: errorRed,
+                                                        side: const BorderSide(color: errorRed),
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                      ),
+                                                      child: const Text('Từ chối', style: TextStyle(fontWeight: FontWeight.bold)),
+                                                    ),
+                                                    const SizedBox(width: 12), // Khoảng cách an toàn
+                                                    // Nút Phê duyệt
+                                                    ElevatedButton.icon(
+                                                      onPressed: () => _approveAppointment(apt),
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: medicalBlue,
+                                                        foregroundColor: Colors.white,
+                                                        elevation: 0,
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                      ),
+                                                      icon: const Icon(Icons.check, size: 18),
+                                                      label: const Text('Phê duyệt', style: TextStyle(fontWeight: FontWeight.bold)),
+                                                    ),
+                                                  ],
+                                                )
+                                              : (_selectedTabIndex == 2 && apt.cancelReason != null)
+                                                  // Nếu ở tab Lịch sử và có lý do hủy
+                                                  ? Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        const Icon(Icons.info_outline, size: 16, color: errorRed),
+                                                        const SizedBox(width: 4),
+                                                        Text('Lý do hủy: ${apt.cancelReason}', style: const TextStyle(color: errorRed, fontStyle: FontStyle.italic, fontSize: 13)),
+                                                      ],
+                                                    )
+                                                  : const SizedBox.shrink(),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                    ),
+                    // Pagination
+                    if (_filteredAppointments.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: const BoxDecoration(border: Border(top: BorderSide(color: borderLight))),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Hiển thị 1-${_filteredAppointments.length} kết quả', style: const TextStyle(color: textSecondary, fontSize: 13)),
+                            Row(
+                              children: [
+                                OutlinedButton(
+                                  onPressed: null,
+                                  style: OutlinedButton.styleFrom(side: const BorderSide(color: borderLight)),
+                                  child: const Text('Trước', style: TextStyle(color: textSecondary)),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton(
+                                  onPressed: null,
+                                  style: OutlinedButton.styleFrom(side: const BorderSide(color: borderLight)),
+                                  child: const Text('Sau', style: TextStyle(color: textSecondary)),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      )
                   ],
                 ),
               ),
             ),
-          ),
-          body: TabBarView(
-            children: [
-              _buildAppointmentList('Chờ duyệt'),
-              _buildAppointmentList('Đã xác nhận'),
-              _buildAppointmentList('Lịch sử'), // Hàm _buildAppointmentList xử lý gộp trạng thái 'Đã hủy'
-            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTab(int index, String title) {
+    final isSelected = _selectedTabIndex == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTabIndex = index;
+          _filterAppointments();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? medicalBlue : Colors.transparent,
+              width: 3,
+            ),
           ),
         ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? medicalBlue : textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(color: backgroundLight, shape: BoxShape.circle),
+            child: const Icon(Icons.event_busy, size: 64, color: borderLight),
+          ),
+          const SizedBox(height: 24),
+          const Text('Không có lịch hẹn nào', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary)),
+          const SizedBox(height: 12),
+          Text(
+            'Không tìm thấy dữ liệu khớp với bộ lọc hiện tại.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: textSecondary),
+          ),
+        ],
       ),
     );
   }

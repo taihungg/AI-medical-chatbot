@@ -1,5 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../widgets/glass_widgets.dart';
+
+// MÀU SẮC GIAO DIỆN PHẲNG (Chuẩn Y Tế)
+const Color medicalBlue = Color(0xFF2563EB); // bg-blue-600
+const Color backgroundLight = Color(0xFFF8FAFC); // bg-slate-50
+const Color surfaceWhite = Colors.white;
+const Color textPrimary = Color(0xFF0F172A); // slate-900
+const Color textSecondary = Color(0xFF64748B); // slate-500
+const Color borderLight = Color(0xFFE2E8F0); // slate-200
+const Color hoverRowColor = Color(0xFFF8FAFC); // bg-gray-50/slate-50 hover
+
+// Màu cho Badge
+const Color urgentBg = Color(0xFFFEE2E2); // red-100
+const Color urgentText = Color(0xFFDC2626); // red-600
+const Color stableBg = Color(0xFFD1FAE5); // emerald-100
+const Color stableText = Color(0xFF059669); // emerald-600
+
+const Color categoryBg = Color(0xFFDBEAFE); // blue-100
+const Color categoryText = Color(0xFF1E40AF); // blue-800
 
 class Patient {
   final String id;
@@ -37,7 +54,7 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'Tất cả';
 
-  // Mock data mô phỏng dữ liệu kết hợp Symptom Flow
+  // Mock data
   final List<Patient> _allPatients = [
     Patient(
       id: 'BN-8801', 
@@ -86,7 +103,6 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
   ];
 
   late List<Patient> _filteredPatients;
-
   final List<String> _filters = ['Tất cả', 'Khách mới', 'Tái khám', 'Cần theo dõi'];
 
   @override
@@ -98,7 +114,6 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
   void _filterPatients() {
     setState(() {
       _filteredPatients = _allPatients.where((p) {
-        // Shneiderman: Tìm kiếm thông minh qua Tên HOẶC Số điện thoại
         final searchLower = _searchQuery.toLowerCase();
         final matchSearch = p.name.toLowerCase().contains(searchLower) ||
             p.phone.contains(searchLower) ||
@@ -110,7 +125,6 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
     });
   }
 
-  // Dialog Tích hợp Dữ liệu AI
   void _showPatientDetailDialog(Patient patient) {
     showGeneralDialog(
       context: context,
@@ -125,11 +139,15 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
             color: Colors.transparent,
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
-              child: GlassCard(
-                padding: const EdgeInsets.all(24),
-                borderRadius: 24,
-                child: SingleChildScrollView(
+              constraints: BoxConstraints(maxWidth: 600, maxHeight: MediaQuery.of(context).size.height * 0.8),
+              decoration: BoxDecoration(
+                color: surfaceWhite,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 16)],
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,24 +155,23 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Hồ sơ chi tiết', style: GlassTheme.h2(color: GlassTheme.primary)),
+                          const Text('Hồ sơ chi tiết', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary)),
                           IconButton(
-                            icon: const Icon(Icons.close, color: GlassTheme.outline),
+                            icon: const Icon(Icons.close, color: textSecondary),
                             onPressed: () => Navigator.of(context).pop(),
                           )
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Thông tin cơ bản
+                      const Divider(color: borderLight, height: 24),
                       Row(
                         children: [
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor: GlassTheme.oceanBlue.withOpacity(0.2),
+                            backgroundColor: categoryBg,
                             child: Icon(
                               patient.gender == 'Nam' ? Icons.face : Icons.face_3,
                               size: 30,
-                              color: GlassTheme.oceanBlue,
+                              color: medicalBlue,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -162,14 +179,15 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(patient.name, style: GlassTheme.h3()),
-                                Text('${patient.id} • ${patient.age} tuổi • ${patient.gender}', style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)),
+                                Text(patient.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
+                                const SizedBox(height: 4),
+                                Text('${patient.id} • ${patient.age} tuổi • ${patient.gender}', style: const TextStyle(color: textSecondary)),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.phone, size: 14, color: GlassTheme.outline),
+                                    const Icon(Icons.phone, size: 14, color: textSecondary),
                                     const SizedBox(width: 4),
-                                    Text(patient.phone, style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)),
+                                    Text(patient.phone, style: const TextStyle(color: textSecondary)),
                                   ],
                                 ),
                               ],
@@ -179,32 +197,28 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Khu vực Dữ liệu AI (Symptom Flow Integration)
+                      // Khu vực Dữ liệu AI 
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.deepPurple.withOpacity(0.1), Colors.blueAccent.withOpacity(0.05)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                          color: const Color(0xFFF0FDF4), // green-50
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFBBF7D0)), // green-200
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              children: [
-                                const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 20),
-                                const SizedBox(width: 8),
-                                Text('Lịch sử khai báo triệu chứng (AI)', style: GlassTheme.h3(color: Colors.deepPurple).copyWith(fontSize: 16)),
+                              children: const [
+                                Icon(Icons.auto_awesome, color: stableText, size: 20),
+                                SizedBox(width: 8),
+                                Text('Lịch sử khai báo triệu chứng (AI)', style: TextStyle(fontWeight: FontWeight.bold, color: stableText)),
                               ],
                             ),
                             const SizedBox(height: 12),
                             Text(
                               patient.aiSymptomSummary,
-                              style: GlassTheme.bodyMd(color: GlassTheme.onSurface).copyWith(height: 1.5),
+                              style: const TextStyle(color: textPrimary, height: 1.5),
                             ),
                           ],
                         ),
@@ -213,14 +227,18 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
-                        child: GlassButton(
-                          text: 'Xem Bệnh án đầy đủ',
-                          icon: Icons.assignment_ind,
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: medicalBlue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: const Icon(Icons.assignment_ind, size: 20),
+                          label: const Text('Xem Bệnh án đầy đủ', style: TextStyle(fontWeight: FontWeight.w600)),
                           onPressed: () {
                             Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Chuyển hướng đến màn hình Bệnh án chi tiết...')),
-                            );
                           },
                         ),
                       ),
@@ -232,241 +250,313 @@ class _PatientRecordsScreenState extends State<PatientRecordsScreen> {
           ),
         );
       },
-      transitionBuilder: (context, anim1, anim2, child) {
-        return FadeTransition(
-          opacity: anim1,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1.0).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic)),
-            child: child,
-          ),
-        );
-      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GlassBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: Text('Quản lý Bệnh nhân', style: GlassTheme.h2(color: GlassTheme.primary)),
-          iconTheme: const IconThemeData(color: GlassTheme.primary),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Thanh Search (Reduce memory load)
-              GlassTextField(
-                controller: _searchController,
-                label: '',
-                hint: 'Tìm theo Tên hoặc Số điện thoại...',
-                prefixIcon: Icons.search,
-                suffixIcon: _searchQuery.isNotEmpty ? Icons.close : null,
-                onSuffixPressed: () {
-                  _searchController.clear();
-                  setState(() {
-                    _searchQuery = '';
-                    _filterPatients();
-                  });
-                },
-                onChanged: (val) {
-                  setState(() {
-                    _searchQuery = val;
-                    _filterPatients();
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Hàng Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSelected = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: ChoiceChip(
-                        label: Text(filter),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedFilter = filter;
-                            _filterPatients();
-                          });
-                        },
-                        selectedColor: GlassTheme.oceanBlue.withOpacity(0.25),
-                        backgroundColor: Colors.white.withOpacity(0.4),
-                        labelStyle: TextStyle(
-                          color: isSelected ? GlassTheme.primary : GlassTheme.onSurfaceVariant,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        side: BorderSide(
-                          color: isSelected ? GlassTheme.oceanBlue : Colors.transparent,
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      ),
-                    );
-                  }).toList(),
+    return Scaffold(
+      backgroundColor: backgroundLight,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. TOP CONTROLS
+            const Text(
+              'Quản lý Bệnh nhân',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textPrimary),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                // Dòng 1: Search bar
+                Container(
+                  width: 320,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: surfaceWhite,
+                    border: Border.all(color: borderLight),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm theo tên, SĐT bệnh nhân...',
+                      hintStyle: const TextStyle(color: textSecondary, fontSize: 14),
+                      prefixIcon: const Icon(Icons.search, color: textSecondary, size: 20),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close, size: 16),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _filterPatients();
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val;
+                        _filterPatients();
+                      });
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+              ],
+            ),
+            const SizedBox(height: 16),
 
-              // Danh sách / Empty State
-              Expanded(
-                child: _filteredPatients.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        itemCount: _filteredPatients.length,
-                        itemBuilder: (context, index) {
-                          final patient = _filteredPatients[index];
-                          final isUrgent = patient.healthStatus == 'Khẩn cấp';
-                          
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () => _showPatientDetailDialog(patient),
-                                borderRadius: BorderRadius.circular(20),
-                                child: GlassCard(
-                                  padding: const EdgeInsets.all(16.0),
-                                  borderRadius: 20,
-                                  borderColor: isUrgent ? GlassTheme.error.withOpacity(0.3) : Colors.white,
-                                  child: Row(
-                                    children: [
-                                      // Avatar
-                                      CircleAvatar(
-                                        radius: 28,
-                                        backgroundColor: GlassTheme.cyan.withOpacity(0.2),
-                                        child: Icon(
-                                          patient.gender == 'Nam' ? Icons.face : Icons.face_3,
-                                          color: GlassTheme.oceanBlue,
-                                          size: 28,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      // Thông tin bệnh nhân
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(patient.name, style: GlassTheme.h3()),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              '${patient.id} • ${patient.gender}, ${patient.age} tuổi',
-                                              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            // Badges trạng thái (Visibility)
-                                            Wrap(
-                                              spacing: 8,
-                                              runSpacing: 4,
-                                              children: [
-                                                _buildStatusBadge(
-                                                  text: patient.category,
-                                                  color: GlassTheme.oceanBlue,
+            // Dòng 2: Tabs (Pills) lọc bệnh nhân
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _filters.map((filter) {
+                  final isSelected = _selectedFilter == filter;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedFilter = filter;
+                          _filterPatients();
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? categoryBg : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          filter,
+                          style: TextStyle(
+                            color: isSelected ? categoryText : textSecondary,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // 2. DATA TABLE
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: surfaceWhite,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 4, offset: Offset(0, 1))],
+                  border: Border.all(color: borderLight),
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: _filteredPatients.isEmpty
+                          ? _buildEmptyState()
+                          : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 48),
+                                child: DataTable(
+                                  headingRowColor: WidgetStateProperty.all(surfaceWhite),
+                                  dataRowMaxHeight: 64,
+                                  dataRowMinHeight: 64,
+                                  columnSpacing: 32,
+                                  horizontalMargin: 24,
+                                  border: const TableBorder(bottom: BorderSide(color: borderLight)),
+                                  columns: const [
+                                    DataColumn(label: Text('Bệnh nhân', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    DataColumn(label: Text('Thông tin cơ bản', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    DataColumn(label: Text('Phân loại', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    DataColumn(label: Text('Tình trạng', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                    DataColumn(label: Text('Hành động', style: TextStyle(fontWeight: FontWeight.w600, color: textSecondary))),
+                                  ],
+                                  rows: _filteredPatients.map((patient) {
+                                    final isUrgent = patient.healthStatus == 'Khẩn cấp';
+                                    
+                                    return DataRow(
+                                      color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+                                        if (states.contains(WidgetState.hovered)) {
+                                          return hoverRowColor;
+                                        }
+                                        return null; 
+                                      }),
+                                      cells: [
+                                        // Cột 1: Avatar + Tên + ID
+                                        DataCell(
+                                          Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 18,
+                                                backgroundColor: categoryBg,
+                                                child: Icon(
+                                                  patient.gender == 'Nam' ? Icons.face : Icons.face_3,
+                                                  color: medicalBlue,
+                                                  size: 18,
                                                 ),
-                                                _buildStatusBadge(
-                                                  text: patient.healthStatus,
-                                                  color: isUrgent ? GlassTheme.error : Colors.green,
-                                                  icon: isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(patient.name, style: const TextStyle(fontWeight: FontWeight.bold, color: textPrimary, fontSize: 14)),
+                                                  Text(patient.id, style: const TextStyle(color: textSecondary, fontSize: 12)),
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        // Cột 2: Thông tin cơ bản
+                                        DataCell(
+                                          Text('${patient.gender}, ${patient.age} tuổi', style: const TextStyle(color: textPrimary)),
+                                        ),
+                                        // Cột 3: Phân loại (Badge)
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: categoryBg,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Text(patient.category, style: const TextStyle(color: categoryText, fontSize: 13, fontWeight: FontWeight.w500)),
+                                          ),
+                                        ),
+                                        // Cột 4: Tình trạng (Badge Khẩn cấp/Ổn định)
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: isUrgent ? urgentBg : stableBg,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline, size: 14, color: isUrgent ? urgentText : stableText),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  patient.healthStatus, 
+                                                  style: TextStyle(
+                                                    color: isUrgent ? urgentText : stableText, 
+                                                    fontSize: 13, 
+                                                    fontWeight: FontWeight.bold
+                                                  )
                                                 ),
                                               ],
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                      // Icon mũi tên (Affordances)
-                                      Icon(Icons.chevron_right, color: GlassTheme.outline.withOpacity(0.5), size: 28),
-                                    ],
-                                  ),
+                                        // Cột 5: Hành động
+                                        DataCell(
+                                          IconButton(
+                                            icon: const Icon(Icons.chevron_right, color: textSecondary),
+                                            onPressed: () => _showPatientDetailDialog(patient),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                    ),
+                    // Thanh phân trang
+                    if (_filteredPatients.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: const BoxDecoration(
+                          border: Border(top: BorderSide(color: borderLight)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Hiển thị 1-${_filteredPatients.length} trên tổng ${_allPatients.length}', style: const TextStyle(color: textSecondary, fontSize: 13)),
+                            Row(
+                              children: [
+                                OutlinedButton(
+                                  onPressed: null,
+                                  style: OutlinedButton.styleFrom(side: const BorderSide(color: borderLight)),
+                                  child: const Text('Trước', style: TextStyle(color: textSecondary)),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton(
+                                  onPressed: null,
+                                  style: OutlinedButton.styleFrom(side: const BorderSide(color: borderLight)),
+                                  child: const Text('Sau', style: TextStyle(color: textSecondary)),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      )
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusBadge({required String text, required Color color, IconData? icon}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 12, color: color),
-            const SizedBox(width: 4),
-          ],
-          Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
-        ],
-      ),
-    );
-  }
-
-  // Friendly Empty State (Error Prevention / Feedback)
   Widget _buildEmptyState() {
     return Center(
-      child: GlassCard(
-        padding: const EdgeInsets.all(32),
-        borderRadius: 24,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: GlassTheme.oceanBlue.withOpacity(0.1),
-                shape: BoxShape.circle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: backgroundLight,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search_off_rounded, size: 64, color: borderLight),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Không tìm thấy hồ sơ',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Không có hồ sơ bệnh nhân nào khớp với từ khóa "$_searchQuery".',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: textSecondary),
+          ),
+          const SizedBox(height: 24),
+          if (_searchQuery.isNotEmpty || _selectedFilter != 'Tất cả')
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: surfaceWhite,
+                foregroundColor: textPrimary,
+                side: const BorderSide(color: borderLight),
+                elevation: 0,
               ),
-              child: Icon(Icons.search_off_rounded, size: 64, color: GlassTheme.oceanBlue.withOpacity(0.6)),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Không tìm thấy hồ sơ',
-              style: GlassTheme.h2(color: GlassTheme.onSurface),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Không có hồ sơ bệnh nhân nào khớp với từ khóa "$_searchQuery" hoặc bộ lọc hiện tại. Vui lòng kiểm tra lại số điện thoại/tên.',
-              textAlign: TextAlign.center,
-              style: GlassTheme.bodyMd(color: GlassTheme.outline),
-            ),
-            const SizedBox(height: 24),
-            if (_searchQuery.isNotEmpty || _selectedFilter != 'Tất cả')
-              GlassButton(
-                text: 'Xóa bộ lọc',
-                height: 48,
-                width: 200,
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {
-                    _searchQuery = '';
-                    _selectedFilter = 'Tất cả';
-                    _filterPatients();
-                  });
-                },
-              )
-          ],
-        ),
+              child: const Text('Xóa bộ lọc'),
+              onPressed: () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _selectedFilter = 'Tất cả';
+                  _filterPatients();
+                });
+              },
+            )
+        ],
       ),
     );
   }
