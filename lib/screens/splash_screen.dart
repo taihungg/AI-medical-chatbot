@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../widgets/glass_widgets.dart';
 import '../state/app_state.dart';
-import '../widgets/role_switcher.dart';
-import 'patient/home_dashboard.dart';
+import 'account/account_management_screen.dart';
 import 'patient/symptom_flow.dart';
-import 'patient/medication_catalog.dart';
+import 'patient/appointment_booking_tab.dart';
 import 'doctor/specialist_dashboard.dart';
+import 'doctor/doctor_timetable_screen.dart';
 import 'manager/clinic_management_dashboard.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -85,13 +86,13 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 40),
                 // Titles
                 Text(
-                  "AI Care Bridge",
+                  "DrAI", 
                   style: GlassTheme.h1(color: GlassTheme.oceanBlue),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "HỆ THỐNG CẦU NỐI Y TẾ THÔNG MINH",
+                  "HỆ THỐNG AI CHATBOT Y TẾ", 
                   style: GlassTheme.labelCaps(
                     color: GlassTheme.onSurfaceVariant,
                   ),
@@ -99,13 +100,13 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  "BẮT ĐẦU TRẢI NGHIỆM PROTOTYPE (CHỌN VAI TRÒ)",
+                  "BẮT ĐẦU TRẢI NGHIỆM (CHỌN VAI TRÒ)",
                   style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
                       .copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -113,9 +114,9 @@ class _SplashScreenState extends State<SplashScreen>
                 // 1. Patient / Seeker Option
                 _buildRoleCard(
                   context,
-                  title: "Người Dùng & Bệnh Nhân",
+                  title: "Bệnh nhân",
                   subtitle:
-                      "Khám triệu chứng AI, đặt lịch phòng khám, tủ thuốc & tư vấn telehealth trực tuyến.",
+                      "Khám triệu chứng AI, đặt lịch phòng khám và tư vấn trực tuyến.",
                   icon: Icons.person_outline,
                   role: UserRole.patient,
                   color: GlassTheme.oceanBlue,
@@ -125,9 +126,9 @@ class _SplashScreenState extends State<SplashScreen>
                 // 2. Doctor Option
                 _buildRoleCard(
                   context,
-                  title: "Bác Sĩ & Chuyên Gia Lâm Sàng",
+                  title: "Bác sĩ",
                   subtitle:
-                      "Hàng đợi khám lâm sàng, phòng tư vấn video live, ghi chú giọng nói AI & ký số đơn thuốc.",
+                      "Hàng đợi khám lâm sàng, phòng tư vấn video live.",
                   icon: Icons.medical_services_outlined,
                   role: UserRole.doctor,
                   color: Colors.teal,
@@ -137,7 +138,7 @@ class _SplashScreenState extends State<SplashScreen>
                 // 3. Manager Option
                 _buildRoleCard(
                   context,
-                  title: "Ban Điều Hành & Quản Lý",
+                  title: "Quản lý phòng khám",
                   subtitle:
                       "Dashboard chỉ số bento thời gian thực, biểu đồ giờ cao điểm & nhật ký live toàn hệ thống.",
                   icon: Icons.analytics_outlined,
@@ -162,11 +163,27 @@ class _SplashScreenState extends State<SplashScreen>
     required Color color,
   }) {
     return InkWell(
-      onTap: () {
-        AppState.instance.setRole(role);
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainFramework()),
-        );
+      onTap: () async {
+        final appState = AppState.instance;
+
+        if (appState.currentRole != role) {
+          appState.logout();
+        }
+
+        // Force login for Doctor and Manager if not authenticated
+        if (role != UserRole.patient && !appState.isAuthenticated) {
+          final success = await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: role)),
+          );
+          if (success != true) return; // Login cancelled or failed
+        }
+
+        appState.setRole(role);
+        if (context.mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const MainFramework()),
+          );
+        }
       },
       borderRadius: BorderRadius.circular(20),
       child: GlassCard(
@@ -243,7 +260,7 @@ class MainFramework extends StatefulWidget {
 }
 
 class _MainFrameworkState extends State<MainFramework> {
-  // Navigation for Patient/Seeker is separate from Specialist/Manager
+  // Navigation index for Patient bottom tabs
   late int _patientNavIndex;
 
   @override
@@ -262,17 +279,9 @@ class _MainFrameworkState extends State<MainFramework> {
         // Dynamically select layout based on the active role selected in the floating switcher
         return PopScope(
           canPop: false,
-          child: Scaffold(
-            body: Stack(
-              children: [
-                // Dynamic view based on Active Role
-                _buildRoleScreen(appState.currentRole),
-
-              // Always visible floating debugger Role Console
-              Positioned.fill(
-                child: const RoleSwitcher(),
-              ),
-            ],
+          child: Material(
+            color: Colors.transparent,
+            child: _buildRoleScreen(appState.currentRole),
           ),
         );
       },
@@ -283,56 +292,94 @@ class _MainFrameworkState extends State<MainFramework> {
     // We import and render appropriate screens here
     switch (role) {
       case UserRole.patient:
-      case UserRole.seeker:
-        return _buildPatientSeekerShell(role);
+        return _buildPatientShell();
       case UserRole.doctor:
-      case UserRole.specialist:
-        return const DoctorSpecialistShell();
+        return const DoctorShell();
       case UserRole.manager:
         return const ClinicManagerShell();
     }
   }
 
-  Widget _buildPatientSeekerShell(UserRole role) {
-    // Shell managing bottom navigation bar for Patient/Seeker
+  Widget _buildPatientShell() {
+    // Shell managing bottom navigation bar for Patient
+    // Tab 0: AI Chatbot (SymptomFlowScreen)
+    // Tab 1: Đặt lịch khám (AppointmentBookingTab)
+    // Tab 2: Lịch sử y khoa (PatientHistoryScreen)
+    final appState = AppState.instance;
+    final activeIndex = appState.patientNavIndex;
+
     final pages = [
-      const PatientHomeDashboard(),
       const SymptomFlowScreen(),
-      const MedicationCatalogScreen(),
-      const PatientHistoryScreen(),
+      appState.isAuthenticated ? const AppointmentBookingTab() : const PatientLoginRequiredScreen(title: "Đặt lịch khám"),
+      appState.isAuthenticated ? const PatientHistoryScreen() : const PatientLoginRequiredScreen(title: "Lịch sử y khoa"),
     ];
 
     final items = [
-      GlassNavItem(icon: Icons.home_outlined, label: "Trang chủ"),
-      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Khám AI"),
-      GlassNavItem(icon: Icons.medical_services_outlined, label: "Nhà thuốc"),
-      GlassNavItem(icon: Icons.history_outlined, label: "Lịch sử"),
+      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Tư vấn AI"),
+      GlassNavItem(icon: Icons.edit_calendar, label: "Đặt lịch"),
+      GlassNavItem(icon: Icons.history, label: "Lịch sử"),
     ];
+
+    // Auto-switch to booking tab when AI triggers it
+    if (appState.pendingBookingFromAI && activeIndex != 1) {
+      // Schedule the tab switch after the current frame to avoid build-during-build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          appState.setPatientNavIndex(1);
+          appState.consumeBookingTrigger();
+        }
+      });
+    }
 
     return Scaffold(
       extendBody: true,
-      body: pages[_patientNavIndex],
-      bottomNavigationBar: GlassNavigationBar(
-        selectedIndex: _patientNavIndex,
-        onTap: (index) {
-          setState(() {
-            _patientNavIndex = index;
-          });
-        },
-        items: items,
+      body: IndexedStack(
+        index: activeIndex,
+        children: pages,
       ),
     );
   }
 }
 
-// Mock Shells for Specialist and Manager (We will implement the real screens later)
-class DoctorSpecialistShell extends StatelessWidget {
-  const DoctorSpecialistShell({super.key});
+// Shells for Doctor and Manager
+class DoctorShell extends StatelessWidget {
+  const DoctorShell({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // We will render Doctor Dashboard
-    return const DoctorSpecialistDashboard();
+    final appState = AppState.instance;
+
+    return ListenableBuilder(
+      listenable: appState,
+      builder: (context, child) {
+        final activeIndex = appState.doctorNavIndex;
+
+        final pages = [
+          const DoctorSpecialistDashboard(),
+          const DoctorTimetableScreen(),
+        ];
+
+        final items = [
+          GlassNavItem(icon: Icons.dashboard, label: "Tổng quan"),
+          GlassNavItem(icon: Icons.calendar_month, label: "Lịch làm việc"),
+        ];
+
+        return Scaffold(
+          extendBody: true,
+          body: IndexedStack(
+            index: activeIndex,
+            children: pages,
+          ),
+          bottomNavigationBar: GlassNavigationBar(
+            selectedIndex: activeIndex,
+            onTap: (index) {
+              appState.setDoctorNavIndex(index);
+            },
+            items: items,
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -360,20 +407,169 @@ class PatientHistoryScreen extends StatelessWidget {
         final doneAppts = appState.appointments;
 
         return Scaffold(
-          appBar: const GlassAppBar(title: "Lịch Sử Khám Bệnh"),
+          appBar: GlassAppBar(
+            title: "Lịch Sử Khám Bệnh",
+            actions: [
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+                tooltip: "Menu",
+                offset: const Offset(0, 56),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                onSelected: (value) {
+                  if (value == 'ai_chat') {
+                    appState.setPatientNavIndex(0);
+                  } else if (value == 'booking') {
+                    appState.setPatientNavIndex(1);
+                  } else if (value == 'history') {
+                    appState.setPatientNavIndex(2);
+                  } else if (value == 'account') {
+                    if (!appState.isAuthenticated) {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen(expectedRole: UserRole.patient)));
+                      return;
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
+                    );
+                  } else if (value == 'settings') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
+                    );
+                  } else if (value == 'logout') {
+                    appState.logout();
+                  } else if (value == 'switch_role') {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const SplashScreen()),
+                    );
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'ai_chat',
+                    child: Row(
+                      children: [
+                        Icon(Icons.chat_bubble_outline,
+                            size: 20, color: GlassTheme.oceanBlue),
+                        SizedBox(width: 12),
+                        Text("Tư vấn AI"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'booking',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_calendar,
+                            size: 20, color: GlassTheme.oceanBlue),
+                        SizedBox(width: 12),
+                        Text("Đặt lịch"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'history',
+                    child: Row(
+                      children: [
+                        Icon(Icons.history,
+                            size: 20, color: GlassTheme.oceanBlue),
+                        SizedBox(width: 12),
+                        Text("Lịch sử"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'account',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Quản lý tài khoản"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text("Cài đặt"),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, size: 20, color: Colors.red),
+                        SizedBox(width: 12),
+                        Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'switch_role',
+                    child: Row(
+                      children: [
+                        Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           body: GlassBackground(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
+            child: !appState.isAuthenticated
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.login, size: 64, color: GlassTheme.oceanBlue),
+                            const SizedBox(height: 24),
+                            Text(
+                              "Yêu cầu Đăng Nhập",
+                              style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              "Bạn cần đăng nhập với tài khoản Bệnh nhân để xem lịch sử khám bệnh.",
+                              textAlign: TextAlign.center,
+                              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GlassButton(
+                                text: "Đăng Nhập",
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const LoginScreen(
+                                        expectedRole: UserRole.patient,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(16),
               children: [
-                Text(
-                  "Hồ Sơ Y Khoa Của Bạn",
-                  style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Xem tất cả lịch hẹn tư vấn và kết luận từ bác sĩ chuyên khoa.",
-                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
-                ),
                 const SizedBox(height: 20),
                 if (doneAppts.isEmpty)
                   const GlassCard(
@@ -511,6 +707,84 @@ class PatientHistoryScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class PatientLoginRequiredScreen extends StatelessWidget {
+  final String title;
+  const PatientLoginRequiredScreen({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = AppState.instance;
+    return Scaffold(
+      appBar: GlassAppBar(
+        title: title,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+            tooltip: "Menu",
+            offset: const Offset(0, 56),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            onSelected: (value) {
+              if (value == 'ai_chat') {
+                appState.setPatientNavIndex(0);
+              } else if (value == 'booking') {
+                appState.setPatientNavIndex(1);
+              } else if (value == 'history') {
+                appState.setPatientNavIndex(2);
+              } else if (value == 'account') {
+                if (!appState.isAuthenticated) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
+                  return;
+                }
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AccountManagementScreen()));
+              } else if (value == 'logout') {
+                appState.logout();
+              } else if (value == 'switch_role') {
+                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SplashScreen()));
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'ai_chat', child: Row(children: [Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue), SizedBox(width: 12), Text("Tư vấn AI")])),
+              const PopupMenuItem(value: 'booking', child: Row(children: [Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue), SizedBox(width: 12), Text("Đặt lịch")])),
+              const PopupMenuItem(value: 'history', child: Row(children: [Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue), SizedBox(width: 12), Text("Lịch sử")])),
+              const PopupMenuDivider(),
+              const PopupMenuItem(value: 'account', child: Row(children: [Icon(Icons.person_outline, size: 20, color: Colors.black54), SizedBox(width: 12), Text("Quản lý tài khoản")])),
+              const PopupMenuItem(value: 'settings', child: Row(children: [Icon(Icons.settings_outlined, size: 20, color: Colors.black54), SizedBox(width: 12), Text("Cài đặt")])),
+              const PopupMenuDivider(),
+              const PopupMenuItem(value: 'switch_role', child: Row(children: [Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange), SizedBox(width: 12), Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange))])),
+            ],
+          )
+        ],
+      ),
+      body: GlassBackground(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.lock_outline, size: 64, color: GlassTheme.oceanBlue),
+              const SizedBox(height: 16),
+              Text("Yêu cầu đăng nhập", style: GlassTheme.h2()),
+              const SizedBox(height: 8),
+              Text("Bạn cần đăng nhập để sử dụng chức năng này.", style: GlassTheme.bodyMd()),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: 200,
+                child: GlassButton(
+                  text: "ĐĂNG NHẬP",
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

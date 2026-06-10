@@ -49,12 +49,11 @@ class _RecordingVisualizerState extends State<RecordingVisualizer> {
               style: const TextStyle(fontSize: 10, color: Colors.white),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: SizedBox(
-                height: 16,
-                child: CustomPaint(
-                  painter: RecordingWavePainter(seconds: _recordingSeconds),
-                ),
+            SizedBox(
+              width: 50,
+              height: 16,
+              child: CustomPaint(
+                painter: RecordingWavePainter(seconds: _recordingSeconds),
               ),
             ),
           ],

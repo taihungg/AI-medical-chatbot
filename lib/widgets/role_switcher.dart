@@ -49,13 +49,9 @@ class _RoleSwitcherState extends State<RoleSwitcher>
   String _getRoleNameVi(UserRole role) {
     switch (role) {
       case UserRole.patient:
-        return "Bệnh nhân (Khám bệnh)";
-      case UserRole.seeker:
-        return "Người cần tư vấn nhanh";
+        return "Bệnh nhân";
       case UserRole.doctor:
-        return "Bác sĩ điều trị";
-      case UserRole.specialist:
-        return "Chuyên gia y tế";
+        return "Bác sĩ";
       case UserRole.manager:
         return "Quản lý phòng khám";
     }
@@ -65,12 +61,8 @@ class _RoleSwitcherState extends State<RoleSwitcher>
     switch (role) {
       case UserRole.patient:
         return Icons.person;
-      case UserRole.seeker:
-        return Icons.chat_bubble;
       case UserRole.doctor:
         return Icons.medical_services;
-      case UserRole.specialist:
-        return Icons.psychology;
       case UserRole.manager:
         return Icons.dashboard;
     }
@@ -103,7 +95,7 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                 right: 16,
                 child: SizeTransition(
                   sizeFactor: _expandAnimation,
-                  alignment: const Alignment(-1.0, 0.0),
+                  axisAlignment: -1.0,
                   child: Container(
                     width: 250,
                     margin: const EdgeInsets.only(bottom: 8),
@@ -187,17 +179,16 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                                       Expanded(
                                         child: Text(
                                           _getRoleNameVi(role),
-                                          style:
-                                              GlassTheme.bodyMd(
-                                                color: isSelected
-                                                    ? GlassTheme.oceanBlue
-                                                    : GlassTheme.onSurface,
-                                              ).copyWith(
-                                                fontWeight: isSelected
-                                                    ? FontWeight.bold
-                                                    : FontWeight.normal,
-                                                fontSize: 12,
-                                              ),
+                                          style: GlassTheme.bodyMd(
+                                            color: isSelected
+                                                ? GlassTheme.oceanBlue
+                                                : GlassTheme.onSurface,
+                                          ).copyWith(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 12,
+                                          ),
                                         ),
                                       ),
                                       if (isSelected)
@@ -213,6 +204,7 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                             );
                           }),
                           const Divider(height: 16, color: Colors.white38),
+                          const Divider(height: 16, color: Colors.white38),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 2.0),
                             child: InkWell(
@@ -220,20 +212,16 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                                 _toggleExpanded();
                                 Navigator.of(context).pushReplacement(
                                   MaterialPageRoute(
-                                    builder: (_) => const SplashScreen(),
-                                  ),
+                                      builder: (_) => const SplashScreen()),
                                 );
                               },
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
-                                ),
+                                    horizontal: 10, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: GlassTheme.error.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color:
+                                      GlassTheme.error.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Row(
@@ -254,11 +242,8 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                                         ),
                                       ),
                                     ),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 10,
-                                      color: GlassTheme.error,
-                                    ),
+                                    Icon(Icons.arrow_forward_ios,
+                                        size: 10, color: GlassTheme.error),
                                   ],
                                 ),
                               ),
