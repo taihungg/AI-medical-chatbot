@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
+import '../../widgets/patient_shell_menu.dart';
 import '../../models/models.dart';
-import '../splash_screen.dart';
 
 class PatientHistoryScreen extends StatelessWidget {
   const PatientHistoryScreen({super.key});
@@ -22,17 +22,17 @@ class PatientHistoryScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: GlassAppBar(
-            title: "Lịch Hẹn Của Tôi",
+            title: "Lịch sử",
             actions: [
-              IconButton(
-                icon: const Icon(Icons.swap_horizontal_circle_outlined,
-                    color: GlassTheme.oceanBlue, size: 28),
-                tooltip: "Đổi vai trò",
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  );
-                },
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+                tooltip: "Menu",
+                offset: const Offset(0, 56),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                onSelected: (value) =>
+                    PatientShellMenu.handleSelection(context, value),
+                itemBuilder: (context) => PatientShellMenu.items(),
               ),
               const SizedBox(width: 8),
             ],

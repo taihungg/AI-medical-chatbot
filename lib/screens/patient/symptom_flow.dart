@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../models/models.dart';
+import '../../services/voice_input_service.dart';
 import '../../state/app_state.dart';
 import '../../state/chat_directive.dart';
 import '../../widgets/glass_widgets.dart';
+import '../../widgets/brand_mark.dart';
 import '../../widgets/chat_directives.dart';
-import '../account/account_management_screen.dart';
+import '../../widgets/voice_recording_indicator.dart';
+import '../../widgets/patient_shell_menu.dart';
 import '../splash_screen.dart';
-import '../login_screen.dart';
-import 'emergency_screens.dart';
-import '../../config/env.dart';
+import 'patient_navigation.dart';
+
+enum SymptomFlowMode { guestConsultation, inShell }
 
 /// The AI chatbot screen. A thin, pure chat shell: it renders messages and the
 /// interactive components the bot attaches to them, and forwards every user
@@ -17,7 +19,14 @@ import '../../config/env.dart';
 /// logic lives in AppState's seam, so this screen never changes when Gemini
 /// replaces the scripted brain.
 class SymptomFlowScreen extends StatefulWidget {
-  const SymptomFlowScreen({super.key});
+  final SymptomFlowMode mode;
+
+  const SymptomFlowScreen({
+    super.key,
+    this.mode = SymptomFlowMode.inShell,
+  });
+
+  bool get isGuest => mode == SymptomFlowMode.guestConsultation;
 
   @override
   State<SymptomFlowScreen> createState() => _SymptomFlowScreenState();
@@ -27,20 +36,93 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
+  final VoiceInputService _voice = VoiceInputService();
 
   // Image selected but not yet sent (shown as a preview above the input).
   ChatAttachment? _pendingImage;
+  bool _voiceAvailable = false;
+  bool _isListening = false;
 
   @override
   void initState() {
     super.initState();
+    _initVoice();
   }
 
   @override
   void dispose() {
+    _voice.cancel();
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initVoice() async {
+    _voice.onPartialResult = (text) {
+      if (!mounted) return;
+      _inputController.text = text;
+      _inputController.selection = TextSelection.fromPosition(
+        TextPosition(offset: text.length),
+      );
+    };
+    _voice.onListeningStateChanged = (listening) {
+      if (!mounted) return;
+      setState(() => _isListening = listening);
+    };
+    final ok = await _voice.initialize();
+    if (mounted) setState(() => _voiceAvailable = ok);
+  }
+
+  Future<void> _toggleVoiceInput() async {
+    if (!_voiceAvailable) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Nhận diện giọng nói không khả dụng trên thiết bị này.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (_isListening || _voice.isListening) {
+      final text = await _voice.stopListening();
+      if (!mounted) return;
+      if (text == null || text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không nhận diện được giọng nói.'),
+          ),
+        );
+        return;
+      }
+      _handleSend(text);
+      return;
+    }
+
+    try {
+      final started = await _voice.startListening();
+      if (!mounted) return;
+      if (!started) {
+        final detail = _voice.lastErrorMessage;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              detail != null && detail.isNotEmpty
+                  ? detail
+                  : 'Không thể bắt đầu ghi âm. Vui lòng kiểm tra quyền micro.',
+            ),
+          ),
+        );
+        return;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isListening = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi ghi âm: $e')),
+      );
+    }
   }
 
   void _scrollToBottom() {
@@ -218,10 +300,15 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   void _onBook() {
     final appState = AppState.instance;
     appState.triggerBookingFromAI();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-          builder: (_) => const MainFramework(initialPatientTab: 1)),
-    );
+    if (widget.isGuest) {
+      openPatientLoginThenBooking(context);
+    } else {
+      appState.setPatientNavIndex(1);
+    }
+  }
+
+  void _onBookingCta() {
+    openPatientLoginThenBooking(context);
   }
 
   void _showEmergencyDialog() {
@@ -253,14 +340,130 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     );
   }
 
+  void _onMenuSelected(String value) {
+    if (widget.isGuest) {
+      if (value == 'switch_role') {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const SplashScreen()),
+        );
+      }
+      return;
+    }
+    PatientShellMenu.handleSelection(context, value);
+  }
+
+  List<PopupMenuEntry<String>> _buildMenuItems() {
+    if (widget.isGuest) {
+      return const [
+        PopupMenuItem(
+          value: 'switch_role',
+          child: Row(
+            children: [
+              Icon(Icons.arrow_back,
+                  size: 20, color: GlassTheme.oceanBlue),
+              SizedBox(width: 12),
+              Text("Quay lại"),
+            ],
+          ),
+        ),
+      ];
+    }
+    return PatientShellMenu.items();
+  }
+
+  Widget _buildWelcomeBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: GlassCard(
+        borderColor: GlassTheme.oceanBlue,
+        borderWidth: 1.5,
+        opacity: 0.92,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BrandMark(size: 28),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Chào mừng đến với DrAI",
+                        style: GlassTheme.h2(color: GlassTheme.oceanBlue)
+                            .copyWith(fontSize: 17),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: GlassTheme.cyan.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: GlassTheme.cyan.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Text(
+                          "Chế độ tư vấn — Không cần đăng nhập",
+                          style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                              .copyWith(fontSize: 9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BrandMark(size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Bạn đang trò chuyện với Trợ lý DrAI để được hướng dẫn về triệu chứng. "
+                    "Hãy mô tả tình trạng của bạn bên dưới — kết quả chỉ mang tính tham khảo, "
+                    "không thay thế khám bác sĩ.",
+                    style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 12.5, height: 1.45),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = AppState.instance;
+    final title = widget.isGuest ? "Tư vấn triệu chứng" : "Tư vấn với DrAI";
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Tư vấn với DrAI",
+        title: title,
         actions: [
+          if (widget.isGuest)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: TextButton.icon(
+                onPressed: _onBookingCta,
+                icon: const Icon(Icons.edit_calendar_outlined,
+                    size: 18, color: GlassTheme.oceanBlue),
+                label: Text(
+                  "Đặt lịch khám",
+                  style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)
+                      .copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue, size: 24),
             tooltip: "Làm mới",
@@ -268,7 +471,6 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               appState.resetChat();
             },
           ),
-          // Quick SOS access for emergencies.
           IconButton(
             icon: const Icon(Icons.emergency_share,
                 color: GlassTheme.error, size: 26),
@@ -281,110 +483,8 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             offset: const Offset(0, 56),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (value) {
-              if (value == 'ai_chat') {
-                appState.setPatientNavIndex(0);
-              } else if (value == 'booking') {
-                appState.setPatientNavIndex(1);
-              } else if (value == 'history') {
-                appState.setPatientNavIndex(2);
-              } else if (value == 'account') {
-                if (!appState.isAuthenticated) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
-                  return;
-                }
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
-                );
-              } else if (value == 'settings') {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
-                );
-              } else if (value == 'logout') {
-                appState.logout();
-              } else if (value == 'switch_role') {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const SplashScreen()),
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'ai_chat',
-                child: Row(
-                  children: [
-                    Icon(Icons.chat_bubble_outline,
-                        size: 20, color: GlassTheme.oceanBlue),
-                    SizedBox(width: 12),
-                    Text("Tư vấn AI"),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'booking',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit_calendar,
-                        size: 20, color: GlassTheme.oceanBlue),
-                    SizedBox(width: 12),
-                    Text("Đặt lịch"),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'history',
-                child: Row(
-                  children: [
-                    Icon(Icons.history,
-                        size: 20, color: GlassTheme.oceanBlue),
-                    SizedBox(width: 12),
-                    Text("Lịch sử"),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'account',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline, size: 20, color: Colors.black54),
-                    SizedBox(width: 12),
-                    Text("Quản lý tài khoản"),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
-                    SizedBox(width: 12),
-                    Text("Cài đặt"),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, size: 20, color: Colors.red),
-                    SizedBox(width: 12),
-                    Text("Đăng xuất", style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'switch_role',
-                child: Row(
-                  children: [
-                    Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
-                    SizedBox(width: 12),
-                    Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
-                  ],
-                ),
-              ),
-            ],
+            onSelected: _onMenuSelected,
+            itemBuilder: (context) => _buildMenuItems(),
           ),
           const SizedBox(width: 8),
         ],
@@ -392,6 +492,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
       body: GlassBackground(
         child: Column(
           children: [
+            if (widget.isGuest) _buildWelcomeBanner(),
             Expanded(
               child: ListenableBuilder(
                 listenable: appState,
@@ -449,14 +550,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMe) ...[
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                  color: GlassTheme.oceanBlue, shape: BoxShape.circle),
-              child: const Center(
-                  child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
-            ),
+            const BrandMark(size: 32),
             const SizedBox(width: 8),
           ],
           Flexible(
@@ -529,14 +623,7 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-                color: GlassTheme.oceanBlue, shape: BoxShape.circle),
-            child: const Center(
-                child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
-          ),
+          const BrandMark(size: 32),
           const SizedBox(width: 8),
           const GlassCard(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -601,61 +688,99 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 
   Widget _buildChatBar() {
-    // GlassBackground already wraps the body in a SafeArea, so the Column's
-    // bottom edge sits right at the top of the floating nav bar. Only a small
-    // gap is needed to separate the chat bar from the nav bar.
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-      child: GlassCard(
-        padding: const EdgeInsets.all(8),
-        borderRadius: 32,
-        opacity: 0.8,
-        borderColor: GlassTheme.oceanBlue,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_pendingImage != null) _buildPendingImagePreview(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+    final appState = AppState.instance;
+
+    return ListenableBuilder(
+      listenable: appState,
+      builder: (context, _) {
+        // Must read isAiTyping inside this builder — otherwise micDisabled goes
+        // stale when only AppState notifies (mic stays grey after AI finishes).
+        final micDisabled = appState.isAiTyping || !_voiceAvailable;
+
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          child: GlassCard(
+            padding: const EdgeInsets.all(8),
+            borderRadius: 32,
+            opacity: 0.8,
+            borderColor: _isListening ? GlassTheme.error : GlassTheme.oceanBlue,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.add_photo_alternate_outlined,
-                      color: GlassTheme.oceanBlue, size: 26),
-                  tooltip: "Đính kèm ảnh",
-                  onPressed: _showImageSourceSheet,
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: TextField(
-                      controller: _inputController,
-                      style: GlassTheme.bodyMd(),
-                      maxLines: 5,
-                      minLines: 1,
-                      keyboardType: TextInputType.multiline,
-                      textCapitalization: TextCapitalization.sentences,
-                      // No textInputAction.send — keeps Vietnamese Telex typing intact.
-                      decoration: InputDecoration(
-                        hintText: "Mô tả triệu chứng của bạn...",
-                        hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onSubmitted: _handleSend,
+                if (_isListening) const VoiceRecordingIndicator(),
+                if (_pendingImage != null) _buildPendingImagePreview(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.add_photo_alternate_outlined,
+                          color: GlassTheme.oceanBlue, size: 26),
+                      tooltip: "Đính kèm ảnh",
+                      onPressed:
+                          _isListening ? null : _showImageSourceSheet,
                     ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: GlassTheme.oceanBlue),
-                  onPressed: () => _handleSend(_inputController.text),
+                    if (_voiceAvailable)
+                      IconButton(
+                        icon: Icon(
+                          _isListening ? Icons.stop : Icons.mic_none,
+                          color: _isListening
+                              ? GlassTheme.error
+                              : (micDisabled
+                                  ? GlassTheme.outline
+                                  : GlassTheme.oceanBlue),
+                          size: 26,
+                        ),
+                        tooltip: _isListening
+                            ? "Dừng và gửi"
+                            : "Nói triệu chứng",
+                        onPressed: micDisabled && !_isListening
+                            ? null
+                            : _toggleVoiceInput,
+                      ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: TextField(
+                          controller: _inputController,
+                          style: GlassTheme.bodyMd(),
+                          maxLines: 5,
+                          minLines: 1,
+                          readOnly: _isListening,
+                          keyboardType: TextInputType.multiline,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: InputDecoration(
+                            hintText: _isListening
+                                ? "Đang nghe... nói triệu chứng của bạn"
+                                : "Mô tả triệu chứng của bạn...",
+                            hintStyle:
+                                GlassTheme.bodyMd(color: GlassTheme.outline),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          onSubmitted: _isListening ? null : _handleSend,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.send,
+                        color: _isListening || appState.isAiTyping
+                            ? GlassTheme.outline
+                            : GlassTheme.oceanBlue,
+                      ),
+                      onPressed: _isListening || appState.isAiTyping
+                          ? null
+                          : () => _handleSend(_inputController.text),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

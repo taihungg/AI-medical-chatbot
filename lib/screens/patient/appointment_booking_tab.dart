@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../services/database_service.dart';
 import '../../widgets/glass_widgets.dart';
-import '../splash_screen.dart';
-import '../login_screen.dart';
-import '../account/account_management_screen.dart';
+import '../../widgets/patient_shell_menu.dart';
 
 /// Tab-embedded version of the appointment booking screen.
 /// Used as a persistent tab in the patient's bottom navigation.
@@ -56,6 +54,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     
     _autoAssignSpecialtyAndDoctor();
     _prefillFromAI();
+    _prefillFromProfile();
 
     AppState.instance.addListener(_onAppStateChanged);
 
@@ -85,6 +84,18 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         appState.consumeBookingTrigger();
       });
     }
+    _prefillFromProfile();
+  }
+
+  void _prefillFromProfile() {
+    final profile = AppState.instance.currentUserProfile;
+    if (profile == null) return;
+    if (_nameController.text.isEmpty) {
+      _nameController.text = profile.name;
+    }
+    if (_phoneController.text.isEmpty) {
+      _phoneController.text = profile.phone;
+    }
   }
 
   void _checkAITrigger() {
@@ -107,7 +118,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
   void _autoAssignSpecialtyAndDoctor() {
     final appState = AppState.instance;
-    final symptomsText = appState.selectedSymptomsText.toLowerCase();
+    final raw = _symptomsController.text.trim().isNotEmpty
+        ? _symptomsController.text
+        : appState.selectedSymptomsText;
+    final symptomsText = raw.toLowerCase();
 
     if (symptomsText.contains("ngực") ||
         symptomsText.contains("tim") ||
@@ -133,11 +147,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
       _selectedSpecialty = "Khoa Nội tổng quát";
       _selectedDoctor = "BS. Lê Thị Bình";
     }
-  }
-
-  List<DateTime> _getBookingDates() {
-    return List.generate(
-        7, (idx) => DateTime.now().add(Duration(days: idx + 1)));
   }
 
   String _getWeekdayVi(int day) {
@@ -168,10 +177,10 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         return;
       }
     }
-    if (_activeStep == 2 && AppState.instance.selectedSymptomsText.isEmpty) {
-      if (_symptomsController.text.trim().isEmpty || _noteController.text.trim().isEmpty) {
+    if (_activeStep == 1 && AppState.instance.selectedSymptomsText.isEmpty) {
+      if (_symptomsController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng điền Mô tả tình trạng và Ghi chú (bắt buộc).')),
+          const SnackBar(content: Text('Vui lòng mô tả tình trạng cần khám.')),
         );
         return;
       }
@@ -331,114 +340,15 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Đặt lịch khám",
+        title: "Đặt khám",
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
             tooltip: "Menu",
             offset: const Offset(0, 56),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (value) {
-              if (value == 'ai_chat') {
-                appState.setPatientNavIndex(0);
-              } else if (value == 'booking') {
-                appState.setPatientNavIndex(1);
-              } else if (value == 'history') {
-                appState.setPatientNavIndex(2);
-              } else if (value == 'account') {
-                if (!appState.isAuthenticated) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
-                  return;
-                }
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
-                );
-              } else if (value == 'settings') {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
-                );
-              } else if (value == 'logout') {
-                appState.logout();
-              } else if (value == 'switch_role') {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const SplashScreen()),
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'ai_chat',
-                child: Row(
-                  children: [
-                    Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue),
-                    SizedBox(width: 12),
-                    Text("Tư vấn AI"),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'booking',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue),
-                    SizedBox(width: 12),
-                    Text("Đặt lịch"),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'history',
-                child: Row(
-                  children: [
-                    Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue),
-                    SizedBox(width: 12),
-                    Text("Lịch sử"),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'account',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline, size: 20, color: Colors.black54),
-                    SizedBox(width: 12),
-                    Text("Quản lý tài khoản"),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
-                    SizedBox(width: 12),
-                    Text("Cài đặt"),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, size: 20, color: Colors.red),
-                    SizedBox(width: 12),
-                    Text("Đăng xuất", style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'switch_role',
-                child: Row(
-                  children: [
-                    Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
-                    SizedBox(width: 12),
-                    Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
-                  ],
-                ),
-              ),
-            ],
+            onSelected: (value) => PatientShellMenu.handleSelection(context, value),
+            itemBuilder: (context) => PatientShellMenu.items(),
           ),
           const SizedBox(width: 8),
         ],
@@ -448,57 +358,11 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
         builder: (context, child) {
           final hasSymptoms = appState.selectedSymptomsText.isNotEmpty;
 
-          if (!appState.isAuthenticated) {
-            return GlassBackground(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: GlassCard(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.login, size: 64, color: GlassTheme.oceanBlue),
-                        const SizedBox(height: 24),
-                        Text(
-                          "Yêu cầu Đăng Nhập",
-                          style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          "Bạn cần đăng nhập với tài khoản Bệnh nhân để sử dụng tính năng đặt lịch khám bệnh.",
-                          textAlign: TextAlign.center,
-                          style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
-                        ),
-                        const SizedBox(height: 32),
-                        SizedBox(
-                          width: double.infinity,
-                          child: GlassButton(
-                            text: "Đăng Nhập",
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(
-                                    expectedRole: UserRole.patient,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-
           return GlassBackground(
             child: Column(
               children: [
                 // AI Recommendation Banner (shown when coming from chatbot)
-                if (hasSymptoms) _buildAIBanner(appState),
+                if (hasSymptoms && _activeStep != 1) _buildAIBanner(appState),
 
                 // Step Indicators
                 _buildStepIndicator(),
@@ -618,7 +482,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   }
 
   Widget _buildStepIndicator() {
-    final stepLabels = ["Hình thức", "Thời gian", "Xác nhận"];
+    final stepLabels = ["Hình thức", "Thời gian & Triệu chứng", "Xác nhận"];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       color: Colors.white.withValues(alpha: 0.3),
@@ -1081,8 +945,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   // STEP 2: Choose date & time
   // ═══════════════════════════════════════════════════════════════
   Widget _buildDateTimeStep(AppState appState) {
-    final dates = _getBookingDates();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1209,7 +1071,264 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           }).toList(),
         ),
 
+        const SizedBox(height: 28),
+        _buildSymptomSection(appState),
+        const SizedBox(height: 16),
+        _buildSpecialtySuggestionCard(),
       ],
+    );
+  }
+
+  static const List<String> _symptomChips = [
+    "Sốt",
+    "Đau đầu",
+    "Ho",
+    "Đau bụng",
+    "Mệt mỏi",
+  ];
+
+  void _appendSymptomChip(String chip) {
+    final current = _symptomsController.text.trim();
+    if (current.contains(chip)) return;
+    setState(() {
+      _symptomsController.text =
+          current.isEmpty ? chip : "$current, $chip";
+      _autoAssignSpecialtyAndDoctor();
+    });
+  }
+
+  Widget _buildSymptomSection(AppState appState) {
+    final hasAI = appState.selectedSymptomsText.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.medical_information,
+                  color: GlassTheme.oceanBlue, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Mô tả tình trạng cần khám",
+                    style: GlassTheme.h3()
+                        .copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "Giúp bác sĩ chuẩn bị trước buổi khám",
+                    style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (hasAI) ...[
+          GlassCard(
+            borderColor: GlassTheme.cyan,
+            borderWidth: 1.5,
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.auto_awesome,
+                        color: GlassTheme.oceanBlue, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Tóm tắt từ AI",
+                      style: GlassTheme.h3(color: GlassTheme.oceanBlue)
+                          .copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildRiskBadge(appState.currentRiskLevel),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  appState.selectedSymptomsText,
+                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 12, height: 1.3),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.medical_services_outlined,
+                        size: 14, color: GlassTheme.oceanBlue),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Chuyên khoa gợi ý: $_selectedSpecialty",
+                      style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                          .copyWith(fontSize: 10),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        GlassCard(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          borderColor: hasAI
+              ? GlassTheme.cyan.withValues(alpha: 0.3)
+              : Colors.amber.withValues(alpha: 0.3),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    hasAI
+                        ? "Mô tả tình trạng / Triệu chứng"
+                        : "Mô tả tình trạng / Triệu chứng *",
+                    style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                  if (hasAI) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.psychology,
+                              size: 10, color: GlassTheme.oceanBlue),
+                          const SizedBox(width: 4),
+                          Text(
+                            "AI tự điền",
+                            style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
+                                .copyWith(fontSize: 8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _symptomsController,
+                style: GlassTheme.bodyMd().copyWith(fontSize: 13),
+                maxLines: 4,
+                onChanged: (_) => setState(_autoAssignSpecialtyAndDoctor),
+                decoration: const InputDecoration(
+                  hintText: "Ví dụ: Sốt cao, đau đầu, ho kéo dài...",
+                  hintStyle: TextStyle(color: GlassTheme.outline, fontSize: 12),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _symptomChips.map((chip) {
+            return ActionChip(
+              label: Text(chip, style: const TextStyle(fontSize: 12)),
+              backgroundColor: Colors.white.withValues(alpha: 0.5),
+              side: BorderSide(color: GlassTheme.outline.withValues(alpha: 0.3)),
+              onPressed: () => _appendSymptomChip(chip),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 12),
+        GlassCard(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          opacity: 0.45,
+          borderColor: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Ghi chú thêm (tuỳ chọn)",
+                style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                    .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _noteController,
+                style: GlassTheme.bodyMd().copyWith(fontSize: 13),
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  hintText: "Ví dụ: yêu cầu đặc biệt, tiền sử bệnh...",
+                  hintStyle: TextStyle(color: GlassTheme.outline, fontSize: 12),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpecialtySuggestionCard() {
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      borderColor: GlassTheme.oceanBlue.withValues(alpha: 0.2),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: GlassTheme.oceanBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.medical_services,
+                color: GlassTheme.oceanBlue, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Chuyên khoa gợi ý",
+                  style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 10),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _selectedSpecialty,
+                  style: GlassTheme.bodyMd()
+                      .copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _selectedDoctor,
+                  style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant)
+                      .copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1299,128 +1418,42 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
                 "Thời gian khám",
                 "${_getWeekdayVi(_selectedDate.weekday)}, ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}\nGiờ: $_selectedSlot",
               ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Symptoms note card
-        // Symptoms note card
-        GlassCard(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-          opacity: 0.45,
-          borderColor: Colors.amber.withValues(alpha: 0.3),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    appState.selectedSymptomsText.isNotEmpty
-                        ? "Mô tả tình trạng / Triệu chứng"
-                        : "Mô tả tình trạng / Triệu chứng *",
-                    style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
-                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
-                  if (appState.selectedSymptomsText.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.psychology, size: 10, color: GlassTheme.oceanBlue),
-                          const SizedBox(width: 4),
-                          Text(
-                            "AI tự điền",
-                            style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
-                                .copyWith(fontSize: 8),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
+              const Divider(color: Colors.white30, height: 20),
+              _buildConfirmRow(
+                Icons.medical_information,
+                "Triệu chứng",
+                _symptomsController.text.trim().isNotEmpty
+                    ? _symptomsController.text.trim()
+                    : "—",
               ),
-              const SizedBox(height: 4),
-              TextField(
-                controller: _symptomsController,
-                style: GlassTheme.bodyMd().copyWith(fontSize: 13),
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: "Ví dụ: Sốt cao, đau đầu...",
-                  hintStyle: TextStyle(color: GlassTheme.outline, fontSize: 12),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
+              if (_noteController.text.trim().isNotEmpty) ...[
+                const Divider(color: Colors.white30, height: 20),
+                _buildConfirmRow(
+                  Icons.note_alt,
+                  "Ghi chú",
+                  _noteController.text.trim(),
                 ),
+              ],
+              const Divider(color: Colors.white30, height: 20),
+              _buildConfirmRow(
+                Icons.medical_services,
+                "Chuyên khoa",
+                "$_selectedSpecialty\n$_selectedDoctor",
               ),
             ],
           ),
         ),
 
         const SizedBox(height: 12),
-
-        // Additional note field
-        GlassCard(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-          opacity: 0.45,
-          borderColor: Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    appState.selectedSymptomsText.isNotEmpty
-                        ? "Ghi chú thêm (tuỳ chọn)"
-                        : "Ghi chú thêm *",
-                    style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant)
-                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
-                  if (appState.selectedSymptomsText.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: GlassTheme.oceanBlue.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.psychology, size: 10, color: GlassTheme.oceanBlue),
-                          const SizedBox(width: 4),
-                          Text(
-                            "AI tự điền",
-                            style: GlassTheme.labelCaps(color: GlassTheme.oceanBlue)
-                                .copyWith(fontSize: 8),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              TextField(
-                controller: _noteController,
-                style: GlassTheme.bodyMd().copyWith(fontSize: 13),
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  hintText: "Ví dụ: yêu cầu đặc biệt, tiền sử bệnh...",
-                  hintStyle: TextStyle(color: GlassTheme.outline, fontSize: 12),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () => setState(() => _activeStep = 1),
+            icon: const Icon(Icons.edit_outlined, size: 16),
+            label: const Text("Chỉnh sửa"),
+            style: TextButton.styleFrom(
+              foregroundColor: GlassTheme.oceanBlue,
+            ),
           ),
         ),
       ],
