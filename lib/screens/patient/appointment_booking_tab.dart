@@ -135,11 +135,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
     }
   }
 
-  List<DateTime> _getBookingDates() {
-    return List.generate(
-        7, (idx) => DateTime.now().add(Duration(days: idx + 1)));
-  }
-
   String _getWeekdayVi(int day) {
     switch (day) {
       case 1:
@@ -224,7 +219,7 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
           ? _nameController.text.trim()
           : defaultName,
       branch: finalBranch,
-      doctor: "Sẽ phân bổ sau",
+      doctor: _selectedDoctor,
       specialty: _selectedSpecialty,
       date: _selectedDate,
       slot: _selectedSlot,
@@ -1082,8 +1077,6 @@ class _AppointmentBookingTabState extends State<AppointmentBookingTab> {
   // STEP 2: Choose date & time
   // ═══════════════════════════════════════════════════════════════
   Widget _buildDateTimeStep(AppState appState) {
-    final dates = _getBookingDates();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -40,6 +40,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         final filteredAppointments = todayAppointments.where((appt) {
           bool statusMatch = true;
           if (_selectedFilter == 'Chưa khám') { statusMatch = ['Chưa khám', 'Chờ duyệt', 'Đã xác nhận'].contains(appt.status); }
+          else if (_selectedFilter == 'Đang khám') { statusMatch = appt.status == 'Đang khám'; }
           else if (_selectedFilter == 'Đã khám') { statusMatch = appt.status == 'Đã khám'; }
           else if (_selectedFilter == 'Online') { statusMatch = appt.isOnline; }
           else if (_selectedFilter == 'Offline') { statusMatch = !appt.isOnline; }
@@ -52,10 +53,16 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
         filteredAppointments.sort((a, b) => a.timeSlot.compareTo(b.timeSlot));
 
-        // Next appointment (first 'Chưa khám' or 'Đang khám')
-        final nextAppt = todayAppointments.firstWhere(
-            (a) => a.status == 'Chưa khám' || a.status == 'Đang khám',
-            orElse: () => AppAppointment(
+        final pendingQueue = todayAppointments.where((a) => a.status == 'Chưa khám' || a.status == 'Đang khám').toList();
+        pendingQueue.sort((a, b) {
+          if (a.status == 'Đang khám' && b.status != 'Đang khám') return -1;
+          if (b.status == 'Đang khám' && a.status != 'Đang khám') return 1;
+          if (a.riskLevel == 'Khẩn cấp' && b.riskLevel != 'Khẩn cấp') return -1;
+          if (b.riskLevel == 'Khẩn cấp' && a.riskLevel != 'Khẩn cấp') return 1;
+          return a.timeSlot.compareTo(b.timeSlot);
+        });
+
+        final nextAppt = pendingQueue.isNotEmpty ? pendingQueue.first : AppAppointment(
                   id: '',
                   patientId: '',
                   patientName: '',
@@ -70,7 +77,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   isOnline: false,
                   status: '',
                   aiSummary: '',
-                ));
+                );
 
         return Scaffold(
           body: GlassBackground(
@@ -80,27 +87,39 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   expandedHeight: 120.0,
                   floating: false,
                   pinned: true,
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: Colors.white.withValues(alpha: 0.85),
+                  elevation: 0,
                   flexibleSpace: FlexibleSpaceBar(
-                    titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-                    title: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    titlePadding: const EdgeInsets.only(left: 16, right: 0, bottom: 16),
+                    title: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          "Xin chào, ${appState.currentUserProfile?.name ?? 'BS'}",
-                          style: const TextStyle(
-                            color: GlassTheme.oceanBlue,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Xin chào, ${appState.currentUserProfile?.name ?? 'BS'}",
+                                style: const TextStyle(
+                                  color: GlassTheme.oceanBlue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              Text(
+                                "Thứ ${now.weekday + 1}, ${now.day}/${now.month}/${now.year}",
+                                style: const TextStyle(
+                                  color: GlassTheme.onSurfaceVariant,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          "Thứ ${now.weekday + 1}, ${now.day}/${now.month}/${now.year}",
-                          style: const TextStyle(
-                            color: GlassTheme.onSurfaceVariant,
-                            fontSize: 12,
-                          ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: Image.asset('assets/logo/app-logo.png', height: 32, width: 32),
                         ),
                       ],
                     ),
@@ -114,11 +133,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildStatCard("Chờ khám", countPending.toString(), Icons.pending_actions, Colors.orange),
+                            child: _buildStatCard("Chờ khám", countPending.toString(), Icons.pending_actions, Colors.orange, 'Chưa khám'),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: _buildStatCard("Đang khám", countExamining.toString(), Icons.run_circle_outlined, Colors.red),
+                            child: _buildStatCard("Đang khám", countExamining.toString(), Icons.run_circle_outlined, Colors.red, 'Đang khám'),
                           ),
                         ],
                       ),
@@ -126,11 +145,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildStatCard("Hoàn thành", countDone.toString(), Icons.check_circle_outline, Colors.green),
+                            child: _buildStatCard("Hoàn thành", countDone.toString(), Icons.check_circle_outline, Colors.green, 'Đã khám'),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: _buildStatCard("Trực tuyến", countOnline.toString(), Icons.language, Colors.purple),
+                            child: _buildStatCard("Trực tuyến", countOnline.toString(), Icons.language, Colors.purple, 'Online'),
                           ),
                         ],
                       ),
@@ -189,13 +208,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         const SizedBox(height: 24),
                       ],
 
-                      // Custom Bar Chart (Mock 7 days)
+                      // Custom Bar Chart (Last 7 days)
                       Text("Ca khám 7 ngày qua", style: GlassTheme.h3()),
                       const SizedBox(height: 12),
-                      const GlassCard(
+                      GlassCard(
                         child: SizedBox(
                           height: 120,
-                          child: _MockBarChart(),
+                          child: _MockBarChart(appointments: appState.appointments),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -214,32 +233,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: ['Tất cả', 'Online', 'Offline', 'Chưa khám', 'Đã khám'].map((filter) {
-                            final isSelected = _selectedFilter == filter;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: ChoiceChip(
-                                label: Text(filter),
-                                selected: isSelected,
-                                selectedColor: GlassTheme.oceanBlue,
-                                labelStyle: TextStyle(
-                                    color: isSelected ? Colors.white : Colors.black87),
-                                onSelected: (val) {
-                                  if (val) {
-                                    setState(() {
-                                      _selectedFilter = filter;
-                                    });
-                                  }
-                                },
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
 
                       // List of appointments
                       if (filteredAppointments.isEmpty)
@@ -267,13 +261,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                                       child: Icon(appt.isOnline ? Icons.language : Icons.local_hospital,
                                           color: appt.isOnline ? Colors.purple : Colors.orange),
                                     ),
-                                    title: Text("${appt.patientName} (${appt.timeSlot})",
+                                    title: Text("${appt.id} • ${appt.patientName}",
                                         style: const TextStyle(fontWeight: FontWeight.bold),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis),
                                     subtitle: Text(
-                                      "${appt.specialty}\n${appt.symptomSummary}",
-                                      maxLines: 2,
+                                      "⏰ ${appt.timeSlot}\n${appt.specialty}\n${appt.symptomSummary}",
+                                      maxLines: 3,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     isThreeLine: true,
@@ -308,32 +302,62 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String count, IconData icon, Color color) {
-    return GlassCard(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 20),
-              Text(count, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontSize: 12)),
-        ],
+  Widget _buildStatCard(String title, String count, IconData icon, Color color, String filterName) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (_selectedFilter == filterName) {
+            _selectedFilter = 'Tất cả';
+          } else {
+            _selectedFilter = filterName;
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: GlassCard(
+        padding: const EdgeInsets.all(12),
+        borderColor: _selectedFilter == filterName ? color.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.2),
+        borderWidth: _selectedFilter == filterName ? 2.0 : 1.0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: color, size: 20),
+                Text(count, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(title, style: const TextStyle(fontSize: 12)),
+          ],
+        ),
       ),
     );
   }
 
   void _openWorkspace(String apptId) {
+    final appState = AppState.instance;
+    final appt = appState.appointments.firstWhere((a) => a.id == apptId);
+    final hasActive = appState.appointments.any((a) => a.status == 'Đang khám' && a.id != apptId);
+    
+    if (hasActive && appt.status != 'Đã khám') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("⚠️ Bạn đang có một ca khám chưa hoàn tất. Vui lòng hoàn thành trước khi nhận ca mới."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ClinicalWorkspace(
           appointmentId: apptId,
-          onClosed: () {},
+          onClosed: () {
+            setState(() {});
+          },
         ),
       ),
     );
@@ -341,32 +365,61 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 }
 
 class _MockBarChart extends StatelessWidget {
-  const _MockBarChart();
+  final List<AppAppointment> appointments;
+  const _MockBarChart({required this.appointments});
 
   @override
   Widget build(BuildContext context) {
-    final values = [5, 7, 3, 8, 4, 9, 6];
-    final maxVal = 10;
-    final days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Calculate counts for the last 7 days
+    final Map<int, int> counts = {};
+    for (int i = 6; i >= 0; i--) {
+      counts[i] = 0;
+    }
+    
+    for (var appt in appointments) {
+      final apptDate = DateTime(appt.dateTime.year, appt.dateTime.month, appt.dateTime.day);
+      final diff = today.difference(apptDate).inDays;
+      if (diff >= 0 && diff <= 6) {
+        counts[diff] = (counts[diff] ?? 0) + 1;
+      }
+    }
+
+    final values = [
+      counts[6]!, counts[5]!, counts[4]!, counts[3]!, counts[2]!, counts[1]!, counts[0]!
+    ];
+    
+    final maxVal = values.isEmpty ? 1 : (values.reduce((a, b) => a > b ? a : b) + 2);
+    
+    // Generate labels
+    final days = List.generate(7, (index) {
+      final d = today.subtract(Duration(days: 6 - index));
+      return "${d.day}/${d.month}";
+    });
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: List.generate(7, (index) {
-        final height = (values[index] / maxVal) * 80;
+        final val = values[index];
+        final height = (val / maxVal) * 80;
         return Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            Text(val.toString(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: GlassTheme.oceanBlue)),
+            const SizedBox(height: 4),
             Container(
               width: 20,
-              height: height,
+              height: height == 0 ? 4 : height, // min height
               decoration: BoxDecoration(
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
             const SizedBox(height: 8),
-            Text(days[index], style: const TextStyle(fontSize: 10, color: Colors.black54)),
+            Text(days[index], style: const TextStyle(fontSize: 10, color: GlassTheme.onSurfaceVariant)),
           ],
         );
       }),

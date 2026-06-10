@@ -350,6 +350,8 @@ class GlassTextField extends StatefulWidget {
   final int maxLines;
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onSubmitted;
 
   const GlassTextField({
     super.key,
@@ -363,6 +365,8 @@ class GlassTextField extends StatefulWidget {
     this.maxLines = 1,
     this.keyboardType = TextInputType.text,
     this.onChanged,
+    this.focusNode,
+    this.onSubmitted,
   });
 
   @override
@@ -413,10 +417,12 @@ class _GlassTextFieldState extends State<GlassTextField> {
               },
               child: TextField(
                 controller: widget.controller,
+                focusNode: widget.focusNode,
                 obscureText: widget.isPassword,
                 maxLines: widget.maxLines,
                 keyboardType: widget.keyboardType,
                 onChanged: widget.onChanged,
+                onSubmitted: widget.onSubmitted,
                 style: GlassTheme.bodyMd(),
                 decoration: InputDecoration(
                   hintText: widget.hint,

@@ -95,7 +95,7 @@ class _RoleSwitcherState extends State<RoleSwitcher>
                 right: 16,
                 child: SizeTransition(
                   sizeFactor: _expandAnimation,
-                  axisAlignment: -1.0,
+                  alignment: Alignment.topCenter,
                   child: Container(
                     width: 250,
                     margin: const EdgeInsets.only(bottom: 8),

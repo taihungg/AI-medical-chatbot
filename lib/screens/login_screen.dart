@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/glass_widgets.dart';
-import '../widgets/brand_mark.dart';
 import '../state/app_state.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -96,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
       extendBodyBehindAppBar: true,
       appBar: const GlassAppBar(
         title: "Đăng Nhập",
-        showBrandMark: false,
       ),
       body: GlassBackground(
         child: Center(
@@ -105,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                BrandMark(size: 80),
+                Icon(Icons.local_hospital, size: 80, color: roleColor),
                 const SizedBox(height: 24),
                 Text(
                   "Đăng Nhập Vai Trò",

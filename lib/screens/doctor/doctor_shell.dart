@@ -4,6 +4,7 @@ import '../../widgets/glass_widgets.dart';
 
 import 'doctor_dashboard_screen.dart';
 import 'doctor_timetable_screen.dart';
+import 'clinical_workspace.dart';
 import 'doctor_history_screen.dart';
 import 'doctor_profile_screen.dart';
 
@@ -41,10 +42,14 @@ class _DoctorShellState extends State<DoctorShell> {
             right: 16,
             child: GestureDetector(
               onTap: () {
-                // Should navigate to workspace, maybe handled in dashboard
-                setState(() {
-                  _currentIndex = 0;
-                });
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ClinicalWorkspace(
+                      appointmentId: appt.id,
+                      onClosed: () {},
+                    ),
+                  ),
+                );
               },
               child: GlassCard(
                 borderColor: appt.isOnline ? Colors.purple : Colors.orange,

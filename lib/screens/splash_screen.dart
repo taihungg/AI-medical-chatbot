@@ -4,8 +4,7 @@ import '../state/app_state.dart';
 import 'account/account_management_screen.dart';
 import 'patient/symptom_flow.dart';
 import 'patient/appointment_booking_tab.dart';
-import 'doctor/specialist_dashboard.dart';
-import 'doctor/doctor_timetable_screen.dart';
+import 'doctor/doctor_shell.dart';
 import 'manager/clinic_management_dashboard.dart';
 import 'login_screen.dart';
 
@@ -260,13 +259,9 @@ class MainFramework extends StatefulWidget {
 }
 
 class _MainFrameworkState extends State<MainFramework> {
-  // Navigation index for Patient bottom tabs
-  late int _patientNavIndex;
-
   @override
   void initState() {
     super.initState();
-    _patientNavIndex = widget.initialPatientTab;
   }
 
   @override
@@ -314,12 +309,6 @@ class _MainFrameworkState extends State<MainFramework> {
       appState.isAuthenticated ? const PatientHistoryScreen() : const PatientLoginRequiredScreen(title: "Lịch sử y khoa"),
     ];
 
-    final items = [
-      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Tư vấn AI"),
-      GlassNavItem(icon: Icons.edit_calendar, label: "Đặt lịch"),
-      GlassNavItem(icon: Icons.history, label: "Lịch sử"),
-    ];
-
     // Auto-switch to booking tab when AI triggers it
     if (appState.pendingBookingFromAI && activeIndex != 1) {
       // Schedule the tab switch after the current frame to avoid build-during-build
@@ -341,47 +330,7 @@ class _MainFrameworkState extends State<MainFramework> {
   }
 }
 
-// Shells for Doctor and Manager
-class DoctorShell extends StatelessWidget {
-  const DoctorShell({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final appState = AppState.instance;
-
-    return ListenableBuilder(
-      listenable: appState,
-      builder: (context, child) {
-        final activeIndex = appState.doctorNavIndex;
-
-        final pages = [
-          const DoctorSpecialistDashboard(),
-          const DoctorTimetableScreen(),
-        ];
-
-        final items = [
-          GlassNavItem(icon: Icons.dashboard, label: "Tổng quan"),
-          GlassNavItem(icon: Icons.calendar_month, label: "Lịch làm việc"),
-        ];
-
-        return Scaffold(
-          extendBody: true,
-          body: IndexedStack(
-            index: activeIndex,
-            children: pages,
-          ),
-          bottomNavigationBar: GlassNavigationBar(
-            selectedIndex: activeIndex,
-            onTap: (index) {
-              appState.setDoctorNavIndex(index);
-            },
-            items: items,
-          ),
-        );
-      },
-    );
-  }
-}
 
 class ClinicManagerShell extends StatelessWidget {
   const ClinicManagerShell({super.key});

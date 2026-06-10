@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../models/models.dart';
+import '../../services/database_service.dart';
 import '../../services/gemini_service.dart';
 import '../../config/env.dart';
 import '../patient/doctor_consultation.dart';
@@ -38,8 +39,8 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
   String _aiSummary = "";
   
   Timer? _examTimer;
-  int _examSeconds = 0;
-  
+  String? _followUpTime;
+
   late AppAppointment _appt;
   late GeminiService _geminiService;
 
@@ -270,12 +271,9 @@ KHÔNG sử dụng định dạng markdown.
 
   void _startExamTimer({bool reset = true}) {
     _examTimer?.cancel();
-    if (reset) _examSeconds = 0;
     _examTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
-        setState(() {
-          _examSeconds++;
-        });
+        setState(() {}); // Rebuild to format time
       }
     });
   }
@@ -285,8 +283,11 @@ KHÔNG sử dụng định dạng markdown.
   }
 
   String _formatExamTime() {
-    final min = (_examSeconds ~/ 60).toString().padLeft(2, '0');
-    final sec = (_examSeconds % 60).toString().padLeft(2, '0');
+    final start = AppState.instance.activeExamStartTime;
+    if (start == null) return "00:00";
+    final diff = DateTime.now().difference(start).inSeconds;
+    final min = (diff ~/ 60).toString().padLeft(2, '0');
+    final sec = (diff % 60).toString().padLeft(2, '0');
     return "$min:$sec";
   }
 
@@ -311,8 +312,8 @@ KHÔNG sử dụng định dạng markdown.
     if (_isRecording) {
       setState(() {
         _isRecording = false;
-        // Mock dictation
-        final mockText = "Triệu chứng ho khan từng cơn kéo dài trên 3 tuần, sốt nhẹ dao động 37.5 độ về chiều tối.";
+        // Mock dictation based on symptomSummary
+        final mockText = "Bệnh nhân báo cáo: ${_appt.symptomSummary}. Các dấu hiệu sinh tồn đều trong mức kiểm soát. Cần làm thêm các xét nghiệm cơ bản.";
         if (_sController.text.isNotEmpty) {
           _sController.text += "\n$mockText";
         } else {
@@ -385,7 +386,34 @@ KHÔNG sử dụng định dạng markdown.
 
   void _finalizeExam() {
     _stopExamTimer();
-    final combinedNotes = "S: ${_sController.text}\nO: ${_oController.text}\nA: ${_aController.text}\nP: ${_pController.text}";
+    String combinedNotes = "S: ${_sController.text}\nO: ${_oController.text}\nA: ${_aController.text}\nP: ${_pController.text}";
+    if (_followUpTime != null) {
+      combinedNotes += "\n\nHẹn tái khám sau: $_followUpTime";
+      
+      try {
+        final parts = _followUpTime!.split('/');
+        if (parts.length == 3) {
+          final date = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]), 8, 0);
+          final newAppt = AppAppointment(
+            id: "APT-${100 + AppState.instance.appointments.length + 1}",
+            patientId: _appt.patientId,
+            patientName: _appt.patientName,
+            branchName: _appt.branchName,
+            doctorId: _appt.doctorId,
+            doctorName: _appt.doctorName,
+            specialty: _appt.specialty,
+            dateTime: date,
+            timeSlot: '08:00 - 09:00',
+            symptomSummary: 'Tái khám định kỳ',
+            riskLevel: 'Thấp',
+            aiSummary: 'Tái khám theo lịch hẹn của bác sĩ.',
+            isOnline: false,
+            status: 'Chưa khám',
+          );
+          DatabaseService.instance.addAppointment(newAppt);
+        }
+      } catch (_) {}
+    }
     final appState = AppState.instance;
     appState.saveConsultationNotes(_appt.id, combinedNotes, _medications);
     appState.updateAppointmentStatus(_appt.id, 'Đã khám');
@@ -398,7 +426,6 @@ KHÔNG sử dụng định dạng markdown.
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = _appt.isOnline ? Colors.purple : Colors.orange;
     
     return Scaffold(
       appBar: GlassAppBar(
@@ -544,22 +571,7 @@ KHÔNG sử dụng định dạng markdown.
                             )).toList(),
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GlassTextField(
-                                  controller: _customMedController,
-                                  label: "",
-                                  hint: "Nhập tên thuốc khác...",
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle, color: GlassTheme.oceanBlue),
-                                onPressed: () => _addMedication(_customMedController.text),
-                              ),
-                            ],
-                          ),
+                          _buildMedicationInput(),
                           const SizedBox(height: 16),
                           ..._medications.map((m) => Card(
                             margin: const EdgeInsets.only(bottom: 8),
@@ -574,7 +586,53 @@ KHÔNG sử dụng định dạng markdown.
                             ),
                           )),
                           
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_month, color: GlassTheme.oceanBlue),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now().add(const Duration(days: 7)),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                                    );
+                                    if (date != null) {
+                                      setState(() {
+                                        _followUpTime = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.1),
+                                      border: Border.all(color: GlassTheme.cyan.withValues(alpha: 0.3)),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _followUpTime ?? "Chọn ngày tái khám (Tùy chọn)",
+                                          style: GlassTheme.bodyMd(color: _followUpTime != null ? GlassTheme.oceanBlue : GlassTheme.onSurfaceVariant),
+                                        ),
+                                        if (_followUpTime != null)
+                                          GestureDetector(
+                                            onTap: () => setState(() => _followUpTime = null),
+                                            child: const Icon(Icons.close, size: 16, color: Colors.redAccent),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(
@@ -657,7 +715,7 @@ KHÔNG sử dụng định dạng markdown.
             children: [
               const Icon(Icons.auto_awesome, color: Colors.teal),
               const SizedBox(width: 8),
-              Text("AI Tóm Tắt Triệu Chứng", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+              const Text("AI Tóm Tắt Triệu Chứng", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
             ],
           ),
           const SizedBox(height: 12),
@@ -682,6 +740,76 @@ KHÔNG sử dụng định dạng markdown.
              )
         ],
       ),
+    );
+  }
+
+  Widget _buildMedicationInput() {
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text == '') {
+          return const Iterable<String>.empty();
+        }
+        return DatabaseService.instance.medications
+            .map((e) => e.name)
+            .where((String option) {
+          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+        });
+      },
+      onSelected: (String selection) {
+        _addMedication(selection);
+      },
+      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+        return Row(
+          children: [
+            Expanded(
+              child: GlassTextField(
+                controller: controller,
+                focusNode: focusNode,
+                label: "",
+                hint: "Tìm và chọn thuốc...",
+                onSubmitted: (val) => _addMedication(val),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.add_circle, color: GlassTheme.oceanBlue),
+              onPressed: () {
+                _addMedication(controller.text);
+                controller.clear();
+              },
+            ),
+          ],
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final option = options.elementAt(index);
+                  return InkWell(
+                    onTap: () {
+                      onSelected(option);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(option),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

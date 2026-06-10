@@ -1,9 +1,21 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../models/models.dart';
 import '../../state/app_state.dart';
+import '../../state/chat_directive.dart';
 import '../../widgets/glass_widgets.dart';
-import 'recommendation_result.dart';
+import '../../widgets/chat_directives.dart';
+import '../account/account_management_screen.dart';
+import '../splash_screen.dart';
+import '../login_screen.dart';
+import 'emergency_screens.dart';
+import '../../config/env.dart';
 
+/// The AI chatbot screen. A thin, pure chat shell: it renders messages and the
+/// interactive components the bot attaches to them, and forwards every user
+/// action (free text or component response) back into [AppState]. All decision
+/// logic lives in AppState's seam, so this screen never changes when Gemini
+/// replaces the scripted brain.
 class SymptomFlowScreen extends StatefulWidget {
   const SymptomFlowScreen({super.key});
 
@@ -14,37 +26,20 @@ class SymptomFlowScreen extends StatefulWidget {
 class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
-  // Survey selections
-  double _severityValue = 5.0; // 1-10 severity scale
-  String _durationSelected = "1-3 ngày"; // Dưới 24h, 1-3 ngày, > 3 ngày
-  
-  // Phase management
-  // 0: Chat & Symptom selection
-  // 1: Details survey (shows inline details card)
-  // 2: AI Loading screen (full-overlay)
-  int _flowPhase = 0;
-  
-  // AI Progress overlay variables
-  double _analyzingProgress = 0.0;
-  String _analyzingStatus = "Đang kết nối hệ thống y khoa...";
-  Timer? _analysisTimer;
+  final ImagePicker _picker = ImagePicker();
 
-  final List<String> _durationOptions = ["Dưới 24h", "1-3 ngày", "Hơn 3 ngày"];
+  // Image selected but not yet sent (shown as a preview above the input).
+  ChatAttachment? _pendingImage;
 
-  final List<Map<String, dynamic>> _quickSymptoms = [
-    {"name": "Đau đầu", "icon": Icons.headset_off, "risk": "Trung bình"},
-    {"name": "Đau ngực", "icon": Icons.favorite_border, "risk": "Khẩn cấp"},
-    {"name": "Sốt cao", "icon": Icons.thermostat, "risk": "Cao"},
-    {"name": "Ho khan", "icon": Icons.air, "risk": "Thấp"},
-    {"name": "Khó thở", "icon": Icons.bubble_chart, "risk": "Cao"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
     _inputController.dispose();
     _scrollController.dispose();
-    _analysisTimer?.cancel();
     super.dispose();
   }
 
@@ -61,105 +56,200 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
   }
 
   void _handleSend(String text) {
-    if (text.trim().isEmpty) return;
-    
-    final appState = AppState.instance;
-    appState.sendChatMessage(text);
+    final image = _pendingImage;
+    if (text.trim().isEmpty && image == null) return;
+    AppState.instance.sendChatMessage(text, image: image);
     _inputController.clear();
-    _scrollToBottom();
-    
-    // Automatically trigger showing the Survey details card after 1 conversation exchange
-    if (_flowPhase == 0) {
-      Timer(const Duration(milliseconds: 2000), () {
-        setState(() {
-          _flowPhase = 1;
-        });
-        _scrollToBottom();
-      });
-    }
-  }
-
-  void _handleQuickSymptomTap(Map<String, dynamic> symptom) {
-    final name = symptom["name"] as String;
-    final risk = symptom["risk"] as String;
-    
-    final appState = AppState.instance;
-    appState.addAuditLog("Bệnh nhân chọn nhanh triệu chứng: $name (Mức độ: $risk)");
-    
-    // Send selected message
-    appState.sendChatMessage("Tôi bị $name.");
-    
-    setState(() {
-      _flowPhase = 1; // Transition to detail survey
-    });
-    
+    setState(() => _pendingImage = null);
     _scrollToBottom();
   }
 
-  void _startAIAnalysis() {
-    setState(() {
-      _flowPhase = 2; // AI analyzing progress screen
-      _analyzingProgress = 0.0;
-    });
+  // ── image attachment ───────────────────────────────────────────────────────
 
-    final appState = AppState.instance;
-    appState.addAuditLog("Bệnh nhân khởi động quy trình chẩn đoán AI.");
-
-    int step = 0;
-    _analysisTimer = Timer.periodic(const Duration(milliseconds: 400), (timer) {
+  /// Lets the user attach a photo from the camera or gallery. The bytes are
+  /// kept in memory (works on every platform incl. web) and previewed before
+  /// sending. Compressed on pick to keep the base64 payload small.
+  Future<void> _pickFrom(ImageSource source) async {
+    try {
+      final file = await _picker.pickImage(
+        source: source,
+        maxWidth: 1280,
+        imageQuality: 70,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
       setState(() {
-        _analyzingProgress += 0.12;
-        step++;
-
-        if (step == 2) {
-          _analyzingStatus = "Đang đối chuẩn triệu chứng với 1.2M hồ sơ...";
-        } else if (step == 5) {
-          _analyzingStatus = "Phân tích tần suất và các chỉ số sinh tồn liên quan...";
-        } else if (step == 7) {
-          _analyzingStatus = "Đang tính toán mức độ rủi ro & giải pháp tối ưu...";
-        }
-
-        if (_analyzingProgress >= 1.0) {
-          _analyzingProgress = 1.0;
-          timer.cancel();
-          _onAnalysisComplete();
-        }
+        _pendingImage = ChatAttachment(
+          bytes: bytes,
+          mimeType: _mimeTypeFor(file),
+        );
       });
-    });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không thể truy cập ảnh. Vui lòng kiểm tra quyền truy cập.")),
+      );
+    }
   }
 
-  void _onAnalysisComplete() {
-    final appState = AppState.instance;
-    
-    // Determine risk based on selections
-    String finalRisk = "Thấp";
-    String symptomsSummary = appState.selectedSymptomsText;
-    if (symptomsSummary.isEmpty) {
-      symptomsSummary = "Khảo sát triệu chứng chung";
-    }
+  String _mimeTypeFor(XFile file) {
+    final mime = file.mimeType;
+    if (mime != null && mime.startsWith('image/')) return mime;
+    final name = file.name.toLowerCase();
+    if (name.endsWith('.png')) return 'image/png';
+    if (name.endsWith('.webp')) return 'image/webp';
+    if (name.endsWith('.heic') || name.endsWith('.heif')) return 'image/heic';
+    if (name.endsWith('.gif')) return 'image/gif';
+    return 'image/jpeg';
+  }
 
-    final lowerSymptoms = symptomsSummary.toLowerCase();
-    if (lowerSymptoms.contains("ngực") || lowerSymptoms.contains("khó thở")) {
-      finalRisk = _severityValue >= 7.0 ? "Khẩn cấp" : "Cao";
-    } else if (lowerSymptoms.contains("sốt") || _severityValue >= 6.0) {
-      finalRisk = "Cao";
-    } else if (_severityValue >= 4.0 || _durationSelected == "Hơn 3 ngày") {
-      finalRisk = "Trung bình";
-    }
-
-    appState.completeDirectAssessment(
-      "$symptomsSummary. Thời gian kéo dài: $_durationSelected. Mức độ nghiêm trọng: ${_severityValue.toInt()}/10.",
-      finalRisk,
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: GlassTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined,
+                    color: GlassTheme.oceanBlue),
+                title: Text("Chụp ảnh", style: GlassTheme.bodyMd()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _pickFrom(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined,
+                    color: GlassTheme.oceanBlue),
+                title: Text("Chọn từ thư viện", style: GlassTheme.bodyMd()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _pickFrom(ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
+  }
 
-    // Push the result screen
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => RecommendationResultScreen(
-          symptoms: appState.selectedSymptomsText,
-          risk: finalRisk,
+  void _showFullImage(ChatAttachment image) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(12),
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: Center(child: Image.memory(image.bytes)),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  // ── component response handlers → AppState.respondToDirective ──────────────
+
+  void _onPicked(ChatUiDirective d, ChatOption opt) {
+    if (opt.value == '__retry__') {
+      // Retry: find the last user message and resend it
+      final messages = AppState.instance.chatMessages;
+      final lastUserMsg = messages.lastWhere(
+        (m) => m.isUser,
+        orElse: () => ChatMessage(text: '', isUser: true, time: DateTime.now()),
+      );
+      if (lastUserMsg.text.isNotEmpty || lastUserMsg.image != null) {
+        AppState.instance
+            .sendChatMessage(lastUserMsg.text, image: lastUserMsg.image);
+      }
+      _scrollToBottom();
+      return;
+    }
+    AppState.instance.respondToDirective(
+      directiveId: d.directiveId,
+      selectedValue: opt.value,
+      userEcho: opt.label,
+    );
+    _scrollToBottom();
+  }
+
+  void _onConfirmed(ChatUiDirective d, List<ChatOption> opts) {
+    final echo = opts.isEmpty
+        ? "Không có triệu chứng kèm theo"
+        : opts.map((e) => e.label).join(", ");
+    AppState.instance.respondToDirective(
+      directiveId: d.directiveId,
+      selectedValues: opts.map((e) => e.value).toList(),
+      userEcho: echo,
+    );
+    _scrollToBottom();
+  }
+
+  void _onSlider(ChatUiDirective d, double value) {
+    final suffix = d.slider?.unitSuffix ?? '/10';
+    AppState.instance.respondToDirective(
+      directiveId: d.directiveId,
+      sliderValue: value,
+      userEcho: "${value.toInt()}$suffix",
+    );
+    _scrollToBottom();
+  }
+
+  void _onBook() {
+    final appState = AppState.instance;
+    appState.triggerBookingFromAI();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+          builder: (_) => const MainFramework(initialPatientTab: 1)),
+    );
+  }
+
+  void _showEmergencyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: GlassTheme.surface.withValues(alpha: 0.9),
+          title: Row(
+            children: [
+              const Icon(Icons.emergency_share, color: GlassTheme.error),
+              const SizedBox(width: 10),
+              Text("CẢNH BÁO", style: GlassTheme.h3(color: GlassTheme.error)),
+            ],
+          ),
+          content: Text(
+            "Nếu bạn hoặc người thân đang gặp tình trạng nguy hiểm, vui lòng gọi ngay 115 hoặc đến cơ sở y tế gần nhất.",
+            style: GlassTheme.bodyMd(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Đã hiểu",
+                  style: GlassTheme.bodyMd(color: GlassTheme.oceanBlue)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -169,119 +259,193 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
 
     return Scaffold(
       appBar: GlassAppBar(
-        title: "Đánh Giá Sức Khỏe AI",
+        title: "Tư vấn với DrAI",
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue),
+            icon: const Icon(Icons.refresh, color: GlassTheme.oceanBlue, size: 24),
+            tooltip: "Làm mới",
             onPressed: () {
               appState.resetChat();
-              setState(() {
-                _flowPhase = 0;
-              });
             },
-          )
+          ),
+          // Quick SOS access for emergencies.
+          IconButton(
+            icon: const Icon(Icons.emergency_share,
+                color: GlassTheme.error, size: 26),
+            tooltip: "Cấp cứu 115",
+            onPressed: _showEmergencyDialog,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
+            tooltip: "Menu",
+            offset: const Offset(0, 56),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            onSelected: (value) {
+              if (value == 'ai_chat') {
+                appState.setPatientNavIndex(0);
+              } else if (value == 'booking') {
+                appState.setPatientNavIndex(1);
+              } else if (value == 'history') {
+                appState.setPatientNavIndex(2);
+              } else if (value == 'account') {
+                if (!appState.isAuthenticated) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
+                  return;
+                }
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
+                );
+              } else if (value == 'settings') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
+                );
+              } else if (value == 'logout') {
+                appState.logout();
+              } else if (value == 'switch_role') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const SplashScreen()),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'ai_chat',
+                child: Row(
+                  children: [
+                    Icon(Icons.chat_bubble_outline,
+                        size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Tư vấn AI"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'booking',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_calendar,
+                        size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Đặt lịch"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'history',
+                child: Row(
+                  children: [
+                    Icon(Icons.history,
+                        size: 20, color: GlassTheme.oceanBlue),
+                    SizedBox(width: 12),
+                    Text("Lịch sử"),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'account',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Quản lý tài khoản"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Text("Cài đặt"),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'switch_role',
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Stack(
-        children: [
-          // Base Chatboard
-          GlassBackground(
-            child: Column(
-              children: [
-                // Top Progress indicator bar
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  color: Colors.white.withValues(alpha: 0.3),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.psychology, color: GlassTheme.oceanBlue, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Tiến trình khảo sát: ",
-                        style: GlassTheme.labelCaps(color: GlassTheme.onSurfaceVariant),
-                      ),
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: _flowPhase == 0 ? 0.35 : (_flowPhase == 1 ? 0.75 : 1.0),
-                            backgroundColor: Colors.white.withValues(alpha: 0.4),
-                            color: GlassTheme.oceanBlue,
-                            minHeight: 6,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+      body: GlassBackground(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListenableBuilder(
+                listenable: appState,
+                builder: (context, child) {
+                  final messages = appState.chatMessages;
+                  final itemCount =
+                      messages.length + (appState.isAiTyping ? 1 : 0);
 
-                // Chat logs list
-                Expanded(
-                  child: ListenableBuilder(
-                    listenable: appState,
-                    builder: (context, child) {
-                      final messages = appState.chatMessages;
-                      
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                        itemCount: messages.length + (_flowPhase == 1 ? 1 : 0) + (appState.isAiTyping ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          // 1. Typing animation
-                          if (index == messages.length && appState.isAiTyping) {
-                            return _buildAiTypingIndicator();
-                          }
-                          
-                          // 2. Render survey block if flow phase is 1 (inline survey bento card)
-                          if (index == messages.length && _flowPhase == 1) {
-                            return _buildSymptomSurveyCard();
-                          }
-                          
-                          final msg = messages[index];
-                          return _buildChatBubble(msg);
-                        },
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      if (index == messages.length && appState.isAiTyping) {
+                        return _buildAiTypingIndicator();
+                      }
+                      final msg = messages[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildChatBubble(msg),
+                          if (msg.directive != null &&
+                              msg.directive!.isInteractive)
+                            ChatDirectiveView(
+                              directive: msg.directive!,
+                              enabled: !msg.directiveResolved,
+                              onPicked: (opt) => _onPicked(msg.directive!, opt),
+                              onConfirmed: (opts) =>
+                                  _onConfirmed(msg.directive!, opts),
+                              onSlider: (v) => _onSlider(msg.directive!, v),
+                              onBook: _onBook,
+                            ),
+                        ],
                       );
                     },
-                  ),
-                ),
-
-                // Bottom presets or text entry input bar
-                if (_flowPhase == 0) ...[
-                  _buildQuickSymptomsGrid(),
-                  _buildChatBar(),
-                ] else if (_flowPhase == 1) ...[
-                  // Prompt to complete analysis
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
-                    child: GlassButton(
-                      text: "Tiến hành phân tích y khoa AI",
-                      icon: Icons.auto_awesome,
-                      onPressed: _startAIAnalysis,
-                    ),
-                  ),
-                ],
-                
-                const SizedBox(height: 20),
-              ],
+                  );
+                },
+              ),
             ),
-          ),
-
-          // Fullscreen Overlay for AI computing progress (Phase 2)
-          if (_flowPhase == 2) _buildAIProcessingOverlay(),
-        ],
+            _buildChatBar(),
+          ],
+        ),
       ),
     );
   }
 
-  // Visual widgets
-
+  // ── chat bubble ─────────────────────────────────────────────────────────
   Widget _buildChatBubble(ChatMessage message) {
     final isMe = message.isUser;
-    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMe) ...[
@@ -289,12 +453,9 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               width: 32,
               height: 32,
               decoration: const BoxDecoration(
-                color: GlassTheme.oceanBlue,
-                shape: BoxShape.circle,
-              ),
+                  color: GlassTheme.oceanBlue, shape: BoxShape.circle),
               child: const Center(
-                child: Icon(Icons.smart_toy, color: Colors.white, size: 18),
-              ),
+                  child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
             ),
             const SizedBox(width: 8),
           ],
@@ -310,13 +471,40 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               opacity: isMe ? 0.8 : 0.6,
               borderColor: isMe ? GlassTheme.oceanBlue : Colors.white,
               borderWidth: 1.0,
-              child: Text(
-                message.text,
-                style: GlassTheme.bodyMd(
-                  color: isMe ? GlassTheme.oceanBlue : GlassTheme.onSurface,
-                ).copyWith(
-                  fontWeight: isMe ? FontWeight.w600 : FontWeight.normal,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (message.image != null) ...[
+                    GestureDetector(
+                      onTap: () => _showFullImage(message.image!),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: 200,
+                            maxWidth: 240,
+                          ),
+                          child: Image.memory(
+                            message.image!.bytes,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (message.text.isNotEmpty) const SizedBox(height: 8),
+                  ],
+                  if (message.text.isNotEmpty)
+                    Text(
+                      message.text,
+                      style: GlassTheme.bodyMd(
+                        color:
+                            isMe ? GlassTheme.oceanBlue : GlassTheme.onSurface,
+                      ).copyWith(
+                          fontWeight:
+                              isMe ? FontWeight.w600 : FontWeight.normal),
+                    ),
+                ],
               ),
             ),
           ),
@@ -326,14 +514,11 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: GlassTheme.accentGradient,
-                shape: BoxShape.circle,
-              ),
+                  gradient: GlassTheme.accentGradient, shape: BoxShape.circle),
               child: const Center(
-                child: Icon(Icons.person, color: Colors.white, size: 18),
-              ),
+                  child: Icon(Icons.person, color: Colors.white, size: 18)),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -348,12 +533,9 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
             width: 32,
             height: 32,
             decoration: const BoxDecoration(
-              color: GlassTheme.oceanBlue,
-              shape: BoxShape.circle,
-            ),
+                color: GlassTheme.oceanBlue, shape: BoxShape.circle),
             child: const Center(
-              child: Icon(Icons.smart_toy, color: Colors.white, size: 18),
-            ),
+                child: Icon(Icons.smart_toy, color: Colors.white, size: 18)),
           ),
           const SizedBox(width: 8),
           const GlassCard(
@@ -380,307 +562,115 @@ class _SymptomFlowScreenState extends State<SymptomFlowScreen> {
     );
   }
 
-  Widget _buildQuickSymptomsGrid() {
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _quickSymptoms.length,
-        itemBuilder: (context, index) {
-          final sym = _quickSymptoms[index];
-          return Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: ActionChip(
-              backgroundColor: Colors.white.withValues(alpha: 0.5),
-              side: BorderSide(color: GlassTheme.oceanBlue.withValues(alpha: 0.3)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              avatar: Icon(sym["icon"] as IconData, size: 16, color: GlassTheme.oceanBlue),
-              label: Text(sym["name"] as String, style: GlassTheme.bodyMd().copyWith(fontSize: 12)),
-              onPressed: () => _handleQuickSymptomTap(sym),
+  Widget _buildPendingImagePreview() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.memory(
+                _pendingImage!.bytes,
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+              ),
             ),
-          );
-        },
+            Positioned(
+              top: -8,
+              right: -8,
+              child: GestureDetector(
+                onTap: () => setState(() => _pendingImage = null),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: GlassTheme.error,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildChatBar() {
+    // GlassBackground already wraps the body in a SafeArea, so the Column's
+    // bottom edge sits right at the top of the floating nav bar. Only a small
+    // gap is needed to separate the chat bar from the nav bar.
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 96),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       child: GlassCard(
         padding: const EdgeInsets.all(8),
         borderRadius: 32,
         opacity: 0.8,
         borderColor: GlassTheme.oceanBlue,
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                color: GlassTheme.cyan,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(Icons.mic, color: Colors.white, size: 22),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: TextField(
-                  controller: _inputController,
-                  style: GlassTheme.bodyMd(),
-                  decoration: InputDecoration(
-                    hintText: "Mô tả triệu chứng của bạn...",
-                    hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
-                    border: InputBorder.none,
-                  ),
-                  onSubmitted: _handleSend,
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.send, color: GlassTheme.oceanBlue),
-              onPressed: () => _handleSend(_inputController.text),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSymptomSurveyCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: GlassCard(
-        borderColor: GlassTheme.cyan,
-        borderWidth: 1.5,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            if (_pendingImage != null) _buildPendingImagePreview(),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.assignment, color: GlassTheme.oceanBlue),
-                const SizedBox(width: 8),
-                Text(
-                  "Khảo Sát Chi Tiết Triệu Chứng",
-                  style: GlassTheme.h3(color: GlassTheme.oceanBlue).copyWith(fontSize: 15, fontWeight: FontWeight.bold),
+                IconButton(
+                  icon: const Icon(Icons.add_photo_alternate_outlined,
+                      color: GlassTheme.oceanBlue, size: 26),
+                  tooltip: "Đính kèm ảnh",
+                  onPressed: _showImageSourceSheet,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            // Duration selector
-            Text(
-              "Triệu chứng xuất hiện bao lâu rồi?",
-              style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: _durationOptions.map((opt) {
-                final isSelected = _durationSelected == opt;
-                return Expanded(
+                Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: isSelected ? GlassTheme.oceanBlue.withValues(alpha: 0.12) : Colors.transparent,
-                        side: BorderSide(
-                          color: isSelected ? GlassTheme.oceanBlue : GlassTheme.outline.withValues(alpha: 0.4),
-                          width: isSelected ? 2 : 1,
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: TextField(
+                      controller: _inputController,
+                      style: GlassTheme.bodyMd(),
+                      maxLines: 5,
+                      minLines: 1,
+                      keyboardType: TextInputType.multiline,
+                      textCapitalization: TextCapitalization.sentences,
+                      // No textInputAction.send — keeps Vietnamese Telex typing intact.
+                      decoration: InputDecoration(
+                        hintText: "Mô tả triệu chứng của bạn...",
+                        hintStyle: GlassTheme.bodyMd(color: GlassTheme.outline),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 10),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _durationSelected = opt;
-                        });
-                      },
-                      child: Text(
-                        opt,
-                        style: GlassTheme.bodyMd(
-                          color: isSelected ? GlassTheme.oceanBlue : GlassTheme.onSurface,
-                        ).copyWith(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 11,
-                        ),
-                      ),
+                      onSubmitted: _handleSend,
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-
-            // Severity Slider
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Mức độ khó chịu/đau đớn:",
-                  style: GlassTheme.bodyMd().copyWith(fontWeight: FontWeight.w600),
                 ),
-                Text(
-                  "${_severityValue.toInt()}/10",
-                  style: GlassTheme.h3(
-                    color: _severityValue >= 7.0
-                        ? GlassTheme.error
-                        : (_severityValue >= 4.0 ? Colors.orange : Colors.green),
-                  ).copyWith(fontSize: 16),
+                IconButton(
+                  icon: const Icon(Icons.send, color: GlassTheme.oceanBlue),
+                  onPressed: () => _handleSend(_inputController.text),
                 ),
-              ],
-            ),
-            Slider(
-              value: _severityValue,
-              min: 1.0,
-              max: 10.0,
-              divisions: 9,
-              activeColor: GlassTheme.oceanBlue,
-              inactiveColor: Colors.white30,
-              onChanged: (val) {
-                setState(() {
-                  _severityValue = val;
-                });
-              },
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Nhẹ nhàng", style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 11)),
-                Text("Rất dữ dội", style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant).copyWith(fontSize: 11)),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // High-fidelity AI calculation progress screen
-  Widget _buildAIProcessingOverlay() {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.4),
-      width: double.infinity,
-      height: double.infinity,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Large rotating pulsing circular analyzer
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: GlassTheme.cyan.withValues(alpha: 0.3),
-                          blurRadius: 50,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: CircularProgressIndicator(
-                      value: _analyzingProgress,
-                      strokeWidth: 8,
-                      color: GlassTheme.cyan,
-                      backgroundColor: Colors.white24,
-                    ),
-                  ),
-                  // Glowing glass center card with pulsing heart icon
-                  GlassCard(
-                    padding: EdgeInsets.zero,
-                    width: 120,
-                    height: 120,
-                    borderRadius: 60,
-                    opacity: 0.8,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.monitor_heart,
-                            color: GlassTheme.oceanBlue,
-                            size: 44,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "${(_analyzingProgress * 100).toInt()}%",
-                            style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              // Glowing Glass Text Panel
-              GlassCard(
-                opacity: 0.85,
-                borderColor: GlassTheme.oceanBlue,
-                borderWidth: 1.5,
-                child: Column(
-                  children: [
-                    Text(
-                      "AI Đang Phân Tích...",
-                      style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _analyzingStatus,
-                      style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(color: Colors.white30),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.lock, size: 14, color: GlassTheme.outline),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Đã mã hóa đầu cuối tuân thủ HIPAA",
-                          style: GlassTheme.labelCaps(color: GlassTheme.outline).copyWith(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 }
 
-// Micro pulsing dot animation for chatbot typing
+// Micro pulsing dot animation for chatbot typing.
 class _TypingDot extends StatefulWidget {
   final int delay;
-
   const _TypingDot({required this.delay});
 
   @override
   State<_TypingDot> createState() => _TypingDotState();
 }
 
-class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMixin {
+class _TypingDotState extends State<_TypingDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _anim;
 
@@ -688,18 +678,12 @@ class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMi
   void initState() {
     super.initState();
     _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
+        vsync: this, duration: const Duration(milliseconds: 600));
     _anim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
-
     Future.delayed(Duration(milliseconds: widget.delay), () {
-      if (mounted) {
-        _animController.repeat(reverse: true);
-      }
+      if (mounted) _animController.repeat(reverse: true);
     });
   }
 
@@ -717,9 +701,7 @@ class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMi
         width: 8,
         height: 8,
         decoration: const BoxDecoration(
-          color: GlassTheme.oceanBlue,
-          shape: BoxShape.circle,
-        ),
+            color: GlassTheme.oceanBlue, shape: BoxShape.circle),
       ),
     );
   }

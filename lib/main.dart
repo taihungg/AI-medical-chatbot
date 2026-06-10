@@ -16,7 +16,6 @@ void main() async {
   await DatabaseService.instance.init();
 
   // Pre-initialize and start any simulation background loops if needed
-  AppState.instance.startVitalsSimulation();
 
   runApp(const AICareBridgeApp());
 }

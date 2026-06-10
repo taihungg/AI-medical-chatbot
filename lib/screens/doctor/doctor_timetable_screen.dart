@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
-import '../../widgets/role_switcher.dart';
+import '../../models/models.dart';
 import 'clinical_workspace.dart';
 
 class DoctorTimetableScreen extends StatefulWidget {
@@ -66,90 +66,6 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
       appBar: GlassAppBar(
         title: "Lịch Làm Việc",
         automaticallyImplyLeading: false,
-        actions: [
-          PopupMenuButton<String>(
-            offset: const Offset(0, 56),
-            color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (value) {
-              if (value == 'switch_role') {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => const RoleSwitcher(),
-                );
-              } else if (value == 'dashboard') {
-                Navigator.pop(context);
-              } else if (value == 'logout') {
-                // handle logout
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'dashboard',
-                child: Row(
-                  children: [
-                    Icon(Icons.dashboard_outlined, size: 20, color: Colors.black54),
-                    SizedBox(width: 12),
-                    Text("Bảng điều khiển"),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'toggle_busy',
-                child: StatefulBuilder(
-                  builder: (context, setPopupState) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.do_not_disturb_on_outlined, size: 20, color: Colors.black54),
-                            SizedBox(width: 12),
-                            Text("Đang bận"),
-                          ],
-                        ),
-                        Switch(
-                          value: appState.isDoctorBusy,
-                          onChanged: (val) {
-                            appState.toggleDoctorBusy();
-                            setPopupState(() {});
-                          },
-                          activeTrackColor: Colors.red.withValues(alpha: 0.5),
-                          activeThumbColor: Colors.red,
-                          inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
-                        ),
-                      ],
-                    );
-                  }
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.red, size: 20),
-                    SizedBox(width: 12),
-                    Text("Đăng xuất", style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: appState.isDoctorBusy ? Colors.red : GlassTheme.oceanBlue,
-                    child: const Icon(Icons.person_pin, color: Colors.white, size: 20),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
       body: GlassBackground(
         child: SingleChildScrollView(
@@ -356,6 +272,17 @@ class _DoctorTimetableScreenState extends State<DoctorTimetableScreen> {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: InkWell(
         onTap: () {
+          final appState = AppState.instance;
+          final hasActive = appState.appointments.any((a) => a.status == 'Đang khám' && a.id != appt.id);
+          if (hasActive && appt.status != 'Đã khám') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("⚠️ Bạn đang có một ca khám chưa hoàn tất. Vui lòng hoàn thành trước khi nhận ca mới."),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
           // Push sang ClinicalWorkspace đầy đủ màn hình
           Navigator.push(
             context,

@@ -16,20 +16,21 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   Widget build(BuildContext context) {
     final appState = AppState.instance;
     
-    // Lọc lịch sử khám (chỉ những ca đã khám)
-    final history = appState.appointments.where((appt) {
-      if (appt.status != 'Đã khám') return false;
-      if (_searchQuery.isNotEmpty) {
-        return appt.patientName.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-               appt.id.toLowerCase().contains(_searchQuery.toLowerCase());
-      }
-      return true;
-    }).toList();
-    
-    // Sort by date descending
-    history.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    return ListenableBuilder(
+      listenable: appState,
+      builder: (context, child) {
+        final history = appState.appointments.where((appt) {
+          if (appt.status != 'Đã khám') return false;
+          if (_searchQuery.isNotEmpty) {
+            return appt.patientName.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                   appt.id.toLowerCase().contains(_searchQuery.toLowerCase());
+          }
+          return true;
+        }).toList();
+        
+        history.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-    return Scaffold(
+        return Scaffold(
       appBar: const GlassAppBar(
         title: "Lịch sử ca khám",
         automaticallyImplyLeading: false,
@@ -136,6 +137,8 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
           ),
         ),
       ),
+    );
+    },
     );
   }
 

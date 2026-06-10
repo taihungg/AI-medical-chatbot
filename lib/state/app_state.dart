@@ -43,16 +43,15 @@ class AppState extends ChangeNotifier {
 
   List<AppAppointment> get appointments => DatabaseService.instance.appointments;
 
+  DateTime? _activeExamStartTime;
+  DateTime? get activeExamStartTime => _activeExamStartTime;
+
   void toggleDoctorBusy() {
-    _isDoctorBusy = !_isDoctorBusy;
-    if (!_isDoctorBusy) {
-      if (_activeConsultation != null) {
-        final currentId = _activeConsultation!.id;
-        updateAppointmentStatus(currentId, 'Chưa khám');
-        _activeConsultation = null;
-        addAuditLog("Bác sĩ tự động chuyển ca $currentId sang CHƯA KHÁM do tắt trạng thái BẬN");
-      }
+    if (_activeConsultation != null) {
+      addAuditLog("Không thể thay đổi trạng thái Đang bận khi đang có ca khám.");
+      return;
     }
+    _isDoctorBusy = !_isDoctorBusy;
     addAuditLog(_isDoctorBusy ? "Bác sĩ chuyển trạng thái sang ĐANG BẬN" : "Bác sĩ chuyển trạng thái sang ĐANG RẢNH");
     notifyListeners();
   }
@@ -61,6 +60,7 @@ class AppState extends ChangeNotifier {
 
   bool startExamination(String id) {
     if (_activeConsultation != null && _activeConsultation!.id != id) {
+      addAuditLog("Lỗi: Không thể bắt đầu ca $id vì đang có ca khám ${_activeConsultation!.id}");
       return false;
     }
     final db = DatabaseService.instance;
@@ -69,6 +69,7 @@ class AppState extends ChangeNotifier {
       db.appointments[idx].status = 'Đang khám';
       db.updateAppointment(db.appointments[idx]);
       _activeConsultation = db.appointments[idx];
+      _activeExamStartTime ??= DateTime.now();
       _isDoctorBusy = true;
       addAuditLog("Bác sĩ bắt đầu khám ca $id");
       notifyListeners();
@@ -81,6 +82,7 @@ class AppState extends ChangeNotifier {
     if (_activeConsultation?.id == id) {
       updateAppointmentStatus(id, 'Chưa khám');
       _activeConsultation = null;
+      _activeExamStartTime = null;
       notifyListeners();
     }
   }
@@ -178,6 +180,12 @@ class AppState extends ChangeNotifier {
   String _selectedSymptomsText = '';
   String get selectedSymptomsText => _selectedSymptomsText;
 
+  void completeDirectAssessment(String symptoms, String riskLevel) {
+    _selectedSymptomsText = symptoms;
+    _currentRiskLevel = riskLevel;
+    notifyListeners();
+  }
+
   final ConversationEngine _engine = ConversationEngine();
   final GeminiService? _geminiService = Env.hasGeminiApiKey
       ? GeminiService(apiKey: Env.geminiApiKey, model: Env.geminiModel)
@@ -208,6 +216,9 @@ class AppState extends ChangeNotifier {
 
   void setActiveConsultation(AppAppointment? appt) {
     _activeConsultation = appt;
+    if (appt == null) {
+      _activeExamStartTime = null;
+    }
     notifyListeners();
   }
 
@@ -402,8 +413,8 @@ class AppState extends ChangeNotifier {
     required String risk,
     required bool isOnline,
   }) {
-    final id = "APT-${(1000 + Random().nextInt(8999))}";
     final db = DatabaseService.instance;
+    final id = "APT-${100 + db.appointments.length + 1}";
     
     // Find doctor id
     String doctorId = '';
@@ -413,7 +424,7 @@ class AppState extends ChangeNotifier {
 
     final newAppt = AppAppointment(
       id: id,
-      patientId: 'PT-001',
+      patientId: _currentUserProfile?.email ?? 'PT-001',
       patientName: patientName,
       branchName: branch,
       doctorId: doctorId,
@@ -493,6 +504,8 @@ class AppState extends ChangeNotifier {
       
       if (_activeConsultation?.id == apptId) {
         _activeConsultation = null;
+        _activeExamStartTime = null;
+        _isDoctorBusy = false;
       }
       addAuditLog("BS đã ký và ban hành đơn thuốc số $apptId của bệnh nhân ${db.appointments[idx].patientName}");
       notifyListeners();

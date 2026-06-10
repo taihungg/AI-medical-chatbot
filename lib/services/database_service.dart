@@ -19,7 +19,7 @@ class DatabaseService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     
     // Check if we already seeded the db
-    final isSeeded = prefs.getBool('isSeeded') ?? false;
+    final isSeeded = prefs.getBool('isSeeded_v2') ?? false;
 
     if (!isSeeded) {
       await _seedInitialData(prefs);
@@ -119,57 +119,39 @@ class DatabaseService extends ChangeNotifier {
       Doctor(id: 'DR-004', name: 'BS. Phạm Minh Tâm', specialty: 'Khoa Tim mạch', branch: 'Phòng khám Đa khoa Quốc tế', status: 'Hoạt động', phone: '0901112226', email: 'tam.pham@hospital.com', pendingPrescriptions: 5, finalizedPrescriptions: 40),
     ];
 
-    appointments = [
-      AppAppointment(
-        id: 'APT-001',
-        patientId: 'PT-001',
-        patientName: 'Trần Thế Bảo',
+    appointments = List.generate(12, (index) {
+      final now = DateTime.now();
+      // Distribute across last 7 days and today/tomorrow
+      final dayOffset = index < 3 ? 0 : (index < 5 ? 1 : -(index % 7)); 
+      final hour = 8 + (index % 8); // 8:00 AM to 3:00 PM
+      final date = now.add(Duration(days: dayOffset));
+      final dateTime = DateTime(date.year, date.month, date.day, hour, 0);
+      
+      final statuses = ['Chưa khám', 'Đang khám', 'Đã khám', 'Đã khám'];
+      String status = statuses[index % statuses.length];
+      
+      if (dayOffset < 0) status = 'Đã khám';
+      if (dayOffset > 0) status = 'Chưa khám';
+      if (dayOffset == 0 && index == 0) status = 'Đang khám';
+      if (dayOffset == 0 && index > 0 && index < 2) status = 'Chưa khám';
+
+      return AppAppointment(
+        id: 'APT-${101 + index}',
+        patientId: 'PT-00${(index % 4) + 1}',
+        patientName: patients[index % patients.length].name,
         branchName: 'Bệnh viện Đa Khoa Trung Ương',
-        doctorId: 'DR-001',
-        doctorName: 'BS. Nguyễn Văn An',
-        specialty: 'Khoa Tim mạch',
-        dateTime: DateTime.now().add(const Duration(minutes: 30)),
-        timeSlot: '08:30 - Hôm nay',
-        symptomSummary: 'Đau thắt ngực lan ra cánh tay trái, vã mồ hôi, khó thở mức độ nặng.',
-        riskLevel: 'Khẩn cấp',
-        aiSummary: 'Bệnh nhân nam 32 tuổi. Tiền sử tăng huyết áp chưa rõ. Đau thắt ngực lan ra tay trái, nghi ngờ nhồi máu cơ tim cấp. Cần ECG và men tim khẩn.',
-        isOnline: true,
-        status: 'Chờ duyệt',
-        vitals: {'pulse': 110.0, 'spO2': 94.0, 'temp': 37.0, 'bpSystolic': 160.0, 'bpDiastolic': 100.0},
-      ),
-      AppAppointment(
-        id: 'APT-002',
-        patientId: 'PT-002',
-        patientName: 'Lê Thị Thu Thảo',
-        branchName: 'Phòng khám Đa khoa Quốc tế',
-        doctorId: 'DR-002',
-        doctorName: 'BS. Lê Thị Bình',
-        specialty: 'Khoa Nội',
-        dateTime: DateTime.now().add(const Duration(hours: 1)),
-        timeSlot: '09:15 - Hôm nay',
-        symptomSummary: 'Viêm họng, ho có đờm, không sốt.',
-        riskLevel: 'Thấp',
-        aiSummary: 'Bệnh nhân nữ 28 tuổi. Viêm họng cấp, có thể do virus.',
-        isOnline: false,
-        status: 'Chờ duyệt',
-      ),
-      AppAppointment(
-        id: 'APT-003',
-        patientId: 'PT-003',
-        patientName: 'Vũ Hoàng Minh',
-        branchName: 'Bệnh viện Đa Khoa Trung Ương',
-        doctorId: 'DR-003',
-        doctorName: 'BS. Trần Quốc Đạt',
-        specialty: 'Khoa Thần kinh',
-        dateTime: DateTime.now().subtract(const Duration(days: 1)),
-        timeSlot: '14:00 - Hôm qua',
-        symptomSummary: 'Đau đầu, chóng mặt kéo dài 3 ngày.',
-        riskLevel: 'Trung bình',
-        aiSummary: 'Bệnh nhân nam 45 tuổi. Đau đầu có thể do căng thẳng hoặc cao huyết áp. Cần kiểm tra HA.',
-        isOnline: true,
-        status: 'Đã xác nhận',
-      ),
-    ];
+        doctorId: doctors[index % doctors.length].id,
+        doctorName: doctors[index % doctors.length].name,
+        specialty: doctors[index % doctors.length].specialty,
+        dateTime: dateTime,
+        timeSlot: '${hour.toString().padLeft(2, '0')}:00 - ${(hour + 1).toString().padLeft(2, '0')}:00',
+        symptomSummary: patients[index % patients.length].aiSymptomSummary,
+        riskLevel: index % 3 == 0 ? 'Khẩn cấp' : 'Thấp',
+        aiSummary: 'Tóm tắt AI: ${patients[index % patients.length].aiSymptomSummary}',
+        isOnline: index % 2 == 0,
+        status: status,
+      );
+    });
 
     medications = [
       Medication(id: 'MED-001', name: 'Paracetamol 500mg', type: 'Viên nén', category: 'Thuốc giảm đau, hạ sốt', stock: 'Còn hàng', usage: 'Uống 1 viên mỗi 4-6 giờ', activeIngredient: 'Paracetamol', sideEffects: 'Dị ứng, mẩn ngứa, buồn nôn', manufacturer: 'Dược Hậu Giang', dateAdded: '12/01/2024', price: '25,000 đ/vỉ'),
@@ -178,7 +160,7 @@ class DatabaseService extends ChangeNotifier {
       Medication(id: 'MED-004', name: 'Vitamin C 1000mg', type: 'Viên sủi', category: 'Vitamin & Khoáng chất', stock: 'Còn hàng', usage: 'Uống 1 viên/ngày, sáng', activeIngredient: 'Vitamin C', sideEffects: 'Sỏi thận (nếu dùng kéo dài)', manufacturer: 'Bayer', dateAdded: '15/04/2024', price: '75,000 đ/tuýp'),
     ];
 
-    await prefs.setBool('isSeeded', true);
+    await prefs.setBool('isSeeded_v2', true);
     await _saveToPrefs();
   }
 

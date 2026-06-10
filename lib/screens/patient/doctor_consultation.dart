@@ -3,13 +3,22 @@ import '../../state/app_state.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../models/models.dart';
 
-class DoctorConsultationScreen extends StatelessWidget {
+class DoctorConsultationScreen extends StatefulWidget {
   final AppAppointment appointment;
 
   const DoctorConsultationScreen({
     super.key,
     required this.appointment,
   });
+
+  @override
+  State<DoctorConsultationScreen> createState() => _DoctorConsultationScreenState();
+}
+
+class _DoctorConsultationScreenState extends State<DoctorConsultationScreen> {
+  bool isMicOn = true;
+  bool isCamOn = true;
+  bool isScreenSharing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +75,13 @@ class DoctorConsultationScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              appointment.doctorName,
+                              widget.appointment.doctorName,
                               style: GlassTheme.h2(color: Colors.white),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              appointment.specialty,
+                              widget.appointment.specialty,
                               style: GlassTheme.bodyMd(color: Colors.white70),
                               textAlign: TextAlign.center,
                             ),
@@ -92,7 +101,7 @@ class DoctorConsultationScreen extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  "${appointment.patientName} • ${appointment.timeSlot}",
+                                  "${widget.appointment.patientName} • ${widget.appointment.timeSlot}",
                                   style: GlassTheme.bodyMd(color: Colors.white),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -114,17 +123,40 @@ class DoctorConsultationScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              GlassCard(
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: GlassTheme.oceanBlue.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(24),
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _CallAction(icon: Icons.mic, label: "Mic"),
-                    _CallAction(icon: Icons.videocam, label: "Camera"),
-                    _CallAction(icon: Icons.screen_share, label: "Chia sẻ"),
+                    _CallAction(
+                      icon: isMicOn ? Icons.mic_outlined : Icons.mic_off_outlined,
+                      label: isMicOn ? "Tắt mic" : "Mở mic",
+                      iconColor: isMicOn ? Colors.white : Colors.red,
+                      backgroundColor: isMicOn ? Colors.white24 : Colors.red.withValues(alpha: 0.2),
+                      onTap: () => setState(() => isMicOn = !isMicOn),
+                    ),
+                    _CallAction(
+                      icon: isCamOn ? Icons.videocam_outlined : Icons.videocam_off_outlined,
+                      label: isCamOn ? "Tắt cam" : "Mở cam",
+                      iconColor: isCamOn ? Colors.white : Colors.red,
+                      backgroundColor: isCamOn ? Colors.white24 : Colors.red.withValues(alpha: 0.2),
+                      onTap: () => setState(() => isCamOn = !isCamOn),
+                    ),
+                    _CallAction(
+                      icon: isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
+                      label: isScreenSharing ? "Dừng chia sẻ" : "Chia sẻ",
+                      iconColor: isScreenSharing ? Colors.greenAccent : Colors.white,
+                      backgroundColor: isScreenSharing ? Colors.green.withValues(alpha: 0.2) : Colors.white24,
+                      onTap: () => setState(() => isScreenSharing = !isScreenSharing),
+                    ),
                     _CallAction(
                       icon: Icons.call_end,
                       label: "Kết thúc",
-                      color: GlassTheme.error,
+                      backgroundColor: Colors.red,
                       onTap: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -141,7 +173,7 @@ class DoctorConsultationScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      appointment.symptomSummary,
+                      widget.appointment.symptomSummary,
                       style:
                           GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
                     ),
@@ -159,37 +191,44 @@ class DoctorConsultationScreen extends StatelessWidget {
 class _CallAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final Color backgroundColor;
+  final Color iconColor;
   final VoidCallback? onTap;
 
   const _CallAction({
     required this.icon,
     required this.label,
-    this.color = GlassTheme.oceanBlue,
+    this.backgroundColor = Colors.white24,
+    this.iconColor = Colors.white,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: color.withValues(alpha: 0.12),
-              child: Icon(icon, color: color),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: GlassTheme.labelCaps(color: color).copyWith(fontSize: 9),
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap ?? () {},
+        borderRadius: BorderRadius.circular(24),
+        splashColor: Colors.white.withValues(alpha: 0.1),
+        highlightColor: Colors.white.withValues(alpha: 0.05),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: backgroundColor,
+                child: Icon(icon, color: iconColor),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: const TextStyle(color: Colors.white, fontSize: 10),
+              ),
+            ],
+          ),
         ),
       ),
     );
