@@ -76,88 +76,25 @@ class _DoctorSpecialistDashboardState extends State<DoctorSpecialistDashboard> {
         final countDone =
             todayAppointments.where((a) => a.status == 'Đã khám').length;
 
+        final String appBarTitle = (isMobile && _selectedAppointment != null)
+            ? "Ca khám: ${_selectedAppointment!.patientName}"
+            : (isMobile ? "Bác Sĩ" : "Cổng Thông Tin Bác Sĩ");
+
         return Scaffold(
           appBar: GlassAppBar(
-            title: isMobile ? "Bác Sĩ" : "Cổng Thông Tin Bác Sĩ",
-            actions: [
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
-                offset: const Offset(0, 56),
-                tooltip: "Menu Bác sĩ",
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                onSelected: (value) {
-                  if (value == 'logout') {
-                    appState.logout();
-                  } else if (value == 'account') {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
-                    );
-                  } else if (value == 'settings') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
-                    );
-                  } else if (value == 'switch_role') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const SplashScreen()),
-                    );
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'info',
-                    enabled: false,
-                    child: Text(
-                      appState.currentUserProfile?.name ?? _doctorName,
-                      style: GlassTheme.bodyLg().copyWith(
-                          fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'account',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person_outline, size: 20, color: Colors.black54),
-                        SizedBox(width: 12),
-                        Text("Quản lý tài khoản"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'settings',
-                    child: Row(
-                      children: [
-                        Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
-                        SizedBox(width: 12),
-                        Text("Cài đặt"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout, color: Colors.red, size: 20),
-                        SizedBox(width: 12),
-                        Text("Đăng xuất", style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'switch_role',
-                    child: Row(
-                      children: [
-                        Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
-                        SizedBox(width: 12),
-                        Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 8),
-            ],
+            title: appBarTitle,
+            showLogo: !(isMobile && _selectedAppointment != null),
+            automaticallyImplyLeading: false,
+            leading: (isMobile && _selectedAppointment != null)
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back, color: GlassTheme.oceanBlue),
+                    onPressed: () {
+                      setState(() {
+                        _selectedAppointment = null;
+                      });
+                    },
+                  )
+                : null,
           ),
           body: GlassBackground(
             child: Row(
@@ -781,18 +718,21 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
     final appt =
         appState.appointments.firstWhere((a) => a.id == widget.appointmentId);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: GlassAppBar(
-        title: "WORKSPACE LÂM SÀNG: ${appt.patientName} (${appt.id})",
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: GlassTheme.oceanBlue),
-          onPressed: widget.onClosed,
-        ),
-      ),
-      body: Column(
-        children: [
-          // Core workspace scroll area
+    final bool isMobile = MediaQuery.of(context).size.width < 700;
+
+    Widget bodyContent = Column(
+      children: [
+        if (!isMobile)
+          GlassAppBar(
+            title: "Ca khám: ${appt.patientName} (${appt.id})",
+            showLogo: false,
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: GlassTheme.oceanBlue),
+              onPressed: widget.onClosed,
+            ),
+          ),
+        // Core workspace scroll area
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -1072,9 +1012,10 @@ class _ClinicalWorkspaceState extends State<ClinicalWorkspace> {
               ],
             ),
           ),
-        ],
-      ),
+      ],
     );
+
+    return bodyContent;
   }
 
 

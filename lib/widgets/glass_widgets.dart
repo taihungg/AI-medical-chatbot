@@ -461,6 +461,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final List<Widget>? actions;
   final bool automaticallyImplyLeading;
+  final bool showLogo;
 
   const GlassAppBar({
     super.key,
@@ -468,6 +469,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.actions,
     this.automaticallyImplyLeading = true,
+    this.showLogo = true,
   });
 
   @override
@@ -492,17 +494,22 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    'assets/images/logo.png',
-                    width: 34,
-                    height: 34,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.health_and_safety, color: GlassTheme.oceanBlue, size: 28),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    title,
-                    style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+                  if (showLogo) ...[
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 34,
+                      height: 34,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.health_and_safety, color: GlassTheme.oceanBlue, size: 28),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),

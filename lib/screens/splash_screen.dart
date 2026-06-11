@@ -9,6 +9,7 @@ import 'patient/patient_history_screen.dart';
 import 'patient/patient_menu_screen.dart';
 import 'doctor/specialist_dashboard.dart';
 import 'doctor/doctor_timetable_screen.dart';
+import 'doctor/doctor_menu_screen.dart';
 import 'manager/clinic_management_dashboard.dart';
 import 'login_screen.dart';
 
@@ -367,11 +368,13 @@ class DoctorShell extends StatelessWidget {
         final pages = [
           const DoctorSpecialistDashboard(),
           const DoctorTimetableScreen(),
+          const DoctorMenuScreen(),
         ];
 
         final items = [
           GlassNavItem(icon: Icons.dashboard, label: "Tổng quan"),
           GlassNavItem(icon: Icons.calendar_month, label: "Lịch làm việc"),
+          GlassNavItem(icon: Icons.menu, label: "Menu"),
         ];
 
         return Scaffold(
