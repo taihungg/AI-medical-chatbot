@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import '../widgets/glass_widgets.dart';
 import '../state/app_state.dart';
 import 'account/account_management_screen.dart';
-import 'patient/symptom_flow.dart';
 import 'patient/appointment_booking_tab.dart';
+import 'patient/patient_dashboard.dart';
+import 'patient/chat_history_list_screen.dart';
+import 'patient/patient_history_screen.dart';
+import 'patient/patient_menu_screen.dart';
 import 'doctor/specialist_dashboard.dart';
 import 'doctor/doctor_timetable_screen.dart';
 import 'manager/clinic_management_dashboard.dart';
@@ -301,31 +304,31 @@ class _MainFrameworkState extends State<MainFramework> {
   }
 
   Widget _buildPatientShell() {
-    // Shell managing bottom navigation bar for Patient
-    // Tab 0: AI Chatbot (SymptomFlowScreen)
-    // Tab 1: Đặt lịch khám (AppointmentBookingTab)
-    // Tab 2: Lịch sử y khoa (PatientHistoryScreen)
     final appState = AppState.instance;
     final activeIndex = appState.patientNavIndex;
 
     final pages = [
-      const SymptomFlowScreen(),
+      const PatientDashboardScreen(),
+      const ChatHistoryListScreen(),
       appState.isAuthenticated ? const AppointmentBookingTab() : const PatientLoginRequiredScreen(title: "Đặt lịch khám"),
       appState.isAuthenticated ? const PatientHistoryScreen() : const PatientLoginRequiredScreen(title: "Lịch sử y khoa"),
+      const PatientMenuScreen(),
     ];
 
     final items = [
-      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Tư vấn AI"),
-      GlassNavItem(icon: Icons.edit_calendar, label: "Đặt lịch"),
+      GlassNavItem(icon: Icons.dashboard_outlined, label: "Trang chủ"),
+      GlassNavItem(icon: Icons.chat_bubble_outline, label: "Tư vấn", isProminent: true),
+      GlassNavItem(icon: Icons.edit_calendar, label: "Đặt lịch", isProminent: true),
       GlassNavItem(icon: Icons.history, label: "Lịch sử"),
+      GlassNavItem(icon: Icons.menu, label: "Menu"),
     ];
 
     // Auto-switch to booking tab when AI triggers it
-    if (appState.pendingBookingFromAI && activeIndex != 1) {
+    if (appState.pendingBookingFromAI && activeIndex != 2) {
       // Schedule the tab switch after the current frame to avoid build-during-build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          appState.setPatientNavIndex(1);
+          appState.setPatientNavIndex(2);
           appState.consumeBookingTrigger();
         }
       });
@@ -336,6 +339,13 @@ class _MainFrameworkState extends State<MainFramework> {
       body: IndexedStack(
         index: activeIndex,
         children: pages,
+      ),
+      bottomNavigationBar: GlassNavigationBar(
+        selectedIndex: activeIndex,
+        onTap: (index) {
+          appState.setPatientNavIndex(index);
+        },
+        items: items,
       ),
     );
   }
@@ -393,323 +403,7 @@ class ClinicManagerShell extends StatelessWidget {
   }
 }
 
-// Temporary empty screens until implemented
-class PatientHistoryScreen extends StatelessWidget {
-  const PatientHistoryScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final appState = AppState.instance;
-
-    return ListenableBuilder(
-      listenable: appState,
-      builder: (context, child) {
-        final doneAppts = appState.appointments;
-
-        return Scaffold(
-          appBar: GlassAppBar(
-            title: "Lịch Sử Khám Bệnh",
-            actions: [
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
-                tooltip: "Menu",
-                offset: const Offset(0, 56),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                onSelected: (value) {
-                  if (value == 'ai_chat') {
-                    appState.setPatientNavIndex(0);
-                  } else if (value == 'booking') {
-                    appState.setPatientNavIndex(1);
-                  } else if (value == 'history') {
-                    appState.setPatientNavIndex(2);
-                  } else if (value == 'account') {
-                    if (!appState.isAuthenticated) {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen(expectedRole: UserRole.patient)));
-                      return;
-                    }
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AccountManagementScreen()),
-                    );
-                  } else if (value == 'settings') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Chức năng Cài đặt đang được phát triển.")),
-                    );
-                  } else if (value == 'logout') {
-                    appState.logout();
-                  } else if (value == 'switch_role') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const SplashScreen()),
-                    );
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'ai_chat',
-                    child: Row(
-                      children: [
-                        Icon(Icons.chat_bubble_outline,
-                            size: 20, color: GlassTheme.oceanBlue),
-                        SizedBox(width: 12),
-                        Text("Tư vấn AI"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'booking',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit_calendar,
-                            size: 20, color: GlassTheme.oceanBlue),
-                        SizedBox(width: 12),
-                        Text("Đặt lịch"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'history',
-                    child: Row(
-                      children: [
-                        Icon(Icons.history,
-                            size: 20, color: GlassTheme.oceanBlue),
-                        SizedBox(width: 12),
-                        Text("Lịch sử"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'account',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person_outline, size: 20, color: Colors.black54),
-                        SizedBox(width: 12),
-                        Text("Quản lý tài khoản"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'settings',
-                    child: Row(
-                      children: [
-                        Icon(Icons.settings_outlined, size: 20, color: Colors.black54),
-                        SizedBox(width: 12),
-                        Text("Cài đặt"),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout, size: 20, color: Colors.red),
-                        SizedBox(width: 12),
-                        Text("Đăng xuất", style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'switch_role',
-                    child: Row(
-                      children: [
-                        Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange),
-                        SizedBox(width: 12),
-                        Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: GlassBackground(
-            child: !appState.isAuthenticated
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.login, size: 64, color: GlassTheme.oceanBlue),
-                            const SizedBox(height: 24),
-                            Text(
-                              "Yêu cầu Đăng Nhập",
-                              style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              "Bạn cần đăng nhập với tài khoản Bệnh nhân để xem lịch sử khám bệnh.",
-                              textAlign: TextAlign.center,
-                              style: GlassTheme.bodyMd(color: GlassTheme.onSurfaceVariant),
-                            ),
-                            const SizedBox(height: 32),
-                            SizedBox(
-                              width: double.infinity,
-                              child: GlassButton(
-                                text: "Đăng Nhập",
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const LoginScreen(
-                                        expectedRole: UserRole.patient,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-              children: [
-                const SizedBox(height: 20),
-                if (doneAppts.isEmpty)
-                  const GlassCard(
-                    child: Center(child: Text("Không có lịch sử khám bệnh.")),
-                  )
-                else
-                  ...doneAppts.map(
-                    (appt) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: appt.status == 'Hoàn thành'
-                                        ? Colors.green.withValues(alpha: 0.12)
-                                        : Colors.amber.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    appt.status,
-                                    style: GlassTheme.labelCaps(
-                                      color: appt.status == 'Hoàn thành'
-                                          ? Colors.green
-                                          : Colors.amber[800]!,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  appt.id,
-                                  style: GlassTheme.labelCaps(
-                                    color: GlassTheme.outline,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(appt.doctorName, style: GlassTheme.h3()),
-                            Text(
-                              "${appt.specialty} • ${appt.branchName}",
-                              style: GlassTheme.bodyMd(
-                                color: GlassTheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Divider(color: Colors.white38),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.calendar_today,
-                                  size: 14,
-                                  color: GlassTheme.oceanBlue,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  "${appt.dateTime.day}/${appt.dateTime.month}/${appt.dateTime.year} - ${appt.timeSlot}",
-                                  style: GlassTheme.bodyMd().copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Triệu chứng: ${appt.symptomSummary}",
-                              style: GlassTheme.bodyMd(
-                                color: GlassTheme.onSurfaceVariant,
-                              ),
-                            ),
-                            if (appt.clinicalNotes.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Chẩn đoán từ bác sĩ:",
-                                      style: GlassTheme.bodyMd().copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      appt.clinicalNotes,
-                                      style: GlassTheme.bodyMd(
-                                        color: GlassTheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            if (appt.prescriptionSigned &&
-                                appt.prescriptionList.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.assignment_turned_in,
-                                    size: 16,
-                                    color: Colors.green,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    "Đơn thuốc đã ký điện tử",
-                                    style: GlassTheme.labelCaps(
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 80),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 class PatientLoginRequiredScreen extends StatelessWidget {
   final String title;
@@ -721,43 +415,7 @@ class PatientLoginRequiredScreen extends StatelessWidget {
     return Scaffold(
       appBar: GlassAppBar(
         title: title,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu, color: GlassTheme.oceanBlue),
-            tooltip: "Menu",
-            offset: const Offset(0, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (value) {
-              if (value == 'ai_chat') {
-                appState.setPatientNavIndex(0);
-              } else if (value == 'booking') {
-                appState.setPatientNavIndex(1);
-              } else if (value == 'history') {
-                appState.setPatientNavIndex(2);
-              } else if (value == 'account') {
-                if (!appState.isAuthenticated) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoginScreen(expectedRole: UserRole.patient)));
-                  return;
-                }
-                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AccountManagementScreen()));
-              } else if (value == 'logout') {
-                appState.logout();
-              } else if (value == 'switch_role') {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SplashScreen()));
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'ai_chat', child: Row(children: [Icon(Icons.chat_bubble_outline, size: 20, color: GlassTheme.oceanBlue), SizedBox(width: 12), Text("Tư vấn AI")])),
-              const PopupMenuItem(value: 'booking', child: Row(children: [Icon(Icons.edit_calendar, size: 20, color: GlassTheme.oceanBlue), SizedBox(width: 12), Text("Đặt lịch")])),
-              const PopupMenuItem(value: 'history', child: Row(children: [Icon(Icons.history, size: 20, color: GlassTheme.oceanBlue), SizedBox(width: 12), Text("Lịch sử")])),
-              const PopupMenuDivider(),
-              const PopupMenuItem(value: 'account', child: Row(children: [Icon(Icons.person_outline, size: 20, color: Colors.black54), SizedBox(width: 12), Text("Quản lý tài khoản")])),
-              const PopupMenuItem(value: 'settings', child: Row(children: [Icon(Icons.settings_outlined, size: 20, color: Colors.black54), SizedBox(width: 12), Text("Cài đặt")])),
-              const PopupMenuDivider(),
-              const PopupMenuItem(value: 'switch_role', child: Row(children: [Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: Colors.orange), SizedBox(width: 12), Text("Đổi vai trò (Demo)", style: TextStyle(color: Colors.orange))])),
-            ],
-          )
-        ],
+        automaticallyImplyLeading: false,
       ),
       body: GlassBackground(
         child: Center(

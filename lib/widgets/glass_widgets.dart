@@ -35,25 +35,25 @@ class GlassTheme {
   );
 
   // Typography Styles
-  static TextStyle h1({Color color = onSurface}) => GoogleFonts.poppins(
+  static TextStyle h1({Color color = onSurface}) => GoogleFonts.inter(
         fontSize: 30,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         height: 1.2,
         letterSpacing: -0.6,
         color: color,
       );
 
-  static TextStyle h2({Color color = onSurface}) => GoogleFonts.poppins(
+  static TextStyle h2({Color color = onSurface}) => GoogleFonts.inter(
         fontSize: 22,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         height: 1.3,
         letterSpacing: -0.3,
         color: color,
       );
 
-  static TextStyle h3({Color color = onSurface}) => GoogleFonts.poppins(
+  static TextStyle h3({Color color = onSurface}) => GoogleFonts.inter(
         fontSize: 18,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         height: 1.4,
         color: color,
       );
@@ -111,9 +111,11 @@ class GlassBackground extends StatelessWidget {
                 color: GlassTheme.oceanBlue.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                child: Container(color: Colors.transparent),
+              child: RepaintBoundary(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                  child: Container(color: Colors.transparent),
+                ),
               ),
             ),
           ),
@@ -127,9 +129,11 @@ class GlassBackground extends StatelessWidget {
                 color: GlassTheme.cyan.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
-                child: Container(color: Colors.transparent),
+              child: RepaintBoundary(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
+                  child: Container(color: Colors.transparent),
+                ),
               ),
             ),
           ),
@@ -143,9 +147,11 @@ class GlassBackground extends StatelessWidget {
                 color: const Color(0xFF72F7ED).withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-                child: Container(color: Colors.transparent),
+              child: RepaintBoundary(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+                  child: Container(color: Colors.transparent),
+                ),
               ),
             ),
           ),
@@ -205,19 +211,21 @@ class GlassCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: resolvedRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: opacity),
-              borderRadius: resolvedRadius,
-              border: Border.all(
-                color: borderColor.withValues(alpha: 0.4),
-                width: borderWidth,
+        child: RepaintBoundary(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: opacity),
+                borderRadius: resolvedRadius,
+                border: Border.all(
+                  color: borderColor.withValues(alpha: 0.4),
+                  width: borderWidth,
+                ),
               ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),
@@ -475,25 +483,40 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: AppBar(
-            backgroundColor: Colors.white.withValues(alpha: 0.7),
-            elevation: 0,
-            title: Text(
-              title,
-              style: GlassTheme.h2(color: GlassTheme.oceanBlue),
-            ),
-            centerTitle: false,
-            automaticallyImplyLeading: automaticallyImplyLeading,
-            iconTheme: const IconThemeData(color: GlassTheme.oceanBlue),
-            leading: leading,
-            actions: actions,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Container(
-                color: Colors.white.withValues(alpha: 0.4),
-                height: 1,
+        child: RepaintBoundary(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: AppBar(
+              backgroundColor: Colors.white.withValues(alpha: 0.7),
+              elevation: 0,
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 34,
+                    height: 34,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.health_and_safety, color: GlassTheme.oceanBlue, size: 28),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    title,
+                    style: GlassTheme.h2(color: GlassTheme.oceanBlue),
+                  ),
+                ],
+              ),
+              centerTitle: false,
+              automaticallyImplyLeading: automaticallyImplyLeading,
+              iconTheme: const IconThemeData(color: GlassTheme.oceanBlue),
+              leading: leading,
+              actions: actions,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  height: 1,
+                ),
               ),
             ),
           ),
@@ -552,21 +575,45 @@ class GlassNavigationBar extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          item.icon,
-                          color: active
-                              ? GlassTheme.oceanBlue
-                              : GlassTheme.onSurfaceVariant,
-                          size: 24,
-                        ),
+                        if (item.isProminent)
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: active ? GlassTheme.primaryGradient : GlassTheme.accentGradient,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: GlassTheme.oceanBlue.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                              ]
+                            ),
+                            child: Icon(
+                              item.icon,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          )
+                        else
+                          Icon(
+                            item.icon,
+                            color: active
+                                ? GlassTheme.oceanBlue
+                                : GlassTheme.onSurfaceVariant,
+                            size: 24,
+                          ),
                         const SizedBox(height: 4),
                         Text(
                           item.label,
                           style: GlassTheme.labelCaps(
                             color: active
                                 ? GlassTheme.oceanBlue
-                                : GlassTheme.onSurfaceVariant,
-                          ).copyWith(fontSize: 9),
+                                : (item.isProminent ? GlassTheme.teal : GlassTheme.onSurfaceVariant),
+                          ).copyWith(
+                            fontSize: 9,
+                            fontWeight: item.isProminent ? FontWeight.w800 : FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -584,6 +631,7 @@ class GlassNavigationBar extends StatelessWidget {
 class GlassNavItem {
   final IconData icon;
   final String label;
+  final bool isProminent;
 
-  GlassNavItem({required this.icon, required this.label});
+  GlassNavItem({required this.icon, required this.label, this.isProminent = false});
 }

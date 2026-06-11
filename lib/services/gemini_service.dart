@@ -75,7 +75,7 @@ class GeminiService {
             selectedSymptomsText: selectedSymptomsText,
           )),
         )
-        .timeout(const Duration(seconds: 24));
+        .timeout(const Duration(seconds: 60));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw GeminiServiceException(
@@ -236,7 +236,7 @@ class GeminiService {
       selectedSymptomsText: selectedSymptomsText,
     ));
 
-    final response = await _client.send(request).timeout(const Duration(seconds: 30));
+    final response = await _client.send(request).timeout(const Duration(seconds: 60));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final body = await response.stream.bytesToString();

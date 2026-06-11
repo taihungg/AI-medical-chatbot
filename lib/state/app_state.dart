@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/env.dart';
 import '../services/gemini_service.dart';
 import '../services/database_service.dart';
@@ -26,6 +28,54 @@ class ChatMessage {
     this.directiveResolved = false,
     this.image,
   });
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'isUser': isUser,
+        'time': time.toIso8601String(),
+        if (directive != null) 'directive': directive!.toJson(),
+        'directiveResolved': directiveResolved,
+      };
+
+  factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
+        text: j['text'] as String,
+        isUser: j['isUser'] as bool,
+        time: DateTime.parse(j['time'] as String),
+        directive: j['directive'] != null ? ChatUiDirective.fromJson(j['directive'] as Map<String, dynamic>) : null,
+        directiveResolved: j['directiveResolved'] as bool? ?? false,
+      );
+}
+
+class ChatSession {
+  final String id;
+  final DateTime startTime;
+  final List<ChatMessage> messages;
+  String currentRiskLevel;
+  String selectedSymptomsText;
+
+  ChatSession({
+    required this.id,
+    required this.startTime,
+    List<ChatMessage>? messages,
+    this.currentRiskLevel = 'Thấp',
+    this.selectedSymptomsText = '',
+  }) : messages = messages ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'startTime': startTime.toIso8601String(),
+        'messages': messages.map((m) => m.toJson()).toList(),
+        'currentRiskLevel': currentRiskLevel,
+        'selectedSymptomsText': selectedSymptomsText,
+      };
+
+  factory ChatSession.fromJson(Map<String, dynamic> j) => ChatSession(
+        id: j['id'] as String,
+        startTime: DateTime.parse(j['startTime'] as String),
+        messages: (j['messages'] as List?)?.map((e) => ChatMessage.fromJson(e as Map<String, dynamic>)).toList(),
+        currentRiskLevel: j['currentRiskLevel'] as String? ?? 'Thấp',
+        selectedSymptomsText: j['selectedSymptomsText'] as String? ?? '',
+      );
 }
 
 class AppState extends ChangeNotifier {
@@ -139,8 +189,45 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  final List<ChatMessage> _chatMessages = [];
-  List<ChatMessage> get chatMessages => _chatMessages;
+  final List<ChatSession> _chatSessions = [];
+  List<ChatSession> get chatSessions => _chatSessions;
+
+  Future<void> _saveChatSessions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = jsonEncode(_chatSessions.map((s) => s.toJson()).toList());
+    await prefs.setString('chat_sessions', jsonStr);
+  }
+
+  Future<void> _loadChatSessions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString('chat_sessions');
+    if (jsonStr != null) {
+      try {
+        final List dec = jsonDecode(jsonStr);
+        _chatSessions.clear();
+        _chatSessions.addAll(dec.map((e) => ChatSession.fromJson(e)).toList());
+        if (_chatSessions.isNotEmpty) {
+          _activeSessionId = _chatSessions.first.id;
+        }
+      } catch (e) {
+        // Fallback to defaults on error
+      }
+    }
+  }
+
+  String? _activeSessionId;
+  String? get activeSessionId => _activeSessionId;
+
+  ChatSession? get activeSession {
+    if (_activeSessionId == null) return null;
+    try {
+      return _chatSessions.firstWhere((s) => s.id == _activeSessionId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<ChatMessage> get chatMessages => activeSession?.messages ?? [];
 
   int _patientNavIndex = 0;
   int get patientNavIndex => _patientNavIndex;
@@ -165,11 +252,38 @@ class AppState extends ChangeNotifier {
   bool _isAiTyping = false;
   bool get isAiTyping => _isAiTyping;
 
-  String _currentRiskLevel = 'Thấp';
-  String get currentRiskLevel => _currentRiskLevel;
+  String get currentRiskLevel => activeSession?.currentRiskLevel ?? 'Thấp';
 
-  String _selectedSymptomsText = '';
-  String get selectedSymptomsText => _selectedSymptomsText;
+  String get selectedSymptomsText => activeSession?.selectedSymptomsText ?? '';
+
+  String createNewSession() {
+    final newSession = ChatSession(
+      id: "CS-${DateTime.now().millisecondsSinceEpoch}",
+      startTime: DateTime.now(),
+    );
+    _chatSessions.insert(0, newSession);
+    _activeSessionId = newSession.id;
+    
+    _isAiTyping = false;
+    _engine.reset();
+
+    final opening = _engine.opening();
+    newSession.messages.add(ChatMessage(
+      text: opening.text,
+      isUser: false,
+      time: DateTime.now(),
+      directive: opening.directive,
+    ));
+    
+    _saveChatSessions();
+    notifyListeners();
+    return newSession.id;
+  }
+
+  void setActiveSession(String id) {
+    _activeSessionId = id;
+    notifyListeners();
+  }
 
   final ConversationEngine _engine = ConversationEngine();
   final GeminiService? _geminiService = Env.hasGeminiApiKey
@@ -194,8 +308,11 @@ class AppState extends ChangeNotifier {
   }
 
   void clearBookingData() {
-    _selectedSymptomsText = '';
-    _currentRiskLevel = 'Thấp';
+    if (activeSession != null) {
+      activeSession!.selectedSymptomsText = '';
+      activeSession!.currentRiskLevel = 'Thấp';
+    }
+    _saveChatSessions();
     notifyListeners();
   }
 
@@ -218,14 +335,31 @@ class AppState extends ChangeNotifier {
   }
 
   void _initDefaults() {
-    final opening = _engine.opening();
-    _chatMessages.add(ChatMessage(
-      text: opening.text,
-      isUser: false,
-      time: DateTime.now(),
-      directive: opening.directive,
-    ));
-    _auditLogs.add("[Hệ thống] Hệ thống DrAI đã sẵn sàng phục vụ.");
+    _loadChatSessions().then((_) {
+      if (_chatSessions.isEmpty) {
+        final mockSession = ChatSession(
+          id: "CS-Mock-1",
+          startTime: DateTime.now().subtract(const Duration(days: 2)),
+          currentRiskLevel: 'Thấp',
+          selectedSymptomsText: 'Bệnh nhân có triệu chứng đau đầu nhẹ, đã được tư vấn nghỉ ngơi.',
+        );
+        mockSession.messages.add(ChatMessage(
+          text: 'Chào bác sĩ, hôm qua tôi bị đau đầu.',
+          isUser: true,
+          time: DateTime.now().subtract(const Duration(days: 2, minutes: 10)),
+        ));
+        mockSession.messages.add(ChatMessage(
+          text: 'Chào bạn, bạn có kèm theo sốt hay chóng mặt không?',
+          isUser: false,
+          time: DateTime.now().subtract(const Duration(days: 2, minutes: 9)),
+        ));
+        _chatSessions.add(mockSession);
+
+        createNewSession();
+      }
+      _auditLogs.add("[Hệ thống] Hệ thống DrAI đã sẵn sàng phục vụ.");
+      notifyListeners();
+    });
   }
 
   void sendChatMessage(String text, {ChatAttachment? image}) {
@@ -249,6 +383,7 @@ class AppState extends ChangeNotifier {
   }) {
     _markDirectiveResolved(directiveId);
     _appendUser(userEcho);
+    _saveChatSessions();
     addAuditLog("Bệnh nhân chọn: $userEcho");
     _runTurn(ChatTurnContext(
       directiveId: directiveId,
@@ -259,17 +394,21 @@ class AppState extends ChangeNotifier {
   }
 
   void _appendUser(String text, {ChatAttachment? image}) {
-    _chatMessages.add(ChatMessage(
-      text: text,
-      isUser: true,
-      time: DateTime.now(),
-      image: image,
-    ));
-    notifyListeners();
+    if (activeSession != null) {
+      activeSession!.messages.add(ChatMessage(
+        text: text,
+        isUser: true,
+        time: DateTime.now(),
+        image: image,
+      ));
+      _saveChatSessions();
+      notifyListeners();
+    }
   }
 
   void _markDirectiveResolved(String directiveId) {
-    for (final m in _chatMessages) {
+    if (activeSession == null) return;
+    for (final m in activeSession!.messages) {
       if (m.directive?.directiveId == directiveId) {
         m.directiveResolved = true;
       }
@@ -285,7 +424,7 @@ class AppState extends ChangeNotifier {
       if (_geminiService != null) {
         _isAiTyping = false;
         streamingMsg = ChatMessage(text: '', isUser: false, time: DateTime.now());
-        _chatMessages.add(streamingMsg);
+        activeSession?.messages.add(streamingMsg);
         notifyListeners();
       }
 
@@ -297,24 +436,28 @@ class AppState extends ChangeNotifier {
       });
       _isAiTyping = false;
 
-      if (reply.setSymptomsText != null) {
-        _selectedSymptomsText = reply.setSymptomsText!;
+      if (activeSession != null) {
+        if (reply.setSymptomsText != null) {
+          activeSession!.selectedSymptomsText = reply.setSymptomsText!;
+        }
+        if (reply.setRiskLevel != null) {
+          activeSession!.currentRiskLevel = reply.setRiskLevel!;
+        }
+        if (streamingMsg != null) {
+          activeSession!.messages.removeLast();
+        }
+        activeSession!.messages.add(ChatMessage(
+          text: reply.text,
+          isUser: false,
+          time: DateTime.now(),
+          directive: reply.directive,
+        ));
       }
-      if (reply.setRiskLevel != null) _currentRiskLevel = reply.setRiskLevel!;
-
-      if (streamingMsg != null) {
-        _chatMessages.removeLast();
-      }
-      _chatMessages.add(ChatMessage(
-        text: reply.text,
-        isUser: false,
-        time: DateTime.now(),
-        directive: reply.directive,
-      ));
 
       if (reply.triggerBooking) triggerBookingFromAI();
 
       addAuditLog("AI phản hồi (${reply.directive?.type.name ?? 'text'}).");
+      _saveChatSessions();
       notifyListeners();
     });
   }
@@ -328,8 +471,8 @@ class AppState extends ChangeNotifier {
       return await gemini.generateReplyStreamed(
         turn: ctx,
         history: _geminiHistorySnapshot(),
-        currentRiskLevel: _currentRiskLevel,
-        selectedSymptomsText: _selectedSymptomsText,
+        currentRiskLevel: currentRiskLevel,
+        selectedSymptomsText: selectedSymptomsText,
         onPartialText: onPartialText,
       );
     } catch (e) {
@@ -349,7 +492,8 @@ class AppState extends ChangeNotifier {
   }
 
   List<GeminiChatMessage> _geminiHistorySnapshot() {
-    return _chatMessages
+    final msgs = activeSession?.messages ?? [];
+    return msgs
         .map((m) => GeminiChatMessage(
             role: m.isUser ? 'user' : 'assistant',
             text: m.text,
@@ -361,25 +505,16 @@ class AppState extends ChangeNotifier {
   }
 
   void resetChat() {
-    _chatMessages.clear();
-    _currentRiskLevel = 'Thấp';
-    _selectedSymptomsText = '';
-    _isAiTyping = false;
-    _engine.reset();
+    createNewSession();
     
     if (_geminiService != null) {
       addAuditLog("Người dùng đặt lại cuộc trò chuyện AI (Gemini).");
+      activeSession?.messages.clear();
+      _saveChatSessions();
       _runTurn(const ChatTurnContext(userText: '__OPENING__'));
       return;
     }
 
-    final opening = _engine.opening();
-    _chatMessages.add(ChatMessage(
-      text: opening.text,
-      isUser: false,
-      time: DateTime.now(),
-      directive: opening.directive,
-    ));
     addAuditLog("Người dùng đặt lại cuộc trò chuyện AI (Demo).");
     notifyListeners();
   }

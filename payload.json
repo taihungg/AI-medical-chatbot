@@ -1,0 +1,260 @@
+{
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "Bạn là chuyên viên y tế AI thân thiện, thấu cảm của ứng dụng DrAI.\n\nNhiệm vụ:\n- Giao tiếp tự nhiên, thân thiện và cá nhân hóa. Hãy đóng vai một người tư vấn tận tâm, lắng nghe và đưa ra những tư vấn y tế sơ bộ một cách linh hoạt. Hãy giải thích, an ủi hoặc trò chuyện như một người bạn, thay vì chỉ liên tục đặt câu hỏi theo khuôn mẫu.\n- LUÔN TRẢ VỀ ĐÚNG MỘT OBJECT JSON theo schema yêu cầu. KHÔNG bọc bằng markdown (```json).\n- TRONG TRƯỜNG \"text\", CHỈ ĐƯỢC VIẾT VĂN BẢN THÔNG THƯỜNG (TEXT). TUYỆT ĐỐI KHÔNG LỒNG THÊM JSON VÀO TRONG TRƯỜNG \"text\".\n- Không chẩn đoán chắc chắn, không kê đơn chắc chắn, không thay thế bác sĩ.\n- Luôn khuyến nghị gọi cấp cứu hoặc mở SOS khi có dấu hiệu khẩn cấp.\n\nXử lý hình ảnh:\n- Người dùng có thể GỬI ẢNH (vết thương, phát ban, tổn thương da, đơn thuốc, kết quả xét nghiệm...). Ảnh được đính kèm dưới dạng phần inlineData; các lượt có ảnh được đánh dấu \"hasImage\": true trong dữ liệu ngữ cảnh.\n- Khi có ảnh: hãy MÔ TẢ KHÁCH QUAN những gì bạn quan sát được (vị trí, màu sắc, kích thước, đặc điểm) và đưa nhận định đó vào đánh giá triệu chứng tổng thể.\n- TUYỆT ĐỐI KHÔNG chẩn đoán chắc chắn chỉ dựa trên ảnh. Nếu ảnh mờ/thiếu sáng/không rõ, hãy lịch sự yêu cầu người chụp lại rõ hơn.\n- Nếu ảnh cho thấy dấu hiệu đáng ngại (vết thương sâu/chảy máu nhiều, nhiễm trùng lan rộng, tổn thương nghi ngờ ác tính...), nâng mức nguy cơ phù hợp và khuyến nghị khám trực tiếp hoặc cấp cứu.\n\nSử dụng UI components (directives):\n- Bạn CÓ THỂ thêm \"directive\" vào JSON nếu nó giúp người dùng trả lời nhanh (quickPickChips, multiSelectChips, vv.), nhưng KHÔNG BẮT BUỘC. Nếu không cần, chỉ trả về JSON có trường \"text\", bỏ qua \"directive\".\n\nQuy tắc khẩn cấp:\n- Nếu có triệu chứng nguy kịch (đau ngực kèm khó thở, ngất, vã mồ hôi lạnh, yếu liệt đột ngột, chảy máu nặng, sốc phản vệ...): trả về type = \"emergencyAlert\", kèm theo lời khuyên rõ ràng yêu cầu bệnh nhân đến ngay bệnh viện hoặc gọi cấp cứu 115. Đặt setRiskLevel = \"Khẩn cấp\".\n- Nếu nguy cơ cao nhưng chưa cấp cứu: setRiskLevel = \"Cao\" và ưu tiên reportSummary/đặt lịch sớm.\n\nQuy tắc UI khác:\n- Nếu user text là \"__OPENING__\", hãy chào hỏi thật tự nhiên và ấm áp, hỏi xem người dùng đang gặp vấn đề gì (ví dụ: \"Chào bạn, tôi là Trợ lý DrAI. Hôm nay bạn cảm thấy trong người thế nào? Tôi có thể giúp gì cho bạn?\").\n- directiveId phải vô cùng ngắn gọn, dưới 20 ký tự (ví dụ: \"chat1\", \"fever_ask\"). TUYỆT ĐỐI KHÔNG sinh chuỗi ID dài ngoằn.\n- Khi đủ thông tin, hãy trả về reportSummary và setSymptomsText bằng đoạn tóm tắt để người dùng dễ dàng đặt lịch khám.\n"
+      }
+    ]
+  },
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "{\"currentRiskLevel\":\"Thấp\",\"selectedSymptomsText\":\"Không có\",\"latestTurn\":{\"userText\":\"Tôi đau đầu quá\",\"isFreeText\":true},\"history\":[]}"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.7,
+    "maxOutputTokens": 2048,
+    "responseMimeType": "application/json",
+    "responseJsonSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "directive": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "none",
+                "quickPickChips",
+                "multiSelectChips",
+                "severitySlider",
+                "timeRangePicker",
+                "yesNo",
+                "bodyPartPicker",
+                "reportSummary",
+                "emergencyAlert"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": "string",
+                    "enum": [
+                      "head",
+                      "stomach",
+                      "heart",
+                      "fever",
+                      "lungs",
+                      "chest",
+                      "back",
+                      "limb",
+                      "dizzy",
+                      "nausea",
+                      "light",
+                      "time",
+                      "check",
+                      "close"
+                    ]
+                  },
+                  "riskHint": {
+                    "type": "string",
+                    "enum": [
+                      "Thấp",
+                      "Trung bình",
+                      "Cao",
+                      "Khẩn cấp"
+                    ]
+                  },
+                  "nextNodeId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ]
+              }
+            },
+            "slider": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                },
+                "divisions": {
+                  "type": "integer"
+                },
+                "minLabel": {
+                  "type": "string"
+                },
+                "maxLabel": {
+                  "type": "string"
+                },
+                "unitSuffix": {
+                  "type": "string"
+                }
+              }
+            },
+            "timeRanges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": "string",
+                    "enum": [
+                      "head",
+                      "stomach",
+                      "heart",
+                      "fever",
+                      "lungs",
+                      "chest",
+                      "back",
+                      "limb",
+                      "dizzy",
+                      "nausea",
+                      "light",
+                      "time",
+                      "check",
+                      "close"
+                    ]
+                  },
+                  "riskHint": {
+                    "type": "string",
+                    "enum": [
+                      "Thấp",
+                      "Trung bình",
+                      "Cao",
+                      "Khẩn cấp"
+                    ]
+                  },
+                  "nextNodeId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ]
+              }
+            },
+            "report": {
+              "type": "object",
+              "properties": {
+                "chiefComplaint": {
+                  "type": "string"
+                },
+                "associated": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "severity": {
+                  "type": "integer"
+                },
+                "duration": {
+                  "type": "string"
+                },
+                "riskLevel": {
+                  "type": "string",
+                  "enum": [
+                    "Thấp",
+                    "Trung bình",
+                    "Cao",
+                    "Khẩn cấp"
+                  ]
+                },
+                "recommendation": {
+                  "type": "string"
+                },
+                "suggestedSpecialty": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "chiefComplaint",
+                "riskLevel"
+              ]
+            },
+            "allowFreeText": {
+              "type": "boolean"
+            },
+            "directiveId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "directiveId"
+          ]
+        },
+        "setSymptomsText": {
+          "type": "string"
+        },
+        "setRiskLevel": {
+          "type": "string",
+          "enum": [
+            "Thấp",
+            "Trung bình",
+            "Cao",
+            "Khẩn cấp"
+          ]
+        },
+        "triggerBooking": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    }
+  },
+  "safetySettings": [
+    {
+      "category": "HARM_CATEGORY_HARASSMENT",
+      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+    },
+    {
+      "category": "HARM_CATEGORY_HATE_SPEECH",
+      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+    },
+    {
+      "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+    },
+    {
+      "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+    }
+  ]
+}

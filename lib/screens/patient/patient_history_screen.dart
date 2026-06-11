@@ -21,21 +21,9 @@ class PatientHistoryScreen extends StatelessWidget {
             allAppts.where((a) => a.status == 'Hoàn thành').toList();
 
         return Scaffold(
-          appBar: GlassAppBar(
+          appBar: const GlassAppBar(
             title: "Lịch Hẹn Của Tôi",
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.swap_horizontal_circle_outlined,
-                    color: GlassTheme.oceanBlue, size: 28),
-                tooltip: "Đổi vai trò",
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
+            automaticallyImplyLeading: false,
           ),
           body: GlassBackground(
             child: allAppts.isEmpty
