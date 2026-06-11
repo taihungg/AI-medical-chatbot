@@ -1,0 +1,196 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.topControls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface-white);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 0 12px;
+  width: 320px;
+  height: 44px;
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  padding: 8px;
+  width: 100%;
+  outline: none;
+  font-size: 14px;
+}
+
+.addBtn {
+  height: 44px;
+  padding: 0 20px;
+  background-color: var(--medical-blue);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.addBtn:hover {
+  background-color: var(--medical-blue-hover);
+}
+
+.tabsRow {
+  display: flex;
+  gap: 8px;
+}
+
+.pillTab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: transparent;
+  transition: all 0.2s;
+}
+
+.pillTab:hover {
+  background-color: var(--border-light);
+}
+
+.pillActive {
+  background-color: var(--info-bg);
+  color: var(--info-blue);
+  font-weight: 700;
+}
+
+.pillActive:hover {
+  background-color: var(--info-bg);
+}
+
+.tableContainer {
+  background-color: var(--surface-white);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dataTable th {
+  text-align: left;
+  padding: 16px 24px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.dataTable td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.dataTable tbody tr:hover {
+  background-color: var(--hover-row);
+}
+
+.rightAlign {
+  text-align: right !important;
+}
+
+.ptInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background-color: var(--info-bg);
+  color: var(--medical-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ptName {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.ptId {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.categoryBadge {
+  background-color: var(--info-bg);
+  color: var(--info-blue);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.statusUrgent {
+  background-color: var(--error-bg);
+  color: var(--error-red);
+}
+
+.statusStable {
+  background-color: var(--success-bg);
+  color: var(--success-green);
+}
+
+.actionBtn {
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.actionBtn:hover {
+  background-color: var(--border-light);
+}

@@ -1,0 +1,54 @@
+/* Reset & Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Colors */
+  --medical-blue: #2563eb;
+  --medical-blue-hover: #1d4ed8;
+  --bg-slate: #f8fafc;
+  --surface-white: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border-light: #e2e8f0;
+  --hover-row: #f8fafc;
+  
+  /* Status Colors */
+  --error-red: #dc2626;
+  --error-bg: #fee2e2;
+  --success-green: #059669;
+  --success-bg: #d1fae5;
+  --info-blue: #1e40af;
+  --info-bg: #dbeafe;
+  --warning-orange: #ea580c;
+  --warning-bg: #ffedd5;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-drawer: -4px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-slate);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif; /* Sẽ bị override bởi Next Font nếu có */
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
